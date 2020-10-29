@@ -1,0 +1,6 @@
+asgi-lifespan
+httpx
+pytest
+pytest-asyncio
+
+-e .
