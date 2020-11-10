@@ -11,6 +11,7 @@ ASGI-Tools
 - `Response`            -- Send HTTP (html, json) responses
 - `RequestMiddleware`   -- Parse a scope and insert the parsed request into the scope
 - `ResponseMiddleware`  -- Parse responses and convert them into ASGI messages
+- `RouterMiddleware`    -- Route HTTP requests
 - `LifespanMiddleware`  -- Process a lifespan cycle
 - `AppMiddleware`       -- A combined (request, response, lifespan) middleware to make ASGI apps
 

@@ -1,2 +1,3 @@
 multidict
 yarl
+http-router     >= 0.0.9

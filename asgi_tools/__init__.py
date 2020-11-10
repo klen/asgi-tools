@@ -5,10 +5,14 @@ __license__ = "MIT"
 
 
 class ASGIError(Exception):
+    """Base class for ASGI-Tools Errors."""
+
     pass
 
 
 class ASGIDecodeError(ASGIError):
+    """ASGI-Tools decoding error."""
+
     pass
 
 
