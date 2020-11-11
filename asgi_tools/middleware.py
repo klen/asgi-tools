@@ -52,6 +52,11 @@ class BaseMiddeware:
 
         return await self.app(scope, receive, send)
 
+    def __getattr__(self, name):
+        """Proxy middleware methods to root level."""
+
+        return getattr(self.app, name)
+
     async def process(self, scope, receive, send):
         """Do the middleware's logic."""
 

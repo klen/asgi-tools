@@ -151,18 +151,18 @@ async def test_lifespan_middlewares():
 
 @pytest.mark.asyncio
 async def test_router_middlewares():
-    from asgi_tools import RouterMiddleware, Response
+    from asgi_tools import RouterMiddleware, ResponseMiddleware
 
-    def page1(scope, receive, send):
-        return Response('page1')(scope, receive, send)
+    async def page1(scope, receive, send):
+        return 'page1'
 
-    def page2(scope, receive, send):
-        return Response('page2')(scope, receive, send)
+    async def page2(scope, receive, send):
+        return 'page2'
 
-    def index(scope, receive, send):
-        return Response('Not Found', 404)(scope, receive, send)
+    async def index(scope, receive, send):
+        return 404, 'Not Found'
 
-    app = RouterMiddleware(index, routes={'/page1': page1, '/page2': page2})
+    app = ResponseMiddleware(RouterMiddleware(index, routes={'/page1': page1, '/page2': page2}))
 
     async with AsyncClient(app=app, base_url='http://testserver') as client:
         res = await client.get('/')
