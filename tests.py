@@ -96,7 +96,7 @@ async def test_request_response_middlewares():
     from asgi_tools import RequestMiddleware, ResponseMiddleware, combine
 
     async def app(scope, receive, send):
-        request = scope['extensions']['request']
+        request = scope['request']
         data = await request.form()
         data = await request.json()
         first_name = data.get('first_name', 'Anonymous')
@@ -182,6 +182,7 @@ async def test_app_middleware():
         on_startup=lambda: events.setdefault('started', True),
         on_shutdown=lambda: events.setdefault('finished', True)
     )
+
     @app.route('/hello/{name}', methods="post")
     async def hello(request, name=None, **kwargs):
         breakpoint()

@@ -64,8 +64,7 @@ class RequestMiddleware(BaseMiddeware):
     async def process(self, scope, receive, send):
         """Parse the scope into a request and integrate it into the scope."""
 
-        scope.setdefault('extensions', {})
-        scope['extensions']['request'] = Request(scope, receive, send)
+        scope['request'] = Request(scope, receive, send)
         return await self.app(scope, receive, send)
 
 
@@ -150,8 +149,7 @@ class RouterMiddleware(BaseMiddeware):
     async def process(self, scope, receive, send):
         """Get an app and process."""
         app, opts = self.dispatch(scope)
-        scope.setdefault('extensions', {})
-        scope['extensions']['router'] = opts
+        scope['router'] = opts
         return await app(scope, receive, send)
 
     def dispatch(self, scope):
