@@ -92,6 +92,19 @@ async def test_response():
 
 
 @pytest.mark.asyncio
+async def test_response_middleware():
+    from asgi_tools import ResponseMiddleware
+
+    # Test default response
+    app = ResponseMiddleware()
+    async with AsyncClient(
+            app=app, base_url='http://testserver') as client:
+        res = await client.get('/')
+        assert res.status_code == 200
+        assert res.text == 'Default response from ASGI-Tools'
+
+
+@pytest.mark.asyncio
 async def test_request_response_middlewares():
     from asgi_tools import RequestMiddleware, ResponseMiddleware, combine
 

@@ -39,10 +39,10 @@ class BaseMiddeware:
 
     scopes = {'http', 'websockets'}
 
-    def __init__(self, app, **kwargs):
+    def __init__(self, app=None, **kwargs):
         """Save ASGI App."""
 
-        self.app = app
+        self.app = app or HTMLResponse("Default response from ASGI-Tools")
 
     async def __call__(self, scope, receive, send):
         """Handle ASGI call."""
