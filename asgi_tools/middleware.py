@@ -4,7 +4,6 @@ from asyncio import iscoroutine
 
 from http_router import Router
 
-from . import SUPPORTED_SCOPES
 from .request import Request
 from .response import Response, PlainTextResponse, HTMLResponse, JSONResponse
 from .utils import to_coroutine
@@ -42,15 +41,15 @@ class BaseMiddeware:
     def __init__(self, app=None, **kwargs):
         """Save ASGI App."""
 
-        self.app = app or HTMLResponse("Default response from ASGI-Tools")
+        self.app = app or HTMLResponse("Not Found", status_code=404)
 
-    async def __call__(self, scope, receive, send):
+    async def __call__(self, scope, *args, **kwargs):
         """Handle ASGI call."""
 
         if scope['type'] in self.scopes:
-            return await self.process(scope, receive, send)
+            return await self.process(scope, *args, **kwargs)
 
-        return await self.app(scope, receive, send)
+        return await self.app(scope, *args, **kwargs)
 
     def __getattr__(self, name):
         """Proxy middleware methods to root level."""
@@ -66,23 +65,35 @@ class BaseMiddeware:
 class RequestMiddleware(BaseMiddeware):
     """Provider asgi_tools.Request to apps."""
 
-    async def process(self, scope, receive, send):
+    def __init__(self, app=None, pass_request=False, **kwargs):
+        """Initialize the middleware.
+
+        :param pass_request: pass a request instead a scope to ASGI Application
+        """
+        super(RequestMiddleware, self).__init__(app, **kwargs)
+        self.pass_request = pass_request
+
+    async def process(self, scope, *args, **kwargs):
         """Parse the scope into a request and integrate it into the scope."""
 
-        scope['request'] = Request(scope, receive, send)
-        return await self.app(scope, receive, send)
+        request = Request(scope, *args)
+        if self.pass_request:
+            return await self.app(request, **kwargs)
+
+        scope['request'] = request
+        return await self.app(scope, *args, **kwargs)
 
 
 class ResponseMiddleware(BaseMiddeware):
     """Support asgi_tools.Response."""
 
-    async def process(self, scope, receive, send):
+    async def process(self, *args, **kwargs):
         """Parse responses from callbacks."""
 
-        res = await self.app(scope, receive, send)
+        res = await self.app(*args, **kwargs)
         if res:
             res = await parse_response(res)
-            await res(scope, receive, send)
+            await res(*args, **kwargs)
 
 
 class LifespanMiddleware(BaseMiddeware):
@@ -143,19 +154,24 @@ class LifespanMiddleware(BaseMiddeware):
 class RouterMiddleware(BaseMiddeware):
     """Bind callbacks to HTTP paths."""
 
-    def __init__(self, app, routes=None, **kwargs):
+    def __init__(
+            self, app, routes=None, raise_not_found=True,
+            trim_last_slash=False, pass_params=False, **kwargs):
         """Initialize HTTP router."""
         super(RouterMiddleware, self).__init__(app, **kwargs)
-        self.router = Router(**kwargs)
+        self.router = Router(raise_not_found=raise_not_found, trim_last_slash=trim_last_slash)
+        self.pass_params = pass_params
         if routes:
             for path, cb in routes.items():
                 self.router.route(path)(cb)
 
-    async def process(self, scope, receive, send):
+    async def process(self, scope, *args, **kwargs):
         """Get an app and process."""
-        app, opts = self.dispatch(scope)
-        scope['router'] = opts
-        return await app(scope, receive, send)
+        app, params = self.dispatch(scope)
+        if self.pass_params:
+            return await app(scope, *args, **params)
+        scope['router'] = params
+        return await app(scope, *args, **kwargs)
 
     def dispatch(self, scope):
         """Lookup for a callback."""
@@ -169,33 +185,17 @@ class RouterMiddleware(BaseMiddeware):
         return self.router.route(*args, **kwargs)
 
 
-class AppMiddleware(LifespanMiddleware, RouterMiddleware):
-    """Combine all middlewares into one."""
-
-    def __init__(self, app=None, **kwargs):
-        """Prepare the middleware."""
-        if not app:
-            async def app(request, **kwargs):
-                return Response('Not Found', status_code=404)
-
-        super(AppMiddleware, self).__init__(app, **kwargs)
-
-    async def __call__(self, scope, receive, send):
-        """Parse requests, responses, route queries."""
-        if scope['type'] not in SUPPORTED_SCOPES:
-            return await super().__call__(scope, receive, send)
-
-        request = Request(scope, receive, send)
-        app, opts = self.dispatch(scope)
-        response = await app(request, **opts)
-        app = await parse_response(response)
-        await app(scope, receive, send)
+def AppMiddleware(app, **params):
+    """Combine middlewares to create an application."""
+    return combine(
+        app, LifespanMiddleware, ResponseMiddleware, RouterMiddleware, RequestMiddleware,
+        pass_params=True, pass_request=True, **params)
 
 
-def combine(app, *middlewares):
-    """Combine the given middlewares into an application."""
+def combine(app, *middlewares, **params):
+    """Combine the given middlewares into the given application."""
 
     for md in list(middlewares)[::-1]:
-        app = md(app)
+        app = md(app, **params)
 
     return app

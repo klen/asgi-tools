@@ -65,7 +65,7 @@ async def test_response():
     response.cookies['session']['path'] = '/'
     assert response.body == b"Content"
     assert response.status_code == 200
-    assert response.headers == [
+    assert response.get_headers() == [
         (b"content-type", b"text/html; charset=utf-8"),
         (b'set-cookie', b'session=test-session; Path=/'),
     ]
@@ -74,8 +74,8 @@ async def test_response():
     assert messages[0] == {
         'headers': [
             (b'content-type', b'text/html; charset=utf-8'),
-            (b'content-length', b'7'),
             (b'set-cookie', b'session=test-session; Path=/'),
+            (b'content-length', b'7'),
         ],
         'status': 200,
         'type': 'http.response.start'
@@ -84,7 +84,7 @@ async def test_response():
 
     response = await parse_response({'test': 'passed'})
     assert response.status_code == 200
-    assert response.headers == [(b'content-type', b'application/json')]
+    assert response.get_headers() == [(b'content-type', b'application/json')]
     assert list(response)[1] == {'body': b'{"test": "passed"}', 'type': 'http.response.body'}
 
     response = await parse_response((500,))
@@ -100,23 +100,22 @@ async def test_response_middleware():
     async with AsyncClient(
             app=app, base_url='http://testserver') as client:
         res = await client.get('/')
-        assert res.status_code == 200
-        assert res.text == 'Default response from ASGI-Tools'
+        assert res.status_code == 404
+        assert res.text == 'Not Found'
 
 
 @pytest.mark.asyncio
 async def test_request_response_middlewares():
     from asgi_tools import RequestMiddleware, ResponseMiddleware, combine
 
-    async def app(scope, receive, send):
-        request = scope['request']
+    async def app(request):
         data = await request.form()
         data = await request.json()
         first_name = data.get('first_name', 'Anonymous')
         last_name = request.query.get('last_name', 'Test')
         return f"Hello {first_name} {last_name} from '{ request.url.path }'"
 
-    app = combine(app, RequestMiddleware, ResponseMiddleware)
+    app = combine(app, ResponseMiddleware, RequestMiddleware, pass_request=True)
 
     async with AsyncClient(
             app=app, base_url='http://testserver') as client:
@@ -183,7 +182,7 @@ async def test_app_middleware():
     from asgi_lifespan import LifespanManager
     from asgi_tools import AppMiddleware
 
-    async def app(request):
+    async def app(request, *args, **kwargs):
         data = await request.json()
         first_name = data.get('first_name', 'Anonymous')
         last_name = request.query.get('last_name', 'Test')
@@ -197,7 +196,7 @@ async def test_app_middleware():
     )
 
     @app.route('/hello/{name}', methods="post")
-    async def hello(request, name=None, **kwargs):
+    async def hello(request, *args, name=None, **kwargs):
         breakpoint()
         pass
 
@@ -220,7 +219,7 @@ async def test_app_middleware():
 async def test_multipart():
     from asgi_tools import AppMiddleware
 
-    async def app(request):
+    async def app(request, *args, **kwargs):
         data = await request.form()
         return data['test'].split(b'\n')[0]
 

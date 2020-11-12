@@ -1,3 +1,5 @@
+"""ASGI responses."""
+
 from http import cookies, HTTPStatus
 from json import dumps
 
@@ -10,11 +12,13 @@ from . import DEFAULT_CHARSET
 
 
 class Response:
+    """ASGI Response."""
 
     charset = DEFAULT_CHARSET
 
     def __init__(
             self, content=None, status_code=HTTPStatus.OK.value, headers=None, content_type=None):
+        """Setup the response."""
         self.content = content
         self.status_code = status_code
         self._headers = CIMultiDict(headers or {})
@@ -25,28 +29,35 @@ class Response:
 
             self._headers['content-type'] = content_type
 
-    def __iter__(self):
-        body = self.body
-        self._headers['content-length'] = str(len(body))
-        yield {
-            "type": "http.response.start",
-            "status": self.status_code,
-            "headers": self.headers,
-        }
-        yield {"type": "http.response.body", "body": self.body}
-
     def __str__(self):
+        """Stringify the response."""
         return f"{self.status_code}"
 
     def __repr__(self):
+        """Stringify the response."""
         return f"<Response '{ self }'"
 
+    def __iter__(self):
+        """Iterate self through ASGI messages."""
+        headers = self.get_headers()
+        if 'content-length' not in self._headers:
+            headers.append((b'content-length', str(len(self.body)).encode()))
+
+        yield {
+            "type": "http.response.start",
+            "status": self.status_code,
+            "headers": headers,
+        }
+        yield {"type": "http.response.body", "body": self.body}
+
     async def __call__(self, scope, receive, send):
+        """Behave as an ASGI application."""
         for message in self:
             await send(message)
 
     @property
     def body(self):
+        """Create a response body."""
         if self.content is None:
             return b""
 
@@ -55,8 +66,8 @@ class Response:
 
         return self.content.encode(self.charset)
 
-    @property
-    def headers(self):
+    def get_headers(self):
+        """Render the response's headers."""
         headers = [
             (key.lower().encode('latin-1'), val.encode('latin-1'))
             for key, val in self._headers.items()
@@ -68,25 +79,32 @@ class Response:
 
 
 class HTMLResponse(Response):
+    """HTML Response."""
 
     def __init__(self, *args, **kwargs):
+        """Setup the response."""
         kwargs['content_type'] = 'text/html'
         super().__init__(*args, **kwargs)
 
 
 class PlainTextResponse(Response):
+    """Plain-text Response."""
 
     def __init__(self, *args, **kwargs):
+        """Setup the response."""
         kwargs['content_type'] = 'text/plain'
         super().__init__(*args, **kwargs)
 
 
 class JSONResponse(Response):
+    """JSON Response."""
 
     def __init__(self, *args, **kwargs):
+        """Setup the response."""
         kwargs['content_type'] = 'application/json'
         super().__init__(*args, **kwargs)
 
     @property
     def body(self):
+        """Jsonify the content."""
         return dumps(self.content, ensure_ascii=False, allow_nan=False).encode(self.charset)

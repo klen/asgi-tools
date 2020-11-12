@@ -13,7 +13,7 @@ ASGI-Tools
 - `ResponseMiddleware`  -- Parse responses and convert them into ASGI messages
 - `RouterMiddleware`    -- Route HTTP requests
 - `LifespanMiddleware`  -- Process a lifespan cycle
-- `AppMiddleware`       -- A combined (request, response, lifespan) middleware to make ASGI apps
+- `AppMiddleware`       -- A combined (request, response, router, lifespan) middleware to quikly create ASGI apps
 
 .. _badges:
 

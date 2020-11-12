@@ -31,6 +31,7 @@ def process_decode(meta=None, message=None):
 
 
 class Request:
+    """Scope to request parser."""
 
     def __init__(self, scope, receive=None, send=None):
         assert scope["type"] in SUPPORTED_SCOPES
@@ -59,6 +60,7 @@ class Request:
 
     @cached_property
     def url(self):
+        """Get an URL."""
         host, port = self.scope.get('server') or (None, None)
         host = self.headers.get('host') or host
         return URL.build(
@@ -70,11 +72,13 @@ class Request:
 
     @cached_property
     def headers(self):
+        """Parse headers from self scope."""
         return CIMultiDict(
             [[v.decode('latin-1') for v in item] for item in self.scope.get('headers', [])])
 
     @cached_property
     def cookies(self):
+        """Parse cookies from self scope."""
         data = {}
         for chunk in self.headers.get('cookie', '').split(';'):
             key, _, val = chunk.partition('=')
@@ -84,17 +88,21 @@ class Request:
 
     @property
     def query(self):
+        """Get a query part."""
         return self.url.query
 
     @property
     def charset(self):
+        """Get a charset."""
         return self._meta['opts'].get('charset', DEFAULT_CHARSET)
 
     @property
     def content_type(self):
+        """Get a content type."""
         return self._meta['content-type']
 
     async def stream(self):
+        """Stream ASGI flow."""
         if not self.receive:
             raise RuntimeError('Request doesnt have a receive coroutine')
 
