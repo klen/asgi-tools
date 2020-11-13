@@ -89,23 +89,18 @@ async def test_app_middleware():
     from asgi_lifespan import LifespanManager
     from asgi_tools import AppMiddleware
 
-    async def app(request, *args, **kwargs):
-        data = await request.json()
-        first_name = data.get('first_name', 'Anonymous')
-        last_name = request.query.get('last_name', 'Test')
-        return f"Hello {first_name} {last_name} from '{ request.url.path }'"
-
     events = {}
     app = AppMiddleware(
-        app,
         on_startup=lambda: events.setdefault('started', True),
         on_shutdown=lambda: events.setdefault('finished', True)
     )
 
-    @app.route('/hello/{name}', methods="post")
-    async def hello(request, *args, name=None, **kwargs):
-        breakpoint()
-        pass
+    @app.route('/testurl')
+    async def test_request(request, *args, **kwargs):
+        data = await request.json()
+        first_name = data.get('first_name', 'Anonymous')
+        last_name = request.query.get('last_name', 'Test')
+        return f"Hello {first_name} {last_name} from '{ request.url.path }'"
 
     async with LifespanManager(app):
         async with AsyncClient(app=app, base_url='http://testserver') as client:
@@ -117,6 +112,10 @@ async def test_app_middleware():
             assert res.status_code == 200
             assert res.text == "Hello Jack Daniels from '/testurl'"
             assert res.headers['content-length'] == str(len(res.text))
+
+            res = await client.get('/404')
+            assert res.status_code == 404
+            assert res.text == "Not Found"
 
     assert events['started']
     assert events['finished']
