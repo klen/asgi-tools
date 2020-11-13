@@ -1,5 +1,6 @@
 """ASGI responses."""
 
+from inspect import isawaitable, isasyncgen
 from http import cookies, HTTPStatus
 from json import dumps
 from urllib.parse import quote_plus
@@ -9,7 +10,31 @@ from multidict import CIMultiDict
 from . import DEFAULT_CHARSET
 
 
-# TODO: Stream/File responses
+# TODO: File response
+
+
+async def parse_response(response):
+    """Parse the given object and convert it into a asgi_tools.Response."""
+
+    while isawaitable(response):
+        response = await response
+
+    if isinstance(response, Response):
+        return response
+
+    if isinstance(response, (str, bytes)):
+        return HTMLResponse(response)
+
+    if isinstance(response, tuple):
+        status, *response = response
+        response = await parse_response(*(response or ['']))
+        response.status_code = status
+        return response
+
+    if isinstance(response, (dict, list, int, bool)):
+        return JSONResponse(response)
+
+    return PlainTextResponse(str(response))
 
 
 class Response:
@@ -38,7 +63,7 @@ class Response:
         """Stringify the response."""
         return f"<Response '{ self }'"
 
-    def __iter__(self):
+    async def __aiter__(self):
         """Iterate self through ASGI messages."""
         headers = self.get_headers()
         if 'content-length' not in self._headers:
@@ -53,7 +78,7 @@ class Response:
 
     async def __call__(self, scope, receive, send):
         """Behave as an ASGI application."""
-        for message in self:
+        async for message in self:
             await send(message)
 
     @property
@@ -114,7 +139,30 @@ class JSONResponse(Response):
 class RedirectResponse(Response):
     """Redirect Response."""
 
-    def __init__(self, url, *args, status_code=307, **kwargs):
+    def __init__(self, url, *args, status_code=HTTPStatus.TEMPORARY_REDIRECT.value, **kwargs):
         """Set status code and prepare location."""
         super(RedirectResponse, self).__init__(*args, status_code=status_code, **kwargs)
         self._headers["location"] = quote_plus(str(url), safe=":/%#?&=@[]!$&'()*+,;")
+
+
+class StreamResponse(Response):
+    """Stream response."""
+
+    def __init__(self, content=None, **kwargs):
+        """Ensure that the content is awaitable."""
+        assert isasyncgen(content), "Content have to be awaitable"
+        super(StreamResponse, self).__init__(content=content, **kwargs)
+
+    async def __aiter__(self):
+        """Iterate through the response."""
+        yield {
+            "type": "http.response.start",
+            "status": self.status_code,
+            "headers": self.get_headers(),
+        }
+        async for chunk in self.content:
+            if not isinstance(chunk, bytes):
+                chunk = str(chunk).encode(self.charset)
+            yield {"type": "http.response.body", "body": chunk, "more_body": True}
+
+        yield {"type": "http.response.body", "body": b"", "more_body": False}

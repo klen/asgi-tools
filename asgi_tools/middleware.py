@@ -1,36 +1,10 @@
 """ASGI-Tools Middlewares."""
 
-from asyncio import iscoroutine
-
 from http_router import Router
 
 from .request import Request
-from .response import Response, PlainTextResponse, HTMLResponse, JSONResponse
+from .response import HTMLResponse, parse_response
 from .utils import to_coroutine
-
-
-async def parse_response(response):
-    """Parse the given object and convert it into a asgi_tools.Response."""
-
-    while iscoroutine(response):
-        response = await response
-
-    if isinstance(response, Response):
-        return response
-
-    if isinstance(response, (str, bytes)):
-        return HTMLResponse(response)
-
-    if isinstance(response, tuple):
-        status, *response = response
-        response = await parse_response(*(response or ['']))
-        response.status_code = status
-        return response
-
-    if isinstance(response, (dict, list, int, bool)):
-        return JSONResponse(response)
-
-    return PlainTextResponse(str(response))
 
 
 class BaseMiddeware:
