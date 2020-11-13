@@ -1,3 +1,0 @@
-uvicorn
-httpx
-jinja2

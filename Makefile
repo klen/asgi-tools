@@ -56,3 +56,8 @@ upload: clean
 
 test t: $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/pytest tests
+
+
+example: $(VIRTUAL_ENV)
+	$(VIRTUAL_ENV)/bin/pip install uvicorn jinja2
+	$(VIRTUAL_ENV)/bin/uvicorn --reload example:app
