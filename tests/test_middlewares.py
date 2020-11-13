@@ -1,98 +1,8 @@
-"""ASGI-Tools tests."""
+"""test middlewares"""
 
 from httpx import AsyncClient
-import pytest
 
 
-@pytest.mark.asyncio
-async def test_request():
-    from asgi_tools import Request
-
-    scope = {
-        'type': 'http',
-        'asgi': {'version': '3.0'},
-        'http_version': '1.1',
-        'method': 'GET',
-        'headers': [
-            (b'host', b'testserver'),
-            (b'accept', b'*/*'),
-            (b'accept-encoding', b'gzip, deflate'),
-            (b'connection', b'keep-alive'),
-            (b'user-agent', b'python-httpx/0.16.1'),
-            (b'test-header', b'test-value'),
-            (b'cookie', b'session=test-session'),
-        ],
-        'scheme': 'http',
-        'path': '/testurl',
-        'query_string': b'a=1',
-        'server': ('testserver', None),
-        'client': ('127.0.0.1', 123),
-        'root_path': ''
-    }
-
-    async def receive():
-        return {'body': b'name=value'}
-
-    request = Request(scope, receive)
-    assert request.client == ('127.0.0.1', 123)
-    assert request.cookies
-    assert request.cookies['session'] == 'test-session'
-    assert request.headers['User-Agent'] == 'python-httpx/0.16.1'
-    assert request.http_version == '1.1'
-    assert request.method == 'GET'
-    assert request.query
-    assert request.query['a'] == '1'
-    assert request.type == 'http'
-    assert request['type'] == 'http'
-    assert request.url
-
-    body = await request.body()
-    assert body
-
-    formdata = await request.form()
-    assert formdata
-    assert formdata['name'] == 'value'
-
-    formdata2 = await request.form()
-    assert formdata2 is formdata
-
-
-@pytest.mark.asyncio
-async def test_response():
-    from asgi_tools import Response, parse_response
-
-    response = Response("Content", content_type='text/html')
-    response.cookies['session'] = 'test-session'
-    response.cookies['session']['path'] = '/'
-    assert response.body == b"Content"
-    assert response.status_code == 200
-    assert response.get_headers() == [
-        (b"content-type", b"text/html; charset=utf-8"),
-        (b'set-cookie', b'session=test-session; Path=/'),
-    ]
-    messages = [m for m in response]
-    assert messages
-    assert messages[0] == {
-        'headers': [
-            (b'content-type', b'text/html; charset=utf-8'),
-            (b'set-cookie', b'session=test-session; Path=/'),
-            (b'content-length', b'7'),
-        ],
-        'status': 200,
-        'type': 'http.response.start'
-    }
-    assert messages[1] == {'body': b'Content', 'type': 'http.response.body'}
-
-    response = await parse_response({'test': 'passed'})
-    assert response.status_code == 200
-    assert response.get_headers() == [(b'content-type', b'application/json')]
-    assert list(response)[1] == {'body': b'{"test": "passed"}', 'type': 'http.response.body'}
-
-    response = await parse_response((500,))
-    assert response.status_code == 500
-
-
-@pytest.mark.asyncio
 async def test_response_middleware():
     from asgi_tools import ResponseMiddleware
 
@@ -105,7 +15,6 @@ async def test_response_middleware():
         assert res.text == 'Not Found'
 
 
-@pytest.mark.asyncio
 async def test_request_response_middlewares():
     from asgi_tools import RequestMiddleware, ResponseMiddleware, combine
 
@@ -130,7 +39,6 @@ async def test_request_response_middlewares():
         assert res.headers['content-length'] == str(len(res.text))
 
 
-@pytest.mark.asyncio
 async def test_lifespan_middlewares():
     from asgi_lifespan import LifespanManager
     from asgi_tools import LifespanMiddleware
@@ -149,7 +57,6 @@ async def test_lifespan_middlewares():
     assert events['finished']
 
 
-@pytest.mark.asyncio
 async def test_router_middlewares():
     from asgi_tools import RouterMiddleware, ResponseMiddleware
 
@@ -178,7 +85,6 @@ async def test_router_middlewares():
         assert res.text == 'page2'
 
 
-@pytest.mark.asyncio
 async def test_app_middleware():
     from asgi_lifespan import LifespanManager
     from asgi_tools import AppMiddleware
@@ -216,7 +122,6 @@ async def test_app_middleware():
     assert events['finished']
 
 
-@pytest.mark.asyncio
 async def test_multipart():
     from asgi_tools import AppMiddleware
 
@@ -228,5 +133,5 @@ async def test_multipart():
     async with AsyncClient(app=app, base_url="https://testserver") as client:
         res = await client.post('/', files={'test': open(__file__)})
         assert res.status_code == 200
-        assert res.text == '"""ASGI-Tools tests."""'
+        assert res.text == '"""test middlewares"""'
         assert res.headers['content-length'] == str(len(res.text))

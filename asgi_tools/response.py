@@ -2,6 +2,7 @@
 
 from http import cookies, HTTPStatus
 from json import dumps
+from urllib.parse import quote_plus
 
 from multidict import CIMultiDict
 
@@ -108,3 +109,12 @@ class JSONResponse(Response):
     def body(self):
         """Jsonify the content."""
         return dumps(self.content, ensure_ascii=False, allow_nan=False).encode(self.charset)
+
+
+class RedirectResponse(Response):
+    """Redirect Response."""
+
+    def __init__(self, url, *args, status_code=307, **kwargs):
+        """Set status code and prepare location."""
+        super(RedirectResponse, self).__init__(*args, status_code=status_code, **kwargs)
+        self._headers["location"] = quote_plus(str(url), safe=":/%#?&=@[]!$&'()*+,;")
