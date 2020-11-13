@@ -66,10 +66,7 @@ async def test_router_middlewares():
     async def page2(scope, receive, send):
         return 'page2'
 
-    async def index(scope, receive, send):
-        return 404, 'Not Found'
-
-    app = ResponseMiddleware(RouterMiddleware(index, routes={'/page1': page1, '/page2': page2}))
+    app = ResponseMiddleware(RouterMiddleware(routes={'/page1': page1, '/page2': page2}))
 
     async with AsyncClient(app=app, base_url='http://testserver') as client:
         res = await client.get('/')

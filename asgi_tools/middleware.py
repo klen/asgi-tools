@@ -101,7 +101,7 @@ class LifespanMiddleware(BaseMiddeware):
 
     scopes = {'lifespan'}
 
-    def __init__(self, app, on_startup=None, on_shutdown=None, **kwargs):
+    def __init__(self, app=None, on_startup=None, on_shutdown=None, **kwargs):
         """Prepare the middleware."""
         super(LifespanMiddleware, self).__init__(app, **kwargs)
         self._startup = []
@@ -155,7 +155,7 @@ class RouterMiddleware(BaseMiddeware):
     """Bind callbacks to HTTP paths."""
 
     def __init__(
-            self, app, routes=None, raise_not_found=True,
+            self, app=None, routes=None, raise_not_found=True,
             trim_last_slash=False, pass_params=False, **kwargs):
         """Initialize HTTP router."""
         super(RouterMiddleware, self).__init__(app, **kwargs)
