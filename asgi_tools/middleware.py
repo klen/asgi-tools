@@ -159,16 +159,20 @@ class RouterMiddleware(BaseMiddeware):
         return self.router.route(*args, **kwargs)
 
 
-def AppMiddleware(app=None, **params):
+def AppMiddleware(app=None, *middlewares, pass_params=True, pass_request=True, **params):
     """Combine middlewares to create an application."""
 
     async def default404(request, *args, **kwargs):
         return HTMLResponse("Not Found", status_code=404)
 
+    middlewares = [
+        *(LifespanMiddleware, ResponseMiddleware, RequestMiddleware),
+        *middlewares, RouterMiddleware
+    ]
+
     return combine(
-        app or default404,
-        LifespanMiddleware, ResponseMiddleware, RequestMiddleware, RouterMiddleware,
-        pass_params=True, pass_request=True, **params)
+        app or default404, *middlewares,
+        pass_params=pass_params, pass_request=pass_request, **params)
 
 
 def combine(app, *middlewares, **params):

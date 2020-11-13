@@ -117,6 +117,27 @@ async def test_app_middleware():
     assert events['started']
     assert events['finished']
 
+    def simple(app, **params):
+
+        async def middleware(request, **kwargs):
+            if request.url.path == '/custom':
+                return "Custom middleware"
+
+            return app(request, **kwargs)
+
+        return middleware
+
+    async def app(request, **kwargs):
+        return 'OK'
+
+    app = AppMiddleware(app, simple)
+    async with AsyncClient(app=app, base_url='http://testserver') as client:
+        res = await client.post('/')
+        assert res.text == 'OK'
+
+        res = await client.post('/custom')
+        assert res.text == 'Custom middleware'
+
 
 async def test_multipart():
     from asgi_tools import AppMiddleware
