@@ -1,3 +1,5 @@
+"""ASGI Request."""
+
 from cgi import parse_header, parse_multipart
 from functools import wraps, cached_property
 from http import cookies
@@ -8,10 +10,11 @@ from urllib.parse import parse_qsl
 from multidict import CIMultiDict, MultiDict
 from yarl import URL
 
-from . import ASGIDecodeError, SUPPORTED_SCOPES, DEFAULT_CHARSET
+from . import ASGIDecodeError, DEFAULT_CHARSET
 
 
 def process_decode(meta=None, message=None):
+    """Handle errors."""
 
     def decorator(amethod):
 
@@ -34,8 +37,8 @@ class Request(dict):
     """Scope to request parser."""
 
     def __init__(self, scope, receive=None, send=None):
-        assert scope["type"] in SUPPORTED_SCOPES
-        self.update(scope)
+        """Create a request based on the given scope."""
+        super(Request, self).__init__(scope)
         self.receive = receive
         content_type, opts = parse_header(self.headers.get('content-type', ''))
         self._meta = {
@@ -44,10 +47,8 @@ class Request(dict):
         self._body = None
 
     def __getattr__(self, name):
+        """Proxy the request's unknown attributes to scope."""
         return self[name]
-
-    def __repr__(self):
-        return f"<Request '{ self }'"
 
     @cached_property
     def url(self):
@@ -104,6 +105,7 @@ class Request(dict):
             yield message.get('body', b'')
 
     async def body(self):
+        """Read the request body."""
         if self._body is None:
             chunks = []
             async for chunk in self.stream():
@@ -115,17 +117,20 @@ class Request(dict):
 
     @process_decode(message='Invalid Encoding')
     async def text(self):
+        """Read the request text."""
         body = await self.body()
         charset = self.charset or DEFAULT_CHARSET
         return body.decode(charset)
 
     @process_decode(meta='json', message='Invalid JSON')
     async def json(self):
+        """Read the request json."""
         text = await self.text()
         return loads(text)
 
     @process_decode(meta='form', message='Invalid Form Data')
     async def form(self):
+        """Read the request formdata."""
         form = MultiDict()
 
         # TODO: Improve multipart parsing
