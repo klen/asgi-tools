@@ -30,12 +30,12 @@ def process_decode(meta=None, message=None):
     return decorator
 
 
-class Request:
+class Request(dict):
     """Scope to request parser."""
 
     def __init__(self, scope, receive=None, send=None):
         assert scope["type"] in SUPPORTED_SCOPES
-        self.scope = scope
+        self.update(scope)
         self.receive = receive
         content_type, opts = parse_header(self.headers.get('content-type', ''))
         self._meta = {
@@ -44,16 +44,7 @@ class Request:
         self._body = None
 
     def __getattr__(self, name):
-        return self.scope[name]
-
-    def __iter__(self):
-        return iter(self.scope)
-
-    def __len__(self):
-        return len(self.scope)
-
-    def __str__(self):
-        return f"{self.url.path}"
+        return self[name]
 
     def __repr__(self):
         return f"<Request '{ self }'"
@@ -61,20 +52,20 @@ class Request:
     @cached_property
     def url(self):
         """Get an URL."""
-        host, port = self.scope.get('server') or (None, None)
+        host, port = self.get('server') or (None, None)
         host = self.headers.get('host') or host
         return URL.build(
-            scheme=self.scope.get('scheme', 'http'),
+            scheme=self.get('scheme', 'http'),
             host=self.headers.get('host') or host,
-            port=port, path=self.scope.get("root_path", "") + self.scope["path"],
-            query_string=self.scope.get("query_string", b"").decode("latin-1")
+            port=port, path=self.get("root_path", "") + self["path"],
+            query_string=self.get("query_string", b"").decode("latin-1")
         )
 
     @cached_property
     def headers(self):
         """Parse headers from self scope."""
         return CIMultiDict(
-            [[v.decode('latin-1') for v in item] for item in self.scope.get('headers', [])])
+            [[v.decode('latin-1') for v in item] for item in self.get('headers', [])])
 
     @cached_property
     def cookies(self):

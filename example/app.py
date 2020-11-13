@@ -1,3 +1,5 @@
+"""A simple example for ASGI-Tools."""
+
 from httpx import AsyncClient
 from jinja2 import Template
 
@@ -37,26 +39,25 @@ template = Template(
 )
 
 
-async def pageDefault(request):
-    return 404, 'Page not found'
-
-
-app = AppMiddleware(app=pageDefault)
+app = AppMiddleware()
 
 
 @app.on_startup
 async def startup():
+    """Just a presentation of a start event."""
     print('Start application: %r' % app)
 
 
 @app.on_shutdown
 async def shutdown():
+    """Just a finish event. Actually do some work here."""
     print('Finish application %r' % app)
     await client.aclose()
 
 
 @app.route('/', '/base/{currency}')
 async def rates(request, currency='USD', **kwargs):
+    """Load currency rates and render a template."""
     response = await client.request(
         'GET', f"https://api.exchangeratesapi.io/latest?base={ currency }")
     data = response.json()

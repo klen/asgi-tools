@@ -43,6 +43,7 @@ async def test_request():
     assert request.query
     assert request.query['a'] == '1'
     assert request.type == 'http'
+    assert request['type'] == 'http'
     assert request.url
 
     body = await request.body()

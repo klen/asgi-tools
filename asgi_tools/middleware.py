@@ -185,10 +185,10 @@ class RouterMiddleware(BaseMiddeware):
         return self.router.route(*args, **kwargs)
 
 
-def AppMiddleware(app, **params):
+def AppMiddleware(app=None, **params):
     """Combine middlewares to create an application."""
     return combine(
-        app, LifespanMiddleware, ResponseMiddleware, RouterMiddleware, RequestMiddleware,
+        app, LifespanMiddleware, ResponseMiddleware, RequestMiddleware, RouterMiddleware,
         pass_params=True, pass_request=True, **params)
 
 
