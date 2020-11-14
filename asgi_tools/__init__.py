@@ -16,7 +16,6 @@ class ASGIDecodeError(ASGIError):
     pass
 
 
-SUPPORTED_SCOPES = {'http', 'websocket'}
 DEFAULT_CHARSET = 'utf-8'
 
 

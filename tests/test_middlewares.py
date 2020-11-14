@@ -18,14 +18,14 @@ async def test_response_middleware():
 async def test_request_response_middlewares():
     from asgi_tools import RequestMiddleware, ResponseMiddleware, combine
 
-    async def app(request):
+    async def app(request, receive, send):
         data = await request.form()
         data = await request.json()
         first_name = data.get('first_name', 'Anonymous')
         last_name = request.query.get('last_name', 'Test')
         return f"Hello {first_name} {last_name} from '{ request.url.path }'"
 
-    app = combine(app, ResponseMiddleware, RequestMiddleware, pass_request=True)
+    app = combine(app, ResponseMiddleware, RequestMiddleware)
 
     async with AsyncClient(
             app=app, base_url='http://testserver') as client:
@@ -93,7 +93,7 @@ async def test_app_middleware():
     )
 
     @app.route('/testurl')
-    async def test_request(request, *args, **kwargs):
+    async def test_request(request, **kwargs):
         data = await request.json()
         first_name = data.get('first_name', 'Anonymous')
         last_name = request.query.get('last_name', 'Test')
@@ -117,26 +117,28 @@ async def test_app_middleware():
     assert events['started']
     assert events['finished']
 
-    def simple(app, **params):
+    def simple_md(app, **params):
+        """The middleware requires request and response."""
 
-        async def middleware(request, **kwargs):
+        async def middleware(request, receive, send):
+            response = await app(request, receive, send)
             if request.url.path == '/custom':
-                return "Custom middleware"
+                response.content += ' -- Custom middleware'
 
-            return app(request, **kwargs)
+            return response
 
         return middleware
 
     async def app(request, **kwargs):
         return 'OK'
 
-    app = AppMiddleware(app, simple)
+    app = AppMiddleware(app, simple_md)
     async with AsyncClient(app=app, base_url='http://testserver') as client:
         res = await client.post('/')
         assert res.text == 'OK'
 
         res = await client.post('/custom')
-        assert res.text == 'Custom middleware'
+        assert res.text == 'OK -- Custom middleware'
 
 
 async def test_multipart():

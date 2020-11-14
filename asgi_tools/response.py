@@ -13,30 +13,6 @@ from . import DEFAULT_CHARSET
 # TODO: File response
 
 
-async def parse_response(response):
-    """Parse the given object and convert it into a asgi_tools.Response."""
-
-    while isawaitable(response):
-        response = await response
-
-    if isinstance(response, Response):
-        return response
-
-    if isinstance(response, (str, bytes)):
-        return HTMLResponse(response)
-
-    if isinstance(response, tuple):
-        status, *response = response
-        response = await parse_response(*(response or ['']))
-        response.status_code = status
-        return response
-
-    if isinstance(response, (dict, list, int, bool)):
-        return JSONResponse(response)
-
-    return PlainTextResponse(str(response))
-
-
 class Response:
     """ASGI Response."""
 
@@ -166,3 +142,27 @@ class StreamResponse(Response):
             yield {"type": "http.response.body", "body": chunk, "more_body": True}
 
         yield {"type": "http.response.body", "body": b"", "more_body": False}
+
+
+async def parse_response(response) -> Response:
+    """Parse the given object and convert it into a asgi_tools.Response."""
+
+    while isawaitable(response):
+        response = await response
+
+    if isinstance(response, Response):
+        return response
+
+    if isinstance(response, (str, bytes)):
+        return HTMLResponse(response)
+
+    if isinstance(response, tuple):
+        status, *response = response
+        response = await parse_response(*(response or ['']))
+        response.status_code = status
+        return response
+
+    if isinstance(response, (dict, list, int, bool)):
+        return JSONResponse(response)
+
+    return PlainTextResponse(str(response))
