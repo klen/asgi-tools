@@ -49,7 +49,106 @@ Installation
 Usage
 =====
 
-**TODO**
+`asgi_tools.Request`, `asgi_tools.Response`
+--------------------------------------------
+
+Parse HTTP Request data from a scope and build a http response:
+
+.. code-block:: python
+
+   from asgi_tools import Request, Response
+
+
+   template = "... any template for the HTML content here ..."
+
+
+   async def app(scope, receive, send):
+    if scope['type'] != 'http':
+        return
+
+    # Parse the given scope
+    request = Request(scope, receive, send)
+    # Render the page
+    body = template.render(
+
+        # Get full URL
+        url=request.url,
+
+        charset=request.charset,
+
+        # Get headers
+        headers=request.headers,
+
+        # Get query params
+        query=request.query,
+
+        # Get cookies
+        cookies=request.cookies,
+
+        # Get a decoded request body (the methods: request.body, request.form, request.json also available)
+        text=await request.text(),
+
+    )
+
+    # Render a response as HTML (HTMLResponse, PlainTextResponse, JSONResponse, StreamResponse, RedirectResponse also available)
+    return await Response(body, content_type="text/html")(scope, receive, send)
+
+
+Response/Request Middlewares
+-----------------------------
+
+Automatically convert a scope into a `asgi_tools.Request`
+
+.. code-block:: python
+
+    from asgi_tools import RequestMiddleware
+
+
+    async def base_app(request, receive, send):
+        assert request.url
+        assert request.headers
+        # ...
+
+    app = RequestMiddleware(base_app)
+
+
+Automatically parse an result from asgi apps and convert it into a `asgi_tools.Response`
+
+.. code-block:: python
+
+    from asgi_tools import ResponseMiddleware
+
+
+    async def base_app(request, receive, send):
+        return "Hello World!"
+
+    app = ResponseMiddleware(base_app)
+
+
+Router Middleware
+------------------
+
+Route HTTP requests
+
+.. code-block:: python
+
+    from asgi_tools import RouterMiddleware, ResponseMiddleware
+
+
+    async def index_and_default(*args):
+        return "Hello from Index"
+
+
+    async def page1(*args):
+        return "Hello from Page1"
+
+
+    async def page2(*args):
+        return "Hello from Page2"
+
+
+    app = ResponseMiddleware(RouterMiddleware(index_and_default, routes={'/page1': page1, '/page2': page2}))
+
 
 .. _bugtracker:
 

@@ -55,9 +55,9 @@ class Request(dict):
         """Get an URL."""
         host, port = self.get('server') or (None, None)
         host = self.headers.get('host') or host
+        host, _, _ = host.partition(':')
         return URL.build(
-            scheme=self.get('scheme', 'http'),
-            host=self.headers.get('host') or host,
+            scheme=self.get('scheme', 'http'), host=host,
             port=port, path=self.get("root_path", "") + self["path"],
             query_string=self.get("query_string", b"").decode("latin-1")
         )
