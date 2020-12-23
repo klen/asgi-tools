@@ -62,14 +62,13 @@ async def test_router_middlewares():
     async def page1(scope, receive, send):
         return 'page1'
 
-    async def page2(scope, receive, send):
-        return 'page2'
-
-    router = RouterMiddleware(
-        routes={'/page1': page1, '/page2': page2},
-    )
+    router = RouterMiddleware(routes={'/page1': page1})
     app = ResponseMiddleware()
     app.bind(router)
+
+    @router.route('/page2')
+    async def page2(scope, receive, send):
+        return 'page2'
 
     async with AsyncClient(app=app, base_url='http://testserver') as client:
         res = await client.get('/')
@@ -83,6 +82,23 @@ async def test_router_middlewares():
         res = await client.get('/page2')
         assert res.status_code == 200
         assert res.text == 'page2'
+
+    router = RouterMiddleware(pass_params_only=True)
+    app = ResponseMiddleware()
+    app.bind(router)
+
+    @router.route('/page1')
+    async def page1(scope, **params):
+        return 'page1'
+
+    async with AsyncClient(app=app, base_url='http://testserver') as client:
+        res = await client.get('/')
+        assert res.text == 'Not Found'
+        assert res.status_code == 404
+
+        res = await client.get('/page1')
+        assert res.status_code == 200
+        assert res.text == 'page1'
 
 
 async def test_app_middleware():
@@ -126,7 +142,7 @@ async def test_app_middleware():
         async def middleware(request, receive, send):
             response = await app(request, receive, send)
             if request.url.path == '/custom':
-                response.content += ' -- Custom middleware'
+                response += ' -- Custom middleware'
 
             return response
 

@@ -28,3 +28,4 @@ from .middleware import (  # noqa
     RequestMiddleware, ResponseMiddleware, AppMiddleware, LifespanMiddleware, RouterMiddleware,
     combine, parse_response
 )
+from .app import App  # noqa

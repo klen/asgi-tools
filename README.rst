@@ -150,6 +150,33 @@ Route HTTP requests
     app = ResponseMiddleware(RouterMiddleware(index_and_default, routes={'/page1': page1, '/page2': page2}))
 
 
+Alternative usage
+
+.. code-block:: python
+
+    from asgi_tools import RouterMiddleware, ResponseMiddleware
+
+
+    async def index_and_default(*args):
+        return "Hello from Index"
+
+
+    router = RouterMiddleware(index_and_default)
+
+
+    @router.route('/page1')
+    async def page1(*args):
+        return "Hello from Page1"
+
+
+    @router.route('/page2')
+    async def page2(*args):
+        return "Hello from Page2"
+
+
+    app = ResponseMiddleware(router)
+
+
 .. _bugtracker:
 
 Bug tracker

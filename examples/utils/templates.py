@@ -54,3 +54,21 @@ request_info = Template(
     """
 )
 
+
+router = Template(
+    """
+        <html>
+            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+            <body>
+                <div class="container">
+                    <nav class="nav nav-tabs">
+                        <a class="nav-link {{ request.url.path == '/' and 'active' }}" href="/">Default</a>
+                        <a class="nav-link {{ request.url.path == '/page1' and 'active' }}" href="/page1">Page1</a>
+                        <a class="nav-link {{ request.url.path == '/page2' and 'active' }}" href="/page2">Page2</a>
+                    </nav>
+                    <div> {{ content }} </div>
+                </div>
+            </body>
+        </html>
+    """
+)
