@@ -8,8 +8,7 @@ async def test_response_middleware():
 
     # Test default response
     app = ResponseMiddleware()
-    async with AsyncClient(
-            app=app, base_url='http://testserver') as client:
+    async with AsyncClient(app=app, base_url='http://testserver') as client:
         res = await client.get('/')
         assert res.status_code == 404
         assert res.text == 'Not Found'
@@ -66,7 +65,11 @@ async def test_router_middlewares():
     async def page2(scope, receive, send):
         return 'page2'
 
-    app = ResponseMiddleware(RouterMiddleware(routes={'/page1': page1, '/page2': page2}))
+    router = RouterMiddleware(
+        routes={'/page1': page1, '/page2': page2},
+    )
+    app = ResponseMiddleware()
+    app.bind(router)
 
     async with AsyncClient(app=app, base_url='http://testserver') as client:
         res = await client.get('/')

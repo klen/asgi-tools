@@ -19,6 +19,10 @@ class BaseMiddeware:
 
         self.app = app or HTMLResponse("Not Found", status_code=404)
 
+    def bind(self, app):
+        """Bind the middleware to an ASGI application."""
+        self.app = app
+
     async def __call__(self, scope, *args, **kwargs):
         """Handle ASGI call."""
 
@@ -138,8 +142,8 @@ class RouterMiddleware(BaseMiddeware):
     """Bind callbacks to HTTP paths."""
 
     def __init__(
-            self, app=None, routes=None, raise_not_found=True,
-            trim_last_slash=False, pass_params_only=False, **kwargs):
+            self, app=None, routes=None, middlewares=None,
+            raise_not_found=True, trim_last_slash=False, pass_params_only=False, **kwargs):
         """Initialize HTTP router."""
         super(RouterMiddleware, self).__init__(app, **kwargs)
         self.router = Router(raise_not_found=raise_not_found, trim_last_slash=trim_last_slash)
@@ -164,7 +168,7 @@ class RouterMiddleware(BaseMiddeware):
             return self.app, {}
 
     def route(self, *args, **kwargs):
-        """Register an route."""
+        """Register an route. Integrate middlewares."""
         return self.router.route(*args, **kwargs)
 
 
