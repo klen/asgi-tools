@@ -33,7 +33,7 @@ jobs:
 
     - name: Setup requirements
       run: |
-        pip install virtualenv && virtualenv --python=python3 env && env/bin/pip install -r requirements-tests.txt
+        python -m venv env && env/bin/pip install -r requirements-tests.txt
       if: steps.cache-env.outputs.cache-hit != 'true'
 
     - name: Test with pytest

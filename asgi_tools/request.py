@@ -23,9 +23,9 @@ def process_decode(meta=None, message=None):
             try:
                 if not meta:
                     return await amethod(self, *args, **kwargs)
-                if meta not in self._meta:
-                    self._meta[meta] = await amethod(self, *args, **kwargs)
-                return self._meta[meta]
+                if meta not in self.meta:
+                    self.meta[meta] = await amethod(self, *args, **kwargs)
+                return self.meta[meta]
             except (LookupError, ValueError):
                 raise ASGIDecodeError(message)
 
@@ -40,15 +40,17 @@ class Request(dict):
         """Create a request based on the given scope."""
         super(Request, self).__init__(scope)
         self.receive = receive
-        content_type, opts = parse_header(self.headers.get('content-type', ''))
-        self._meta = {
-            'opts': opts,
-            'content-type': content_type}
         self._body = None
 
     def __getattr__(self, name):
         """Proxy the request's unknown attributes to scope."""
         return self[name]
+
+    @cached_property
+    def meta(self):
+        """Prepare a meta data for the request."""
+        content_type, opts = parse_header(self.headers.get('content-type', ''))
+        return {'opts': opts, 'content-type': content_type}
 
     @cached_property
     def url(self):
@@ -86,12 +88,12 @@ class Request(dict):
     @property
     def charset(self):
         """Get a charset."""
-        return self._meta['opts'].get('charset', DEFAULT_CHARSET)
+        return self.meta['opts'].get('charset', DEFAULT_CHARSET)
 
     @property
     def content_type(self):
         """Get a content type."""
-        return self._meta['content-type']
+        return self.meta['content-type']
 
     async def stream(self):
         """Stream ASGI flow."""
@@ -135,7 +137,7 @@ class Request(dict):
 
         # TODO: Improve multipart parsing
         if self.content_type == 'multipart/form-data':
-            pdict = dict(self._meta['opts'])
+            pdict = dict(self.meta['opts'])
             pdict['boundary'] = bytes(pdict.get('boundary', ''), self.charset)
             pdict['CONTENT-LENGTH'] = self.headers.get('content-length')
             data = parse_multipart(BytesIO(await self.body()), pdict, encoding=self.charset)

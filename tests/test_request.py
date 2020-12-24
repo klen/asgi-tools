@@ -1,6 +1,10 @@
 async def test_request():
     from asgi_tools import Request
 
+    # Request is lazy
+    request = Request([], None)
+    assert request is not None
+
     scope = {
         'type': 'http',
         'asgi': {'version': '3.0'},

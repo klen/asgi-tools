@@ -3,7 +3,7 @@ VIRTUAL_ENV 	?= env
 all: $(VIRTUAL_ENV)
 
 $(VIRTUAL_ENV): $(CURDIR)/requirements.txt $(CURDIR)/requirements-tests.txt
-	@[ -d $(VIRTUAL_ENV) ] || virtualenv --python=python3 $(VIRTUAL_ENV)
+	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
 	@$(VIRTUAL_ENV)/bin/pip install -r requirements-tests.txt
 	@touch $(VIRTUAL_ENV)
 
