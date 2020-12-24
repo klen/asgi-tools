@@ -202,7 +202,8 @@ def AppMiddleware(app=None, *app_middlewares, pass_params_only=True, **params):
 
     middlewares = [
         LifespanMiddleware, RequestMiddleware, ResponseMiddleware, *app_middlewares,
-        RouterMiddleware.setup(pass_params_only=pass_params_only)
+        ResponseMiddleware.setup(prepare_response_only=True),
+        RouterMiddleware.setup(pass_params_only=pass_params_only),
     ]
     return combine(app or default404, *middlewares, **params)
 

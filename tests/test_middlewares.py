@@ -142,7 +142,8 @@ async def test_app_middleware():
         async def middleware(request, receive, send):
             response = await app(request, receive, send)
             if request.url.path == '/custom':
-                response += ' -- Custom middleware'
+                response._headers['X-Custom'] = '42'
+                response.content += ' -- Custom middleware'
 
             return response
 
@@ -155,9 +156,11 @@ async def test_app_middleware():
     async with AsyncClient(app=app, base_url='http://testserver') as client:
         res = await client.post('/')
         assert res.text == 'OK'
+        assert 'x-custom' not in res.headers
 
         res = await client.post('/custom')
         assert res.text == 'OK -- Custom middleware'
+        assert res.headers['x-custom'] == '42'
 
 
 async def test_multipart():

@@ -15,6 +15,7 @@ class App:
             middlewares = []
             app = combine(self.router, *[
                 RequestMiddleware, ResponseMiddleware, *self.app_middlewares,
+                ResponseMiddleware.setup(prepare_response_only=True)
             ])
             self.app = self.lifespan.bind(app)
 
