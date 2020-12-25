@@ -52,46 +52,42 @@ Usage
 `asgi_tools.Request`, `asgi_tools.Response`
 --------------------------------------------
 
-Parse HTTP Request data from a scope and build a http response:
+Parse HTTP Request data from a scope and return it as JSON response:
 
 .. code-block:: python
 
-   from asgi_tools import Request, Response
+    import json
+    from asgi_tools import Request, Response
 
+    async def app(scope, receive, send):
+        if scope['type'] != 'http':
+            return
 
-   template = "... any template for the HTML content here ..."
+        # Parse scope
+        request = Request(scope, receive, send)
+        request_data = {
 
+            # Get full URL
+            "url": str(request.url),
 
-   async def app(scope, receive, send):
-    if scope['type'] != 'http':
-        return
+            "charset": request.charset,
 
-    # Parse the given scope
-    request = Request(scope, receive, send)
-    # Render the page
-    body = template.render(
+            # Get headers
+            "headers": {**request.headers},
 
-        # Get full URL
-        url=request.url,
+            # Get query params
+            "query": dict(request.query),
 
-        charset=request.charset,
+            # Get cookies
+            "cookies": dict(request.cookies),
 
-        # Get headers
-        headers=request.headers,
+        }
 
-        # Get query params
-        query=request.query,
+        # Create a response (HTMLResponse, PlainTextResponse, JSONResponse, StreamResponse, RedirectResponse also available)
+        response = Response(json.dumps(request_data), content_type="application/json")
 
-        # Get cookies
-        cookies=request.cookies,
-
-        # Get a decoded request body (the methods: request.body, request.form, request.json also available)
-        text=await request.text(),
-
-    )
-
-    # Render a response as HTML (HTMLResponse, PlainTextResponse, JSONResponse, StreamResponse, RedirectResponse also available)
-    return await Response(body, content_type="text/html")(scope, receive, send)
+        # Send ASGI messages
+        return await response(scope, receive, send)
 
 
 Response/Request Middlewares
@@ -101,15 +97,15 @@ Automatically convert a scope into a `asgi_tools.Request`
 
 .. code-block:: python
 
-    from asgi_tools import RequestMiddleware
+    from asgi_tools import RequestMiddleware, HTMLResponse
 
+    async def app(request, receive, send):
+        # We will get a parsed request here
+        data = await request.json()
+        response = HTMLResponse(data['name'])
+        return await response(request, receive, send)
 
-    async def base_app(request, receive, send):
-        assert request.url
-        assert request.headers
-        # ...
-
-    app = RequestMiddleware(base_app)
+    app = RequestMiddleware(app)
 
 
 Automatically parse an result from asgi apps and convert it into a `asgi_tools.Response`
@@ -118,11 +114,10 @@ Automatically parse an result from asgi apps and convert it into a `asgi_tools.R
 
     from asgi_tools import ResponseMiddleware
 
-
-    async def base_app(request, receive, send):
+    async def app(request, receive, send):
         return "Hello World!"
 
-    app = ResponseMiddleware(base_app)
+    app = ResponseMiddleware(app)
 
 
 Router Middleware
@@ -132,49 +127,20 @@ Route HTTP requests
 
 .. code-block:: python
 
-    from asgi_tools import RouterMiddleware, ResponseMiddleware
+    from http_router import Router
+    from asgi_tools import RouterMiddleware, RequestMiddleware, ResponseMiddleware
 
-
-    async def index_and_default(*args):
-        return "Hello from Index"
-
-
-    async def page1(*args):
-        return "Hello from Page1"
-
-
-    async def page2(*args):
-        return "Hello from Page2"
-
-
-    app = ResponseMiddleware(RouterMiddleware(index_and_default, routes={'/page1': page1, '/page2': page2}))
-
-
-Alternative usage
-
-.. code-block:: python
-
-    from asgi_tools import RouterMiddleware, ResponseMiddleware
-
-
-    async def index_and_default(*args):
-        return "Hello from Index"
-
-
-    router = RouterMiddleware(index_and_default)
-
+    router = Router()
 
     @router.route('/page1')
-    async def page1(*args):
-        return "Hello from Page1"
-
+    async def page1(request, receive, send):
+        return 'page1'
 
     @router.route('/page2')
-    async def page2(*args):
-        return "Hello from Page2"
+    async def page2(request, receive, send):
+        return 'page2'
 
-
-    app = ResponseMiddleware(router)
+    # TODO
 
 
 .. _bugtracker:

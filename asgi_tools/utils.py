@@ -1,6 +1,6 @@
 """ASGI-Tools Utils."""
 
-from asyncio import iscoroutinefunction
+from inspect import iscoroutinefunction
 from functools import wraps
 
 

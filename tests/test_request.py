@@ -1,3 +1,6 @@
+"""Test Request."""
+
+
 async def test_request():
     from asgi_tools import Request
 
@@ -52,3 +55,21 @@ async def test_request():
 
     formdata2 = await request.form()
     assert formdata2 is formdata
+
+
+async def test_multipart(client):
+    from asgi_tools import Request, HTMLResponse
+
+    async def app(scope, receive, send):
+        request = Request(scope, receive)
+        data = await request.form()
+        response = HTMLResponse(
+            data['test'].split(b'\n')[0]
+        )
+        return await response(scope, receive, send)
+
+    async with client(app) as req:
+        res = await req.post('/', files={'test': open(__file__)})
+        assert res.status_code == 200
+        assert res.text == '"""Test Request."""'
+        assert res.headers['content-length'] == str(len(res.text))

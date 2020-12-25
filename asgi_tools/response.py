@@ -23,13 +23,13 @@ class Response:
         """Setup the response."""
         self.content = content
         self.status_code = status_code
-        self._headers = CIMultiDict(headers or {})
+        self.headers = CIMultiDict(headers or {})
         self.cookies = cookies.SimpleCookie()
         if content_type:
             if content_type.startswith('text/'):
                 content_type = f"{content_type}; charset={self.charset}"
 
-            self._headers['content-type'] = content_type
+            self.headers['content-type'] = content_type
 
     def __str__(self):
         """Stringify the response."""
@@ -42,7 +42,7 @@ class Response:
     async def __aiter__(self):
         """Iterate self through ASGI messages."""
         headers = self.get_headers()
-        if 'content-length' not in self._headers:
+        if 'content-length' not in self.headers:
             headers.append((b'content-length', str(len(self.body)).encode()))
 
         yield {
@@ -71,8 +71,8 @@ class Response:
     def get_headers(self):
         """Render the response's headers."""
         headers = [
-            (key.lower().encode('latin-1'), val.encode('latin-1'))
-            for key, val in self._headers.items()
+            (key.lower().encode('latin-1'), str(val).encode('latin-1'))
+            for key, val in self.headers.items()
         ]
         if self.cookies:
             val = self.cookies.output(header='').strip()
@@ -118,7 +118,7 @@ class RedirectResponse(Response):
     def __init__(self, url, *args, status_code=HTTPStatus.TEMPORARY_REDIRECT.value, **kwargs):
         """Set status code and prepare location."""
         super(RedirectResponse, self).__init__(*args, status_code=status_code, **kwargs)
-        self._headers["location"] = quote_plus(str(url), safe=":/%#?&=@[]!$&'()*+,;")
+        self.headers["location"] = quote_plus(str(url), safe=":/%#?&=@[]!$&'()*+,;")
 
 
 class StreamResponse(Response):

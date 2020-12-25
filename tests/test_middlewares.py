@@ -1,20 +1,27 @@
 """test middlewares"""
 
-from httpx import AsyncClient
 
-
-async def test_response_middleware():
+async def test_response_middleware(client):
     from asgi_tools import ResponseMiddleware
 
     # Test default response
     app = ResponseMiddleware()
-    async with AsyncClient(app=app, base_url='http://testserver') as client:
-        res = await client.get('/')
+    async with client(app) as req:
+        res = await req.get('/')
         assert res.status_code == 404
         assert res.text == 'Not Found'
 
+    async def app(*args):
+        return False
 
-async def test_request_response_middlewares():
+    app = ResponseMiddleware(app)
+    async with client(app) as req:
+        res = await req.get('/')
+        assert res.status_code == 200
+        assert res.text == 'false'
+
+
+async def test_request_response_middlewares(client):
     from asgi_tools import RequestMiddleware, ResponseMiddleware, combine
 
     async def app(request, receive, send):
@@ -26,9 +33,8 @@ async def test_request_response_middlewares():
 
     app = combine(app, ResponseMiddleware, RequestMiddleware)
 
-    async with AsyncClient(
-            app=app, base_url='http://testserver') as client:
-        res = await client.post(
+    async with client(app) as req:
+        res = await req.post(
             '/testurl?last_name=Daniels',
             json={'first_name': 'Jack'},
             headers={'test-header': 'test-value'},
@@ -56,123 +62,30 @@ async def test_lifespan_middlewares():
     assert events['finished']
 
 
-async def test_router_middlewares():
+async def test_router_middlewares(client):
+    from http_router import Router
     from asgi_tools import RouterMiddleware, ResponseMiddleware
 
+    router = Router()
+    app = ResponseMiddleware(RouterMiddleware(router=router))
+
+    @router.route('/page1')
     async def page1(scope, receive, send):
         return 'page1'
-
-    router = RouterMiddleware(routes={'/page1': page1})
-    app = ResponseMiddleware()
-    app.bind(router)
 
     @router.route('/page2')
     async def page2(scope, receive, send):
         return 'page2'
 
-    async with AsyncClient(app=app, base_url='http://testserver') as client:
-        res = await client.get('/')
+    async with client(app) as req:
+        res = await req.get('/')
         assert res.text == 'Not Found'
         assert res.status_code == 404
 
-        res = await client.get('/page1')
+        res = await req.get('/page1')
         assert res.status_code == 200
         assert res.text == 'page1'
 
-        res = await client.get('/page2')
+        res = await req.get('/page2')
         assert res.status_code == 200
         assert res.text == 'page2'
-
-    router = RouterMiddleware(pass_params_only=True)
-    app = ResponseMiddleware()
-    app.bind(router)
-
-    @router.route('/page1')
-    async def page1(scope, **params):
-        return 'page1'
-
-    async with AsyncClient(app=app, base_url='http://testserver') as client:
-        res = await client.get('/')
-        assert res.text == 'Not Found'
-        assert res.status_code == 404
-
-        res = await client.get('/page1')
-        assert res.status_code == 200
-        assert res.text == 'page1'
-
-
-async def test_app_middleware():
-    from asgi_lifespan import LifespanManager
-    from asgi_tools import AppMiddleware
-
-    events = {}
-    app = AppMiddleware(
-        on_startup=lambda: events.setdefault('started', True),
-        on_shutdown=lambda: events.setdefault('finished', True)
-    )
-
-    @app.route('/testurl')
-    async def test_request(request, **kwargs):
-        data = await request.json()
-        first_name = data.get('first_name', 'Anonymous')
-        last_name = request.query.get('last_name', 'Test')
-        return f"Hello {first_name} {last_name} from '{ request.url.path }'"
-
-    async with LifespanManager(app):
-        async with AsyncClient(app=app, base_url='http://testserver') as client:
-            res = await client.post(
-                '/testurl?last_name=Daniels',
-                json={'first_name': 'Jack'},
-                headers={'test-header': 'test-value'},
-                cookies={'session': 'test-session'})
-            assert res.status_code == 200
-            assert res.text == "Hello Jack Daniels from '/testurl'"
-            assert res.headers['content-length'] == str(len(res.text))
-
-            res = await client.get('/404')
-            assert res.status_code == 404
-            assert res.text == "Not Found"
-
-    assert events['started']
-    assert events['finished']
-
-    def simple_md(app, **params):
-        """The middleware requires request and response."""
-
-        async def middleware(request, receive, send):
-            response = await app(request, receive, send)
-            if request.url.path == '/custom':
-                response._headers['X-Custom'] = '42'
-                response.content += ' -- Custom middleware'
-
-            return response
-
-        return middleware
-
-    async def app(request, **kwargs):
-        return 'OK'
-
-    app = AppMiddleware(app, simple_md)
-    async with AsyncClient(app=app, base_url='http://testserver') as client:
-        res = await client.post('/')
-        assert res.text == 'OK'
-        assert 'x-custom' not in res.headers
-
-        res = await client.post('/custom')
-        assert res.text == 'OK -- Custom middleware'
-        assert res.headers['x-custom'] == '42'
-
-
-async def test_multipart():
-    from asgi_tools import AppMiddleware
-
-    async def app(request, *args, **kwargs):
-        data = await request.form()
-        return data['test'].split(b'\n')[0]
-
-    app = AppMiddleware(app)
-    async with AsyncClient(app=app, base_url="https://testserver") as client:
-        res = await client.post('/', files={'test': open(__file__)})
-        assert res.status_code == 200
-        assert res.text == '"""test middlewares"""'
-        assert res.headers['content-length'] == str(len(res.text))
