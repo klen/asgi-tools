@@ -6,7 +6,7 @@ async def test_app(client):
 
     app = App()
 
-    @app.route('/test')
+    @app.route('/test', methods='get')
     async def test_request(request, **kwargs):
         return "Done"
 
@@ -45,6 +45,10 @@ async def test_app(client):
             res = await req.get('/404')
             assert res.status_code == 404
             assert res.text == "Nothing matches the given URI"
+
+            res = await req.post('/test')
+            assert res.status_code == 405
+            assert res.text == 'Specified method is invalid for this resource'
 
             res = await req.get('/502')
             assert res.status_code == 502

@@ -3,7 +3,7 @@
 import logging
 from functools import partial
 
-from http_router import Router, NotFound
+from http_router import Router, NotFound, MethodNotAllowed
 
 from .middleware import LifespanMiddleware
 from .request import Request
@@ -49,6 +49,9 @@ class App:
 
         except NotFound:
             return ResponseError(404)
+
+        except MethodNotAllowed:
+            return ResponseError(405)
 
         # Process exceptions
         except Exception as exc:
