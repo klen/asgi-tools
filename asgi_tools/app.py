@@ -1,5 +1,6 @@
 """Simple Base for ASGI Apps."""
 
+import logging
 from functools import partial
 
 from http_router import Router, NotFound
@@ -23,12 +24,13 @@ class App:
     exception_handlers[NotFound] = to_coroutine(lambda exc: ResponseError(404))
     exception_handlers[Exception] = to_coroutine(lambda exc: ResponseError(500))
 
-    def __init__(self, **kwargs):
+    def __init__(self, logger=None, **kwargs):
         """Initialize router and lifespan middleware."""
         self.app = self.__process__
         self.router = Router(**kwargs)
         self.lifespan = LifespanMiddleware()
         self.lifespan.bind(self.app)
+        self.logger = logger or logging.getLogger('asgi-tools')
 
     async def __call__(self, scope, receive, send):
         """Process ASGI call."""
@@ -48,10 +50,12 @@ class App:
 
         # Process exceptions
         except Exception as exc:
+            self.logger.exception(exc)
             for etype in type(exc).mro():
                 handler = self.exception_handlers.get(etype)
                 if handler:
                     break
+
             else:
                 raise
 

@@ -18,7 +18,6 @@ class ASGIDecodeError(ASGIError):
 
 DEFAULT_CHARSET = 'utf-8'
 
-
 from .request import Request  # noqa
 from .response import (  # noqa
     parse_response, Response, ResponseHTML, ResponseJSON,
