@@ -9,7 +9,7 @@ ASGI-Tools
 
 - Supports `Asyncio`_ and `Trio`_ libraries
 - `Request`             -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
-- `Response`            -- Send HTTP (html, json) responses
+- `Response`            -- Send HTTP (text, html, json, stream, file, http errors) responses
 - `RequestMiddleware`   -- Parse a scope and insert the parsed request into the scope
 - `ResponseMiddleware`  -- Parse responses and convert them into ASGI messages
 - `RouterMiddleware`    -- Route HTTP requests
@@ -84,7 +84,7 @@ Parse HTTP Request data from a scope and return it as JSON response:
 
         }
 
-        # Create a response (ResponseHTML, ResponseText, ResponseJSON, ResponseStream, ResponseRedirect also available)
+        # Create a response (ResponseHTML, ResponseText, ResponseJSON, ResponseStream, ResponseFile, ResponseRedirect also available)
         response = Response(json.dumps(request_data), content_type="application/json")
 
         # Send ASGI messages

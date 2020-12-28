@@ -4,6 +4,18 @@ from functools import wraps
 from inspect import iscoroutinefunction, isgeneratorfunction
 
 
+try:
+    import aiofile
+except ImportError:
+    aiofile = None
+
+
+try:
+    import trio
+except ImportError:
+    trio = None
+
+
 def is_awaitable(fn):
     """Check than the given function is awaitable."""
     return iscoroutinefunction(fn) or isgeneratorfunction(fn)

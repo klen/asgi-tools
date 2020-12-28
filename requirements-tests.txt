@@ -1,3 +1,4 @@
+aiofile
 anyio
 asgi-lifespan
 httpx

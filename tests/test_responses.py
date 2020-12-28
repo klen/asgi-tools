@@ -1,3 +1,8 @@
+"""ASGI Tools Responses Tests."""
+
+import pytest
+
+
 async def test_response():
     from asgi_tools import Response
 
@@ -6,22 +11,18 @@ async def test_response():
     response.cookies['session']['path'] = '/'
     assert response.body == b"Content"
     assert response.status_code == 200
-    assert response.get_headers() == [
-        (b"content-type", b"text/html; charset=utf-8"),
-        (b'set-cookie', b'session=test-session; Path=/'),
-    ]
     messages = [m async for m in response]
     assert messages
     assert messages[0] == {
         'headers': [
             (b'content-type', b'text/html; charset=utf-8'),
-            (b'set-cookie', b'session=test-session; Path=/'),
             (b'content-length', b'7'),
+            (b'set-cookie', b'session=test-session; Path=/'),
         ],
         'status': 200,
         'type': 'http.response.start'
     }
-    assert messages[1] == {'body': b'Content', 'type': 'http.response.body'}
+    assert messages[1] == {'body': b'Content', 'type': 'http.response.body', 'more_body': False}
 
 
 async def test_parse_response():
@@ -29,9 +30,10 @@ async def test_parse_response():
 
     response = await parse_response({'test': 'passed'})
     assert response.status_code == 200
-    assert response.get_headers() == [(b'content-type', b'application/json')]
+    assert response.headers['content-type'] == 'application/json'
     _, body = [m async for m in response]
-    assert body == {'body': b'{"test": "passed"}', 'type': 'http.response.body'}
+    assert body == {
+        'body': b'{"test": "passed"}', 'type': 'http.response.body', 'more_body': False}
 
     response = await parse_response((500, 'SERVER ERROR'))
     assert response.status_code == 500
@@ -49,9 +51,7 @@ async def test_html_response():
     response = ResponseHTML("Content")
     assert response.body == b"Content"
     assert response.status_code == 200
-    assert response.get_headers() == [
-        (b"content-type", b"text/html; charset=utf-8"),
-    ]
+    assert response.headers['content-type'] == 'text/html; charset=utf-8'
 
 
 async def test_text_response():
@@ -60,9 +60,7 @@ async def test_text_response():
     response = ResponseText("Content")
     assert response.body == b"Content"
     assert response.status_code == 200
-    assert response.get_headers() == [
-        (b"content-type", b"text/plain; charset=utf-8"),
-    ]
+    assert response.headers['content-type'] == 'text/plain; charset=utf-8'
 
 
 async def test_json_response():
@@ -71,9 +69,7 @@ async def test_json_response():
     response = ResponseJSON([1, 2, 3])
     assert response.body == b"[1, 2, 3]"
     assert response.status_code == 200
-    assert response.get_headers() == [
-        (b"content-type", b"application/json"),
-    ]
+    assert response.headers['content-type'] == 'application/json'
 
 
 async def test_redirect_response():
@@ -82,9 +78,7 @@ async def test_redirect_response():
     response = ResponseRedirect('/logout')
     assert response.body == b""
     assert response.status_code == 307
-    assert response.get_headers() == [
-        (b"location", b"/logout"),
-    ]
+    assert response.headers['location'] == '/logout'
 
 
 async def test_error_response():
@@ -123,3 +117,19 @@ async def test_stream_response(anyio_backend):
         res = await client.get('/')
         assert res.status_code == 200
         assert res.text == '0123456789'
+
+
+async def test_file_response(anyio_backend):
+    from asgi_tools import ResponseFile, ASGIError
+
+    response = ResponseFile(__file__)
+    messages = []
+    async for msg in response:
+        messages.append(msg)
+
+    assert b"ASGI Tools Responses Tests" in messages[1]['body']
+
+    response = ResponseFile('unknown')
+    with pytest.raises(ASGIError):
+        async for msg in response:
+            pass

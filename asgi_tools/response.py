@@ -6,11 +6,10 @@ from json import dumps
 from urllib.parse import quote_plus
 
 from multidict import CIMultiDict
+from sniffio import current_async_library
 
 from . import DEFAULT_CHARSET, ASGIError
-
-
-# TODO: File response
+from .utils import aiofile, trio
 
 
 class Response:
@@ -41,16 +40,11 @@ class Response:
 
     async def __aiter__(self):
         """Iterate self through ASGI messages."""
-        headers = self.get_headers()
         if 'content-length' not in self.headers:
-            headers.append((b'content-length', str(len(self.body)).encode()))
+            self.headers['content-length'] = str(len(self.body))
 
-        yield {
-            "type": "http.response.start",
-            "status": self.status_code,
-            "headers": headers,
-        }
-        yield {"type": "http.response.body", "body": self.body}
+        yield self.msg_start()
+        yield self.msg_body(self.body)
 
     async def __call__(self, scope, receive, send):
         """Behave as an ASGI application."""
@@ -68,8 +62,8 @@ class Response:
 
         return self.content.encode(self.charset)
 
-    def get_headers(self):
-        """Render the response's headers."""
+    def msg_start(self):
+        """Get ASGI response start message."""
         headers = [
             (key.lower().encode('latin-1'), str(val).encode('latin-1'))
             for key, val in self.headers.items()
@@ -77,7 +71,20 @@ class Response:
         if self.cookies:
             val = self.cookies.output(header='').strip()
             headers.append((b"set-cookie", val.encode('latin-1')))
-        return headers
+
+        return {
+            "type": "http.response.start",
+            "status": self.status_code,
+            "headers": headers,
+        }
+
+    def msg_body(self, body, /, more_body=False):
+        """Get ASGI response body message."""
+        return {"type": "http.response.body", "body": body, "more_body": more_body}
+
+    def msg_end(self):
+        """Get ASGI response finish message."""
+        return self.msg_body(b'')
 
 
 class ResponseText(Response):
@@ -145,27 +152,44 @@ class ResponseStream(Response):
 
     async def __aiter__(self):
         """Iterate through the response."""
-        yield {
-            "type": "http.response.start",
-            "status": self.status_code,
-            "headers": self.get_headers(),
-        }
+        yield self.msg_start()
+
         async for chunk in self.content:
             if not isinstance(chunk, bytes):
                 chunk = str(chunk).encode(self.charset)
-            yield {"type": "http.response.body", "body": chunk, "more_body": True}
+            yield self.msg_body(chunk, more_body=True)
 
-        yield {"type": "http.response.body", "body": b"", "more_body": False}
+        yield self.msg_end()
 
 
-class ResponseFile(ResponseStream):
+class ResponseFile(Response):
     """Read and stream a file."""
 
-    def __init__(self, filepath, **kwargs):
+    def __init__(self, filepath, chunk_size=32 * 1024, **kwargs):
+        """Store filepath to self."""
+        self.chunk_size = chunk_size
         super(ResponseFile, self).__init__(content=filepath, **kwargs)
 
     async def __aiter__(self):
-        raise NotImplemented()
+        """Iterate throug the file."""
+        yield self.msg_start()
+        try:
+            if current_async_library() == 'trio':
+                async with await trio.Path(self.content).open('rb') as fp:
+                    while chunk := await fp.read(self.chunk_size):
+                        yield self.msg_body(chunk, more_body=True)
+
+            else:
+                if aiofile is None:
+                    raise ASGIError('`aiofile` is required to return files with asyncio')
+
+                async with aiofile.AIOFile(self.content, mode='rb') as fp:
+                    async for chunk in aiofile.Reader(fp, chunk_size=self.chunk_size):
+                        yield self.msg_body(chunk, more_body=True)
+        except FileNotFoundError as exc:
+            raise ASGIError(*exc.args)
+
+        yield self.msg_end()
 
 
 async def parse_response(response, headers=None) -> Response:
