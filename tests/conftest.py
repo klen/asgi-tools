@@ -1,14 +1,13 @@
-import inspect
-
 import pytest
 from httpx import AsyncClient
 
 
-def pytest_collection_modifyitems(session, config, items):
-    """Mark all async functions."""
-    for item in items:
-        if isinstance(item, pytest.Function) and inspect.iscoroutinefunction(item.function):
-            item.add_marker(pytest.mark.asyncio)
+@pytest.fixture(params=[
+    pytest.param('asyncio'),
+    pytest.param('trio')
+], autouse=True)
+def anyio_backend(request):
+    return request.param
 
 
 @pytest.fixture(scope='session')

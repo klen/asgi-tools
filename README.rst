@@ -7,6 +7,7 @@ ASGI-Tools
 
 **Features:**
 
+- Supports `Asyncio`_ and `Trio`_ libraries
 - `Request`             -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
 - `Response`            -- Send HTTP (html, json) responses
 - `RequestMiddleware`   -- Parse a scope and insert the parsed request into the scope
@@ -169,6 +170,8 @@ Licensed under a `MIT license`_.
 
 .. _links:
 
+.. _Asyncio: https://docs.python.org/3/library/asyncio.html
+.. _Trio: https://trio.readthedocs.io/en/stable/index.html
 .. _klen: https://github.com/klen
 .. _MIT license: http://opensource.org/licenses/MIT
 

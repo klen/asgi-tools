@@ -1,6 +1,7 @@
+anyio
 asgi-lifespan
 httpx
 pytest
-pytest-asyncio
+trio
 
 -e .

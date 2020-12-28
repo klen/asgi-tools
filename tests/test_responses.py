@@ -94,8 +94,8 @@ async def test_error_response():
     assert response.content == "The server cannot process the request due to a high load"
 
 
-async def test_stream_response():
-    import asyncio as aio
+async def test_stream_response(anyio_backend):
+    import anyio as aio
     from asgi_tools import ResponseStream
 
     async def fill(timeout=.001):
