@@ -138,7 +138,7 @@ class ResponseError(Response, Exception):
 class ResponseStream(Response):
     """Stream response."""
 
-    def __init__(self, content=None, **kwargs):
+    def __init__(self, content, **kwargs):
         """Ensure that the content is awaitable."""
         assert isasyncgen(content), "Content have to be awaitable"
         super(ResponseStream, self).__init__(content=content, **kwargs)
@@ -156,6 +156,16 @@ class ResponseStream(Response):
             yield {"type": "http.response.body", "body": chunk, "more_body": True}
 
         yield {"type": "http.response.body", "body": b"", "more_body": False}
+
+
+class ResponseFile(ResponseStream):
+    """Read and stream a file."""
+
+    def __init__(self, filepath, **kwargs):
+        super(ResponseFile, self).__init__(content=filepath, **kwargs)
+
+    async def __aiter__(self):
+        raise NotImplemented()
 
 
 async def parse_response(response, headers=None) -> Response:
