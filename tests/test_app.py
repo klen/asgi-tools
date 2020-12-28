@@ -2,13 +2,21 @@ from asgi_lifespan import LifespanManager
 
 
 async def test_app(client):
-    from asgi_tools.app import App
+    from asgi_tools.app import App, ResponseError
 
     app = App()
 
     @app.route('/test')
     async def test_request(request, **kwargs):
         return "Done"
+
+    @app.route('/error')
+    async def test_request(request, **kwargs):
+        raise RuntimeError('An exception')
+
+    @app.route('/502')
+    async def test_request(request, **kwargs):
+        raise ResponseError(502)
 
     @app.middleware
     async def simple_md(handler, request, *args):
@@ -19,7 +27,8 @@ async def test_app(client):
     @app.middleware
     async def simple_md2(handler, request, *args):
         response = await handler(request, *args)
-        response.content = "Simple %s" % response.content
+        if response.status_code == 200:
+            response.content = "Simple %s" % response.content
         return response
 
     async with LifespanManager(app):
@@ -31,3 +40,12 @@ async def test_app(client):
 
             res = await req.get('/404')
             assert res.status_code == 404
+            assert res.text == "Nothing matches the given URI"
+
+            res = await req.get('/502')
+            assert res.status_code == 502
+            assert res.text == "Invalid responses from another server/proxy"
+
+            res = await req.get('/error')
+            assert res.status_code == 500
+            assert res.text == "Server got itself in trouble"

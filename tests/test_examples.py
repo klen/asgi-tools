@@ -47,12 +47,12 @@ async def test_readme_request_response(client):
 async def test_readme_request_response_middleware(client):
 
     # Example
-    from asgi_tools import RequestMiddleware, HTMLResponse
+    from asgi_tools import RequestMiddleware, ResponseHTML
 
     async def app(request, receive, send):
         # We will get a parsed request here
         data = await request.json()
-        response = HTMLResponse(data['name'])
+        response = ResponseHTML(data['name'])
         return await response(request, receive, send)
 
     app = RequestMiddleware(app)

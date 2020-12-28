@@ -2,7 +2,7 @@
 
 
 async def test_response_middleware(client):
-    from asgi_tools import ResponseMiddleware
+    from asgi_tools import ResponseMiddleware, ResponseError
 
     # Test default response
     app = ResponseMiddleware()
@@ -19,6 +19,15 @@ async def test_response_middleware(client):
         res = await req.get('/')
         assert res.status_code == 200
         assert res.text == 'false'
+
+    async def app(*args):
+        raise ResponseError(502)
+
+    app = ResponseMiddleware(app)
+    async with client(app) as req:
+        res = await req.get('/')
+        assert res.status_code == 502
+        assert res.text == 'Invalid responses from another server/proxy'
 
 
 async def test_request_response_middlewares(client):

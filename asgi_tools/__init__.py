@@ -21,8 +21,8 @@ DEFAULT_CHARSET = 'utf-8'
 
 from .request import Request  # noqa
 from .response import (  # noqa
-    parse_response, Response, HTMLResponse, JSONResponse,
-    PlainTextResponse, RedirectResponse, StreamResponse
+    parse_response, Response, ResponseHTML, ResponseJSON,
+    ResponseText, ResponseRedirect, ResponseError, ResponseStream
 )
 from .middleware import (  # noqa
     RequestMiddleware, ResponseMiddleware, AppMiddleware, LifespanMiddleware, RouterMiddleware,

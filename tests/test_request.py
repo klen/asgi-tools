@@ -58,12 +58,12 @@ async def test_request():
 
 
 async def test_multipart(client):
-    from asgi_tools import Request, HTMLResponse
+    from asgi_tools import Request, ResponseHTML
 
     async def app(scope, receive, send):
         request = Request(scope, receive)
         data = await request.form()
-        response = HTMLResponse(
+        response = ResponseHTML(
             data['test'].split(b'\n')[0]
         )
         return await response(scope, receive, send)

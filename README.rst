@@ -83,7 +83,7 @@ Parse HTTP Request data from a scope and return it as JSON response:
 
         }
 
-        # Create a response (HTMLResponse, PlainTextResponse, JSONResponse, StreamResponse, RedirectResponse also available)
+        # Create a response (ResponseHTML, ResponseText, ResponseJSON, ResponseStream, ResponseRedirect also available)
         response = Response(json.dumps(request_data), content_type="application/json")
 
         # Send ASGI messages
@@ -97,12 +97,12 @@ Automatically convert a scope into a `asgi_tools.Request`
 
 .. code-block:: python
 
-    from asgi_tools import RequestMiddleware, HTMLResponse
+    from asgi_tools import RequestMiddleware, ResponseHTML
 
     async def app(request, receive, send):
         # We will get a parsed request here
         data = await request.json()
-        response = HTMLResponse(data['name'])
+        response = ResponseHTML(data['name'])
         return await response(request, receive, send)
 
     app = RequestMiddleware(app)

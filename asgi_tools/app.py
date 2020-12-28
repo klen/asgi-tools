@@ -6,7 +6,7 @@ from http_router import Router, NotFound
 
 from .middleware import LifespanMiddleware
 from .request import Request
-from .response import parse_response, Response
+from .response import parse_response, Response, ResponseError
 from .utils import to_coroutine
 
 
@@ -20,8 +20,8 @@ class App:
     """
 
     exception_handlers = {}
-    exception_handlers[NotFound] = to_coroutine(lambda exc: (404, 'Resource not Found'))
-    exception_handlers[Exception] = to_coroutine(lambda exc: (500, 'Server Error'))
+    exception_handlers[NotFound] = to_coroutine(lambda exc: ResponseError(404))
+    exception_handlers[Exception] = to_coroutine(lambda exc: ResponseError(500))
 
     def __init__(self, **kwargs):
         """Initialize router and lifespan middleware."""
@@ -43,10 +43,13 @@ class App:
             cb, matches = self.router(request.url.path, request.method)
             response = await cb(request, **matches)
 
+        except ResponseError as exc:
+            response = exc
+
         # Process exceptions
         except Exception as exc:
             for etype in type(exc).mro():
-                handler = self.exception_handlers[etype]
+                handler = self.exception_handlers.get(etype)
                 if handler:
                     break
             else:

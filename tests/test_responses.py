@@ -34,9 +34,9 @@ async def test_response():
 
 
 async def test_html_response():
-    from asgi_tools import HTMLResponse
+    from asgi_tools import ResponseHTML
 
-    response = HTMLResponse("Content")
+    response = ResponseHTML("Content")
     assert response.body == b"Content"
     assert response.status_code == 200
     assert response.get_headers() == [
@@ -45,9 +45,9 @@ async def test_html_response():
 
 
 async def test_text_response():
-    from asgi_tools import PlainTextResponse
+    from asgi_tools import ResponseText
 
-    response = PlainTextResponse("Content")
+    response = ResponseText("Content")
     assert response.body == b"Content"
     assert response.status_code == 200
     assert response.get_headers() == [
@@ -56,9 +56,9 @@ async def test_text_response():
 
 
 async def test_json_response():
-    from asgi_tools import JSONResponse
+    from asgi_tools import ResponseJSON
 
-    response = JSONResponse([1, 2, 3])
+    response = ResponseJSON([1, 2, 3])
     assert response.body == b"[1, 2, 3]"
     assert response.status_code == 200
     assert response.get_headers() == [
@@ -67,9 +67,9 @@ async def test_json_response():
 
 
 async def test_redirect_response():
-    from asgi_tools import RedirectResponse
+    from asgi_tools import ResponseRedirect
 
-    response = RedirectResponse('/logout')
+    response = ResponseRedirect('/logout')
     assert response.body == b""
     assert response.status_code == 307
     assert response.get_headers() == [
@@ -77,16 +77,23 @@ async def test_redirect_response():
     ]
 
 
+async def test_error_response():
+    from asgi_tools import ResponseError
+
+    response = ResponseError(503)
+    assert response.content == "The server cannot process the request due to a high load"
+
+
 async def test_stream_response():
     import asyncio as aio
-    from asgi_tools import StreamResponse
+    from asgi_tools import ResponseStream
 
     async def fill(timeout=.001):
         for idx in range(10):
             await aio.sleep(timeout)
             yield idx
 
-    response = StreamResponse(fill())
+    response = ResponseStream(fill())
     messages = []
     async for msg in response:
         messages.append(msg)
@@ -96,7 +103,7 @@ async def test_stream_response():
     assert messages[-1] == {'body': b'', 'more_body': False, 'type': 'http.response.body'}
 
     def app(scope, receive, send):
-        response = StreamResponse(fill())
+        response = ResponseStream(fill())
         return response(scope, receive, send)
 
     from httpx import AsyncClient

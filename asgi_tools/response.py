@@ -7,7 +7,7 @@ from urllib.parse import quote_plus
 
 from multidict import CIMultiDict
 
-from . import DEFAULT_CHARSET
+from . import DEFAULT_CHARSET, ASGIError
 
 
 # TODO: File response
@@ -80,16 +80,7 @@ class Response:
         return headers
 
 
-class HTMLResponse(Response):
-    """HTML Response."""
-
-    def __init__(self, *args, **kwargs):
-        """Setup the response."""
-        kwargs['content_type'] = 'text/html'
-        super().__init__(*args, **kwargs)
-
-
-class PlainTextResponse(Response):
+class ResponseText(Response):
     """Plain-text Response."""
 
     def __init__(self, *args, **kwargs):
@@ -98,7 +89,16 @@ class PlainTextResponse(Response):
         super().__init__(*args, **kwargs)
 
 
-class JSONResponse(Response):
+class ResponseHTML(Response):
+    """HTML Response."""
+
+    def __init__(self, *args, **kwargs):
+        """Setup the response."""
+        kwargs['content_type'] = 'text/html'
+        super().__init__(*args, **kwargs)
+
+
+class ResponseJSON(Response):
     """JSON Response."""
 
     def __init__(self, *args, **kwargs):
@@ -112,22 +112,36 @@ class JSONResponse(Response):
         return dumps(self.content, ensure_ascii=False, allow_nan=False).encode(self.charset)
 
 
-class RedirectResponse(Response):
+class ResponseRedirect(Response):
     """Redirect Response."""
 
     def __init__(self, url, *args, status_code=HTTPStatus.TEMPORARY_REDIRECT.value, **kwargs):
         """Set status code and prepare location."""
-        super(RedirectResponse, self).__init__(*args, status_code=status_code, **kwargs)
+        if not (300 <= status_code < 400):
+            raise ASGIError(f"Invalid status_code ({status_code}).")
+
+        super(ResponseRedirect, self).__init__(*args, status_code=status_code, **kwargs)
         self.headers["location"] = quote_plus(str(url), safe=":/%#?&=@[]!$&'()*+,;")
 
 
-class StreamResponse(Response):
+class ResponseError(Response, Exception):
+    """Raise `ErrorResponse` to stop processing and return HTTP Error Response."""
+
+    def __init__(self, status_code=HTTPStatus.INTERNAL_SERVER_ERROR.value, content=None, **kwargs):
+        """Check error status."""
+        if status_code < 400:
+            raise ASGIError(f"Invalid status_code ({status_code}).")
+        content = content or HTTPStatus(status_code).description
+        super(ResponseError, self).__init__(status_code=status_code, content=content, **kwargs)
+
+
+class ResponseStream(Response):
     """Stream response."""
 
     def __init__(self, content=None, **kwargs):
         """Ensure that the content is awaitable."""
         assert isasyncgen(content), "Content have to be awaitable"
-        super(StreamResponse, self).__init__(content=content, **kwargs)
+        super(ResponseStream, self).__init__(content=content, **kwargs)
 
     async def __aiter__(self):
         """Iterate through the response."""
@@ -154,7 +168,7 @@ async def parse_response(response) -> Response:
         return response
 
     if isinstance(response, (str, bytes)):
-        return HTMLResponse(response)
+        return ResponseHTML(response)
 
     if isinstance(response, tuple):
         status, *response = response
@@ -163,6 +177,6 @@ async def parse_response(response) -> Response:
         return response
 
     if isinstance(response, (dict, list, int, bool)):
-        return JSONResponse(response)
+        return ResponseJSON(response)
 
-    return PlainTextResponse(str(response))
+    return ResponseText(str(response))

@@ -5,7 +5,7 @@ from functools import partial
 from http_router import Router
 
 from .request import Request
-from .response import HTMLResponse, parse_response
+from .response import ResponseHTML, parse_response, ResponseError
 from .utils import to_coroutine
 
 
@@ -39,7 +39,7 @@ class BaseMiddeware:
 
     def bind(self, app=None):
         """Bind the middleware to an ASGI application."""
-        self.app = app or HTMLResponse("Not Found", status_code=404)
+        self.app = app or ResponseHTML("Not Found", status_code=404)
         return self
 
 
@@ -49,13 +49,19 @@ class ResponseMiddleware(BaseMiddeware):
     async def __process__(self, scope, receive, send):
         """Parse responses from callbacks."""
 
-        response = await self.app(scope, receive, send)
-        if response is not None:
+        try:
+            response = await self.app(scope, receive, send)
+            if response is None:
+                return
+
             response = await parse_response(response)
 
-            # Send ASGI messages from the prepared response
-            async for msg in response:
-                await send(msg)
+        except ResponseError as exc:
+            response = exc
+
+        # Send ASGI messages from the prepared response
+        async for msg in response:
+            await send(msg)
 
 
 class RequestMiddleware(BaseMiddeware):
@@ -148,7 +154,7 @@ def AppMiddleware(
     """Combine middlewares to create an application."""
 
     async def default404(request, **params):
-        return HTMLResponse("Not Found", status_code=404)
+        return ResponseHTML("Not Found", status_code=404)
 
     middlewares = [
         LifespanMiddleware, RequestMiddleware, ResponseMiddleware, *app_middlewares,
