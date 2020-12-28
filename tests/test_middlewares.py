@@ -73,9 +73,10 @@ async def test_router_middlewares(client):
     async def page1(scope, receive, send):
         return 'page1'
 
-    @router.route('/page2')
+    @router.route('/page2/{mode}')
     async def page2(scope, receive, send):
-        return 'page2'
+        mode = scope['matches']['mode']
+        return f'page2: {mode}'
 
     async with client(app) as req:
         res = await req.get('/')
@@ -86,6 +87,6 @@ async def test_router_middlewares(client):
         assert res.status_code == 200
         assert res.text == 'page1'
 
-        res = await req.get('/page2')
+        res = await req.get('/page2/42')
         assert res.status_code == 200
-        assert res.text == 'page2'
+        assert res.text == 'page2: 42'
