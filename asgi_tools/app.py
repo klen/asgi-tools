@@ -21,7 +21,6 @@ class App:
     """
 
     exception_handlers = {}
-    exception_handlers[NotFound] = to_coroutine(lambda exc: ResponseError(404))
     exception_handlers[Exception] = to_coroutine(lambda exc: ResponseError(500))
 
     def __init__(self, logger=None, **kwargs):
@@ -46,7 +45,10 @@ class App:
             response = await cb(request, **matches)
 
         except ResponseError as exc:
-            response = exc
+            return exc
+
+        except NotFound:
+            return ResponseError(404)
 
         # Process exceptions
         except Exception as exc:
