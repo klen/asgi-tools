@@ -24,7 +24,7 @@ from .response import (  # noqa
     ResponseRedirect, ResponseError, ResponseStream, ResponseFile, parse_response
 )
 from .middleware import (  # noqa
-    RequestMiddleware, ResponseMiddleware, AppMiddleware, LifespanMiddleware, RouterMiddleware,
-    combine
+    RequestMiddleware, ResponseMiddleware, AppMiddleware, LifespanMiddleware,
+    RouterMiddleware, StaticFilesMiddleware, combine
 )
 from .app import App  # noqa

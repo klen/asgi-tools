@@ -123,13 +123,26 @@ async def test_file_response(anyio_backend):
     from asgi_tools import ResponseFile, ASGIError
 
     response = ResponseFile(__file__)
+    assert response.headers['content-length']
+    assert response.headers['content-type'] == 'text/x-python'
+    assert response.headers['last-modified']
+    assert response.headers['etag']
+    assert response.headers['content-disposition'] == 'attachment; filename="test_responses.py"'
+
     messages = []
     async for msg in response:
         messages.append(msg)
 
+    assert len(messages) >= 3
     assert b"ASGI Tools Responses Tests" in messages[1]['body']
 
-    response = ResponseFile('unknown')
+    response = ResponseFile(__file__, headers_only=True)
+
+    messages = []
+    async for msg in response:
+        messages.append(msg)
+
+    assert len(messages) == 2
+
     with pytest.raises(ASGIError):
-        async for msg in response:
-            pass
+        response = ResponseFile('unknown')

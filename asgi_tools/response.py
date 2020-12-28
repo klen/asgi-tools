@@ -1,9 +1,14 @@
 """ASGI responses."""
 
+import os
 from inspect import isawaitable, isasyncgen
 from http import cookies, HTTPStatus
 from json import dumps
 from urllib.parse import quote_plus
+from pathlib import Path
+from email.utils import formatdate
+from mimetypes import guess_type
+from hashlib import md5
 
 from multidict import CIMultiDict
 from sniffio import current_async_library
@@ -40,8 +45,7 @@ class Response:
 
     async def __aiter__(self):
         """Iterate self through ASGI messages."""
-        if 'content-length' not in self.headers:
-            self.headers['content-length'] = str(len(self.body))
+        self.headers.setdefault('content-length', str(len(self.body)))
 
         yield self.msg_start()
         yield self.msg_body(self.body)
@@ -165,17 +169,30 @@ class ResponseStream(Response):
 class ResponseFile(Response):
     """Read and stream a file."""
 
-    def __init__(self, filepath, chunk_size=32 * 1024, **kwargs):
+    def __init__(self, filepath, chunk_size=32 * 1024, headers_only=False, **kwargs):
         """Store filepath to self."""
+        filepath = Path(filepath)
         self.chunk_size = chunk_size
+        self.headers_only = headers_only
         super(ResponseFile, self).__init__(content=filepath, **kwargs)
+        try:
+            stat = os.stat(filepath)
+        except FileNotFoundError as exc:
+            raise ASGIError(*exc.args)
+
+        self.headers.setdefault('content-disposition', f'attachment; filename="{filepath.name}"')
+        self.headers.setdefault('content-type', guess_type(filepath)[0] or "text/plain")
+        self.headers.setdefault('content-length', str(stat.st_size))
+        self.headers.setdefault('last-modified', formatdate(stat.st_mtime, usegmt=True))
+        etag = str(stat.st_mtime) + "-" + str(stat.st_size)
+        self.headers.setdefault('etag', md5(etag.encode()).hexdigest())
 
     async def __aiter__(self):
         """Iterate throug the file."""
         yield self.msg_start()
-        try:
+        if not self.headers_only:
             if current_async_library() == 'trio':
-                async with await trio.Path(self.content).open('rb') as fp:
+                async with await trio.open_file(self.content, 'rb') as fp:
                     while chunk := await fp.read(self.chunk_size):
                         yield self.msg_body(chunk, more_body=True)
 
@@ -186,8 +203,6 @@ class ResponseFile(Response):
                 async with aiofile.AIOFile(self.content, mode='rb') as fp:
                     async for chunk in aiofile.Reader(fp, chunk_size=self.chunk_size):
                         yield self.msg_body(chunk, more_body=True)
-        except FileNotFoundError as exc:
-            raise ASGIError(*exc.args)
 
         yield self.msg_end()
 

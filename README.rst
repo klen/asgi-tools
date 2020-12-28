@@ -8,13 +8,14 @@ ASGI-Tools
 **Features:**
 
 - Supports `Asyncio`_ and `Trio`_ libraries
-- `Request`             -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
-- `Response`            -- Send HTTP (text, html, json, stream, file, http errors) responses
-- `RequestMiddleware`   -- Parse a scope and insert the parsed request into the scope
-- `ResponseMiddleware`  -- Parse responses and convert them into ASGI messages
-- `RouterMiddleware`    -- Route HTTP requests
-- `LifespanMiddleware`  -- Process a lifespan cycle
-- `AppMiddleware`       -- A combined (request, response, router, lifespan) middleware to quikly create ASGI apps
+- `Request`                 -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
+- `Response`                -- Send HTTP (text, html, json, stream, file, http errors) responses
+- `RequestMiddleware`       -- Parse a scope and insert the parsed request into the scope
+- `ResponseMiddleware`      -- Parse responses and convert them into ASGI messages
+- `RouterMiddleware`        -- Route HTTP requests
+- `LifespanMiddleware`      -- Process a lifespan cycle
+- `StaticFilesMiddleware`   -- Serve static files from URL prefixes
+- `AppMiddleware`           -- A combined (request, response, router, lifespan) middleware to quikly create ASGI apps
 
 .. _badges:
 

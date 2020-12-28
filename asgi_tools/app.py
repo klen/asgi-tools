@@ -34,6 +34,7 @@ class App:
     async def __call__(self, scope, receive, send):
         """Process ASGI call."""
         request = Request(scope)
+        request.app = scope['app'] = self
         response = await self.lifespan(request, receive, send)
         if isinstance(response, Response):
             await response(scope, receive, send)

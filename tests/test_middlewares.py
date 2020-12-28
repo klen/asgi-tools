@@ -53,7 +53,7 @@ async def test_request_response_middlewares(client):
         assert res.headers['content-length'] == str(len(res.text))
 
 
-async def test_lifespan_middlewares():
+async def test_lifespan_middleware():
     from asgi_lifespan import LifespanManager
     from asgi_tools import LifespanMiddleware
 
@@ -71,7 +71,7 @@ async def test_lifespan_middlewares():
     assert events['finished']
 
 
-async def test_router_middlewares(client):
+async def test_router_middleware(client):
     from http_router import Router
     from asgi_tools import RouterMiddleware, ResponseMiddleware
 
@@ -99,3 +99,26 @@ async def test_router_middlewares(client):
         res = await req.get('/page2/42')
         assert res.status_code == 200
         assert res.text == 'page2: 42'
+
+
+async def test_staticfiles_middleware(app, client):
+    import os
+    from asgi_tools import StaticFilesMiddleware
+
+    app = StaticFilesMiddleware(app, folders=['/', os.path.dirname(__file__)])
+
+    async with client(app) as req:
+        res = await req.get('/')
+        assert res.status_code == 200
+
+        res = await req.head('/static/test_middlewares.py')
+        assert res.status_code == 200
+        assert res.headers['content-type'] == 'text/x-python'
+        assert not res.text
+
+        res = await req.get('/static/test_middlewares.py')
+        assert res.status_code == 200
+        assert res.text.startswith('"""test middlewares"""')
+
+        res = await req.get('/static/unknown')
+        assert res.status_code == 404

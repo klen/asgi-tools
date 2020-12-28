@@ -1,12 +1,17 @@
 """ASGI-Tools Middlewares."""
 
 from functools import partial
+from pathlib import Path
 
 from http_router import Router
 
+from . import ASGIError
 from .request import Request
-from .response import ResponseHTML, parse_response, ResponseError
+from .response import ResponseHTML, parse_response, ResponseError, ResponseFile
 from .utils import to_awaitable
+
+
+#  TODO: StaticFilesMiddleware
 
 
 class BaseMiddeware:
@@ -147,6 +152,39 @@ class RouterMiddleware(BaseMiddeware):
             return self.router(scope.get("root_path", "") + scope["path"], scope['method'])
         except self.router.NotFound:
             return self.app, {}
+
+
+class StaticFilesMiddleware(BaseMiddeware):
+    """Serve static files."""
+
+    def __init__(self, app=None, url_prefix='/static', folders=None, **params) -> None:
+        """Initialize the middleware. """
+        super(StaticFilesMiddleware, self).__init__(app, **params)
+        self.url_prefix = url_prefix
+        folders = folders or []
+        if isinstance(folders, str):
+            folders = [folders]
+        self.folders = [Path(folder) for folder in folders]
+
+    async def __process__(self, scope, receive, send):
+        """Serve static files for self url prefix."""
+        if not self.folders or not scope['path'].startswith(self.url_prefix):
+            return await self.app(scope, receive, send)
+
+        filename = scope['path'][len(self.url_prefix):].strip('/')
+        for folder in self.folders:
+            filepath = folder.joinpath(filename).resolve()
+            try:
+                response = ResponseFile(filepath, headers_only=scope['method'] == 'HEAD')
+                break
+
+            except ASGIError:
+                response = None
+
+        response = response or ResponseError(404)
+
+        async for msg in response:
+            await send(msg)
 
 
 def AppMiddleware(
