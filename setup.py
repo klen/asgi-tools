@@ -13,7 +13,6 @@ def _read(fname):
 
 
 setup(
-    packages=['asgi_tools'],
     install_requires=[
         line.replace('==', '>=') for line in _read('requirements.txt').split('\n')
         if line and not line.startswith(('#', '-'))
