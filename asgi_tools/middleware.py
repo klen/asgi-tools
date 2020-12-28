@@ -14,7 +14,7 @@ class BaseMiddeware:
 
     scopes = {'http', 'websockets'}
 
-    def __init__(self, app=None, **kwargs):
+    def __init__(self, app=None, **params):
         """Save ASGI App."""
 
         self.bind(app)
@@ -27,18 +27,18 @@ class BaseMiddeware:
 
         return await self.app(scope, *args, **kwargs)
 
-    def __getattr__(self, name):
-        """Proxy middleware methods to root level."""
-
-        return getattr(self.app, name)
-
     async def __process__(self, scope, receive, send):
         """Do the middleware's logic."""
 
         raise NotImplementedError()
 
+    @classmethod
+    def setup(cls, **params):
+        """Setup the middleware without an initialization."""
+        return partial(cls, **params)
+
     def bind(self, app=None):
-        """Bind the middleware to an ASGI application."""
+        """Rebind the middleware to an ASGI application."""
         self.app = app or ResponseHTML("Not Found", status_code=404)
         return self
 
@@ -77,9 +77,9 @@ class LifespanMiddleware(BaseMiddeware):
 
     scopes = {'lifespan'}
 
-    def __init__(self, app=None, on_startup=None, on_shutdown=None, **kwargs):
+    def __init__(self, app=None, on_startup=None, on_shutdown=None, **params):
         """Prepare the middleware."""
-        super(LifespanMiddleware, self).__init__(app, **kwargs)
+        super(LifespanMiddleware, self).__init__(app, **params)
         self._startup = []
         self._shutdown = []
         self.__register__(on_startup, self._startup)
@@ -130,9 +130,9 @@ class LifespanMiddleware(BaseMiddeware):
 class RouterMiddleware(BaseMiddeware):
     """Bind callbacks to HTTP paths."""
 
-    def __init__(self, app=None, router: Router = None, **kwargs):
+    def __init__(self, app=None, router: Router = None, **params):
         """Initialize HTTP router. """
-        super(RouterMiddleware, self).__init__(app, **kwargs)
+        super(RouterMiddleware, self).__init__(app, **params)
         self.router = router
 
     async def __process__(self, scope, receive, send):
@@ -158,8 +158,7 @@ def AppMiddleware(
 
     middlewares = [
         LifespanMiddleware, RequestMiddleware, ResponseMiddleware, *app_middlewares,
-        partial(
-            RouterMiddleware, pass_matches_only=pass_matches_only, parse_response=parse_response)
+        RouterMiddleware.setup(pass_matches_only=pass_matches_only, parse_response=parse_response)
     ]
     return combine(app or default404, *middlewares, **params)
 

@@ -8,7 +8,7 @@ from http_router import Router, NotFound
 from .middleware import LifespanMiddleware
 from .request import Request
 from .response import parse_response, Response, ResponseError
-from .utils import to_coroutine
+from .utils import to_coroutine, iscoroutinefunction
 
 
 class App:
@@ -72,8 +72,9 @@ class App:
         return wrapper
 
     def middleware(self, md):
-        """Register an simple middleware."""
-        self.app = partial(to_coroutine(md), self.app)
+        """Register an middleware to internal cycle."""
+        # Register as a simple middleware
+        self.app = iscoroutinefunction(md) and partial(md, self.app) or to_coroutine(md(self.app))
         self.lifespan.bind(self.app)
 
     def on_startup(self, fn):
