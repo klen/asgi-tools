@@ -158,7 +158,7 @@ class ResponseStream(Response):
         yield {"type": "http.response.body", "body": b"", "more_body": False}
 
 
-async def parse_response(response) -> Response:
+async def parse_response(response, headers=None) -> Response:
     """Parse the given object and convert it into a asgi_tools.Response."""
 
     while isawaitable(response):
@@ -168,15 +168,17 @@ async def parse_response(response) -> Response:
         return response
 
     if isinstance(response, (str, bytes)):
-        return ResponseHTML(response)
+        return ResponseHTML(response, headers=headers)
 
     if isinstance(response, tuple):
-        status, *response = response
-        response = await parse_response(*(response or ['']))
+        status, *content = response
+        if len(content) > 1:
+            headers, *content = content
+        response = await parse_response(*(content or ['']), headers=headers)
         response.status_code = status
         return response
 
     if isinstance(response, (dict, list, int, bool)):
-        return ResponseJSON(response)
+        return ResponseJSON(response, headers=headers)
 
-    return ResponseText(str(response))
+    return ResponseText(str(response), headers=headers)

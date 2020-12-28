@@ -1,5 +1,5 @@
 async def test_response():
-    from asgi_tools import Response, parse_response
+    from asgi_tools import Response
 
     response = Response("Content", content_type='text/html')
     response.cookies['session'] = 'test-session'
@@ -23,14 +23,24 @@ async def test_response():
     }
     assert messages[1] == {'body': b'Content', 'type': 'http.response.body'}
 
+
+async def test_parse_response():
+    from asgi_tools import parse_response
+
     response = await parse_response({'test': 'passed'})
     assert response.status_code == 200
     assert response.get_headers() == [(b'content-type', b'application/json')]
     _, body = [m async for m in response]
     assert body == {'body': b'{"test": "passed"}', 'type': 'http.response.body'}
 
-    response = await parse_response((500,))
+    response = await parse_response((500, 'SERVER ERROR'))
     assert response.status_code == 500
+    assert response.content == 'SERVER ERROR'
+
+    response = await parse_response((302, {'location': 'https://google.com'}, 'go away'))
+    assert response.status_code == 302
+    assert response.content == 'go away'
+    assert response.headers['location'] == 'https://google.com'
 
 
 async def test_html_response():
