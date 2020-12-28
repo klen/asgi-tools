@@ -59,9 +59,9 @@ class Request(dict):
         host = self.headers.get('host') or host
         host, _, _ = host.partition(':')
         return URL.build(
-            scheme=self.get('scheme', 'http'), host=host,
-            port=port, path=self.get("root_path", "") + self["path"],
-            query_string=self.get("query_string", b"").decode("latin-1")
+            scheme=self.get('scheme', 'http'), host=host, port=port, encoded=True,
+            path=self.get("root_path", "") + self["path"],
+            query_string=self.get("query_string", b"").decode("latin-1"),
         )
 
     @cached_property
