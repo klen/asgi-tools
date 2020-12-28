@@ -1,12 +1,17 @@
 """ASGI-Tools Utils."""
 
-from inspect import iscoroutinefunction
 from functools import wraps
+from inspect import iscoroutinefunction, isgeneratorfunction
 
 
-def to_coroutine(fn):
+def is_awaitable(fn):
+    """Check than the given function is awaitable."""
+    return iscoroutinefunction(fn) or isgeneratorfunction(fn)
+
+
+def to_awaitable(fn):
     """Convert the given function to a coroutine function if it isn't"""
-    if iscoroutinefunction(fn):
+    if is_awaitable(fn):
         return fn
 
     @wraps(fn)

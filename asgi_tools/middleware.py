@@ -6,7 +6,7 @@ from http_router import Router
 
 from .request import Request
 from .response import ResponseHTML, parse_response, ResponseError
-from .utils import to_coroutine
+from .utils import to_awaitable
 
 
 class BaseMiddeware:
@@ -105,7 +105,7 @@ class LifespanMiddleware(BaseMiddeware):
         if not isinstance(handlers, list):
             handlers = [handlers]
 
-        container += [to_coroutine(fn) for fn in handlers]
+        container += [to_awaitable(fn) for fn in handlers]
         return container
 
     async def __startup__(self, scope):

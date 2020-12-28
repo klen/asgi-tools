@@ -8,7 +8,7 @@ from http_router import Router, NotFound, MethodNotAllowed
 from .middleware import LifespanMiddleware
 from .request import Request
 from .response import parse_response, Response, ResponseError
-from .utils import to_coroutine, iscoroutinefunction
+from .utils import to_awaitable, iscoroutinefunction
 
 
 class App:
@@ -21,7 +21,7 @@ class App:
     """
 
     exception_handlers = {}
-    exception_handlers[Exception] = to_coroutine(lambda exc: ResponseError(500))
+    exception_handlers[Exception] = to_awaitable(lambda exc: ResponseError(500))
 
     def __init__(self, logger=None, **kwargs):
         """Initialize router and lifespan middleware."""
@@ -71,7 +71,7 @@ class App:
     def route(self, *args, **kwargs):
         """Register an route."""
         def wrapper(cb):
-            return self.router.route(*args, **kwargs)(to_coroutine(cb))
+            return self.router.route(*args, **kwargs)(to_awaitable(cb))
         return wrapper
 
     def middleware(self, md):
@@ -91,5 +91,5 @@ class App:
     def on_exception(self, etype):
         """Register an exception handler."""
         def wrapper(handler):
-            self.exception_handlers[etype] = to_coroutine(handler)
+            self.exception_handlers[etype] = to_awaitable(handler)
         return wrapper
