@@ -74,7 +74,7 @@ class App:
     def middleware(self, md):
         """Register an middleware to internal cycle."""
         # Register as a simple middleware
-        self.app = iscoroutinefunction(md) and partial(md, self.app) or to_coroutine(md(self.app))
+        self.app = iscoroutinefunction(md) and partial(md, self.app) or md(self.app)
         self.lifespan.bind(self.app)
 
     def on_startup(self, fn):
