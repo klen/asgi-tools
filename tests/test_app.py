@@ -1,10 +1,14 @@
+"""Application Tests."""
+
+from pathlib import Path
+
 from asgi_lifespan import LifespanManager
 
 
 async def test_app(client):
     from asgi_tools.app import App, ResponseError
 
-    app = App()
+    app = App(static_folders=[Path(__file__).parent])
 
     @app.route('/test', methods='get')
     async def test_request(request, **kwargs):
@@ -21,7 +25,8 @@ async def test_app(client):
     @app.middleware
     async def simple_md(app, request, *args):
         response = await app(request, *args)
-        response.headers['x-simple'] = 42
+        if response:
+            response.headers['x-simple'] = 42
         return response
 
     @app.middleware
@@ -29,7 +34,7 @@ async def test_app(client):
 
         async def middleware(request, *args):
             response = await app(request, *args)
-            if response.status_code == 200:
+            if response and response.status_code == 200:
                 response.content = "Simple %s" % response.content
             return response
 
@@ -37,6 +42,7 @@ async def test_app(client):
 
     async with LifespanManager(app):
         async with client(app) as req:
+
             res = await req.get('/test')
             assert res.status_code == 200
             assert res.headers['x-simple'] == '42'
@@ -57,3 +63,20 @@ async def test_app(client):
             res = await req.get('/error')
             assert res.status_code == 500
             assert res.text == "Server got itself in trouble"
+
+            res = await req.get('/static/test_app.py')
+            assert res.status_code == 200
+            assert res.text.startswith('"""Application Tests."""')
+
+
+async def test_app_static(client):
+    from asgi_tools.app import App
+
+    app = App(static_folders=[Path(__file__).parent])
+
+    async with LifespanManager(app):
+        async with client(app) as req:
+
+            res = await req.get('/static/test_app.py')
+            assert res.status_code == 200
+            assert res.text.startswith('"""Application Tests."""')

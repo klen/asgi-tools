@@ -5,7 +5,7 @@ from functools import partial
 
 from http_router import Router, NotFound, MethodNotAllowed
 
-from .middleware import LifespanMiddleware
+from .middleware import LifespanMiddleware, StaticFilesMiddleware
 from .request import Request
 from .response import parse_response, Response, ResponseError
 from .utils import to_awaitable, iscoroutinefunction
@@ -23,13 +23,17 @@ class App:
     exception_handlers = {}
     exception_handlers[Exception] = to_awaitable(lambda exc: ResponseError(500))
 
-    def __init__(self, logger=None, **kwargs):
+    def __init__(self, logger=None, static_folders=None, static_url_prefix='/static', **kwargs):
         """Initialize router and lifespan middleware."""
         self.app = self.__process__
         self.router = Router(**kwargs)
+        self.logger = logger or logging.getLogger('asgi-tools')
+        if static_folders and static_url_prefix:
+            self.app = StaticFilesMiddleware(
+                self.app, folders=static_folders, url_prefix=static_url_prefix)
+
         self.lifespan = LifespanMiddleware()
         self.lifespan.bind(self.app)
-        self.logger = logger or logging.getLogger('asgi-tools')
 
     async def __call__(self, scope, receive, send):
         """Process ASGI call."""
