@@ -83,7 +83,7 @@ async def test_app_static(client):
 
 
 async def test_app_handle_exception(client):
-    from asgi_tools.app import App, ResponseError
+    from asgi_tools.app import App, NotFound
 
     app = App()
 
@@ -91,17 +91,13 @@ async def test_app_handle_exception(client):
     async def handle_unknown(exc):
         return 'UNKNOWN: %s' % exc
 
-    @app.on_exception(ResponseError)
+    @app.on_exception(NotFound)
     async def handle_response_error(exc):
-        return 'Response Error: %s' % exc.status_code
+        return 'Response 404'
 
     @app.route('/500')
     async def raise_unknown(request):
         raise Exception('Unknown Exception')
-
-    @app.route('/404')
-    async def raise_response_error(request):
-        raise ResponseError(404)
 
     async with LifespanManager(app):
         async with client(app) as req:
@@ -112,4 +108,4 @@ async def test_app_handle_exception(client):
 
             res = await req.get('/404')
             assert res.status_code == 200
-            assert res.text == 'Response Error: 404'
+            assert res.text == 'Response 404'

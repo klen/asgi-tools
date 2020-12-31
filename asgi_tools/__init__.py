@@ -28,3 +28,5 @@ from .middleware import (  # noqa
     RouterMiddleware, StaticFilesMiddleware, combine
 )
 from .app import App  # noqa
+
+from http_router import NotFound, MethodNotAllowed  # noqa

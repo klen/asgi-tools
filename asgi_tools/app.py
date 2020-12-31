@@ -24,6 +24,8 @@ class App:
 
     exception_handlers = {}
     exception_handlers[Exception] = to_awaitable(lambda exc: ResponseError(500))
+    exception_handlers[NotFound] = to_awaitable(lambda exc: ResponseError(404))
+    exception_handlers[MethodNotAllowed] = to_awaitable(lambda exc: ResponseError(405))
 
     def __init__(self, logger=None, static_folders=None, static_url_prefix='/static', **kwargs):
         """Initialize router and lifespan middleware."""
@@ -50,12 +52,6 @@ class App:
         try:
             cb, matches = self.router(request.url.path, request.method)
             response = await cb(request, **matches)
-
-        except NotFound:
-            return ResponseError(404)
-
-        except MethodNotAllowed:
-            return ResponseError(405)
 
         # Process exceptions
         except Exception as exc:
