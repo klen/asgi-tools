@@ -80,3 +80,36 @@ async def test_app_static(client):
             res = await req.get('/static/test_app.py')
             assert res.status_code == 200
             assert res.text.startswith('"""Application Tests."""')
+
+
+async def test_app_handle_exception(client):
+    from asgi_tools.app import App, ResponseError
+
+    app = App()
+
+    @app.on_exception(Exception)
+    async def handle_unknown(exc):
+        return 'UNKNOWN: %s' % exc
+
+    @app.on_exception(ResponseError)
+    async def handle_response_error(exc):
+        return 'Response Error: %s' % exc.status_code
+
+    @app.route('/500')
+    async def raise_unknown(request):
+        raise Exception('Unknown Exception')
+
+    @app.route('/404')
+    async def raise_response_error(request):
+        raise ResponseError(404)
+
+    async with LifespanManager(app):
+        async with client(app) as req:
+
+            res = await req.get('/500')
+            assert res.status_code == 200
+            assert res.text == 'UNKNOWN: Unknown Exception'
+
+            res = await req.get('/404')
+            assert res.status_code == 200
+            assert res.text == 'Response Error: 404'

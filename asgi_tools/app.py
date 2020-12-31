@@ -2,9 +2,11 @@
 
 import logging
 from functools import partial
+import inspect
 
 from http_router import Router, NotFound, MethodNotAllowed
 
+from . import ASGIError
 from .middleware import LifespanMiddleware, StaticFilesMiddleware
 from .request import Request
 from .response import parse_response, Response, ResponseError
@@ -49,9 +51,6 @@ class App:
             cb, matches = self.router(request.url.path, request.method)
             response = await cb(request, **matches)
 
-        except ResponseError as exc:
-            return exc
-
         except NotFound:
             return ResponseError(404)
 
@@ -61,6 +60,9 @@ class App:
         # Process exceptions
         except Exception as exc:
             self.logger.exception(exc)
+            if isinstance(exc, ResponseError) and ResponseError not in self.exception_handlers:
+                return exc
+
             for etype in type(exc).mro():
                 handler = self.exception_handlers.get(etype)
                 if handler:
@@ -95,6 +97,9 @@ class App:
 
     def on_exception(self, etype):
         """Register an exception handler."""
+        if not (inspect.isclass(etype) and issubclass(etype, Exception)):
+            raise ASGIError('Wrong argument: %s' % etype)
+
         def wrapper(handler):
             self.exception_handlers[etype] = to_awaitable(handler)
         return wrapper
