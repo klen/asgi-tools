@@ -16,6 +16,18 @@ class ASGIDecodeError(ASGIError):
     pass
 
 
+class ASGINotFound(ASGIError):
+    """Raise when http handler not found."""
+
+    pass
+
+
+class ASGIMethodNotAllowed(ASGIError):
+    """Raise when http method not found."""
+
+    pass
+
+
 DEFAULT_CHARSET = 'utf-8'
 
 from .request import Request  # noqa

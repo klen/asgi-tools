@@ -4,9 +4,9 @@ import logging
 from functools import partial
 import inspect
 
-from http_router import Router, NotFound, MethodNotAllowed
+from http_router import Router
 
-from . import ASGIError
+from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed
 from .middleware import LifespanMiddleware, StaticFilesMiddleware
 from .request import Request
 from .response import parse_response, Response, ResponseError
@@ -24,13 +24,17 @@ class App:
 
     exception_handlers = {}
     exception_handlers[Exception] = to_awaitable(lambda exc: ResponseError(500))
-    exception_handlers[NotFound] = to_awaitable(lambda exc: ResponseError(404))
-    exception_handlers[MethodNotAllowed] = to_awaitable(lambda exc: ResponseError(405))
+    exception_handlers[ASGINotFound] = to_awaitable(lambda exc: ResponseError(404))
+    exception_handlers[ASGIMethodNotAllowed] = to_awaitable(lambda exc: ResponseError(405))
 
     def __init__(self, logger=None, static_folders=None, static_url_prefix='/static', **kwargs):
         """Initialize router and lifespan middleware."""
         self.app = self.__process__
+
         self.router = Router(**kwargs)
+        self.router.NotFound = ASGINotFound
+        self.router.MethodNotAllowed = ASGIMethodNotAllowed
+
         self.logger = logger or logging.getLogger('asgi-tools')
         if static_folders and static_url_prefix:
             self.app = StaticFilesMiddleware(

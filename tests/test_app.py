@@ -83,7 +83,7 @@ async def test_app_static(client):
 
 
 async def test_app_handle_exception(client):
-    from asgi_tools.app import App, NotFound
+    from asgi_tools.app import App, ASGINotFound
 
     app = App()
 
@@ -91,7 +91,7 @@ async def test_app_handle_exception(client):
     async def handle_unknown(exc):
         return 'UNKNOWN: %s' % exc
 
-    @app.on_exception(NotFound)
+    @app.on_exception(ASGINotFound)
     async def handle_response_error(exc):
         return 'Response 404'
 
