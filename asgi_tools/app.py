@@ -59,7 +59,6 @@ class App:
 
         # Process exceptions
         except Exception as exc:
-            self.logger.exception(exc)
             if isinstance(exc, ResponseError) and ResponseError not in self.exception_handlers:
                 return exc
 
