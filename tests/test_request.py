@@ -18,6 +18,7 @@ async def test_request():
             (b'accept', b'*/*'),
             (b'accept-encoding', b'gzip, deflate'),
             (b'connection', b'keep-alive'),
+            (b'content-type', b'application/x-www-form-urlencoded'),
             (b'user-agent', b'python-httpx/0.16.1'),
             (b'test-header', b'test-value'),
             (b'cookie', b'session=test-session'),
@@ -54,7 +55,10 @@ async def test_request():
     assert formdata['name'] == 'value'
 
     formdata2 = await request.form()
-    assert formdata2 is formdata
+    assert formdata2 == formdata
+
+    data = await request.data()
+    assert data == formdata
 
 
 async def test_multipart(client):

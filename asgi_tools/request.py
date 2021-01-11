@@ -124,13 +124,13 @@ class Request(dict):
         charset = self.charset or DEFAULT_CHARSET
         return body.decode(charset)
 
-    @process_decode(meta='json', message='Invalid JSON')
+    @process_decode(message='Invalid JSON')
     async def json(self):
         """Read the request json."""
         text = await self.text()
         return loads(text)
 
-    @process_decode(meta='form', message='Invalid Form Data')
+    @process_decode(message='Invalid Form Data')
     async def form(self):
         """Read the request formdata."""
         form = MultiDict()
@@ -152,3 +152,13 @@ class Request(dict):
         form.extend(parse_qsl(qs=query, keep_blank_values=True, encoding=self.charset))
 
         return form
+
+    def data(self):
+        """Parse the request's data automatically."""
+        if self.content_type in {'application/x-www-form-urlencoded', 'multipart/form-data'}:
+            return self.form()
+
+        if self.content_type == 'application/json':
+            return self.data()
+
+        return self.text()
