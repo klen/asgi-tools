@@ -4,13 +4,34 @@ import logging
 from functools import partial
 import inspect
 
-from http_router import Router
+from http_router import Router, METHODS as HTTP_METHODS
 
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed
 from .middleware import LifespanMiddleware, StaticFilesMiddleware
 from .request import Request
 from .response import parse_response, Response, ResponseError
 from .utils import to_awaitable, iscoroutinefunction
+
+
+class HTTPView:
+    """Class Based Views."""
+
+    def __new__(cls, request=None, **matches):
+        """Init the class and call it."""
+        self = super().__new__(cls)
+        return self(request, **matches)
+
+    @classmethod
+    def __route__(cls, router, *paths, **params):
+        """Bind the class view to the given router."""
+        params.setdefault('methods', [m for m in HTTP_METHODS if hasattr(cls, m.lower())])
+        return router.route(*paths, **params)(cls)
+
+    def __call__(self, request, **matches):
+        """Dispatch the given request by HTTP method."""
+        method =  getattr(
+            self, request.method.lower(), App.exception_handlers[ASGIMethodNotAllowed])
+        return method(request, **matches)
 
 
 class App:
@@ -77,6 +98,8 @@ class App:
     def route(self, *args, **kwargs):
         """Register an route."""
         def wrapper(cb):
+            if hasattr(cb, '__route__'):
+                return cb.__route__(self.router, *args, **kwargs)
             return self.router.route(*args, **kwargs)(to_awaitable(cb))
         return wrapper
 

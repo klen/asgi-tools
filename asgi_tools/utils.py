@@ -1,7 +1,7 @@
 """ASGI-Tools Utils."""
 
 from functools import wraps
-from inspect import iscoroutinefunction, isgeneratorfunction
+from inspect import iscoroutinefunction, isasyncgenfunction
 
 
 try:
@@ -18,7 +18,7 @@ except ImportError:
 
 def is_awaitable(fn):
     """Check than the given function is awaitable."""
-    return iscoroutinefunction(fn) or isgeneratorfunction(fn)
+    return iscoroutinefunction(fn) or isasyncgenfunction(fn)
 
 
 def to_awaitable(fn):

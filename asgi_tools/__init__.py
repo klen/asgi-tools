@@ -39,6 +39,6 @@ from .middleware import (  # noqa
     RequestMiddleware, ResponseMiddleware, AppMiddleware, LifespanMiddleware,
     RouterMiddleware, StaticFilesMiddleware, combine
 )
-from .app import App  # noqa
+from .app import App, HTTPView  # noqa
 
 from http_router import NotFound, MethodNotAllowed  # noqa

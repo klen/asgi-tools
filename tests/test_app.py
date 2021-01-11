@@ -109,3 +109,31 @@ async def test_app_handle_exception(client):
             res = await req.get('/404')
             assert res.status_code == 200
             assert res.text == 'Response 404'
+
+
+async def test_cbv(app, client):
+    from asgi_tools.app import App, HTTPView
+
+    app = App()
+
+    @app.route('/cbv')
+    class Custom(HTTPView):
+
+        async def get(self, request):
+            return 'CBV: get'
+
+        async def post(self, request):
+            return 'CBV: post'
+
+    async with client(app) as req:
+
+        res = await req.get('/cbv')
+        assert res.status_code == 200
+        assert res.text == 'CBV: get'
+
+        res = await req.post('/cbv')
+        assert res.status_code == 200
+        assert res.text == 'CBV: post'
+
+        res = await req.put('/cbv')
+        assert res.status_code == 405
