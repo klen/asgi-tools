@@ -24,12 +24,14 @@ class HTTPView:
     @classmethod
     def __route__(cls, router, *paths, **params):
         """Bind the class view to the given router."""
-        params.setdefault('methods', [m for m in HTTP_METHODS if hasattr(cls, m.lower())])
+        params.setdefault('methods', [
+            m for m in HTTP_METHODS if m.lower() in dict(inspect.getmembers(cls, inspect.ismethod))
+        ])
         return router.route(*paths, **params)(cls)
 
     def __call__(self, request, **matches):
         """Dispatch the given request by HTTP method."""
-        method =  getattr(
+        method = getattr(
             self, request.method.lower(), App.exception_handlers[ASGIMethodNotAllowed])
         return method(request, **matches)
 
