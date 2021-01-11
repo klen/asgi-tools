@@ -77,3 +77,29 @@ async def test_multipart(client):
         assert res.status_code == 200
         assert res.text == '"""Test Request."""'
         assert res.headers['content-length'] == str(len(res.text))
+
+
+async def test_data(client):
+    from asgi_tools import ResponseMiddleware, Request
+
+    async def app(scope, receive, send):
+        request = Request(scope, receive)
+        data = await request.data()
+        return isinstance(data, str) and data or dict(data)
+
+    app = ResponseMiddleware(app)
+    async with client(app) as req:
+        # Post formdata
+        res = await req.post('/', data={'test': 'passed'})
+        assert res.status_code == 200
+        assert res.json() == {'test': 'passed'}
+
+        # Post json
+        res = await req.post('/', json={'test': 'passed'})
+        assert res.status_code == 200
+        assert res.json() == {'test': 'passed'}
+
+        # Post other
+        res = await req.post('/', data='test passed')
+        assert res.status_code == 200
+        assert res.text == 'test passed'

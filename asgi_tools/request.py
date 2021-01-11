@@ -159,6 +159,6 @@ class Request(dict):
             return self.form()
 
         if self.content_type == 'application/json':
-            return self.data()
+            return self.json()
 
         return self.text()
