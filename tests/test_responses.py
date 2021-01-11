@@ -44,6 +44,10 @@ async def test_parse_response():
     assert response.content == 'go away'
     assert response.headers['location'] == 'https://google.com'
 
+    response = await parse_response(None)
+    assert response.status_code == 200
+    assert response.headers['content-type'] == 'application/json'
+
 
 async def test_html_response():
     from asgi_tools import ResponseHTML
