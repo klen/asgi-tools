@@ -14,6 +14,11 @@ async def test_app(client):
     async def test_request(request, **kwargs):
         return "Done"
 
+    @app.route('/data', methods='post')
+    async def test_data(request, **kwargs):
+        data = await request.data()
+        return dict(data)
+
     @app.route('/error')
     async def test_unhandled_exception(request, **kwargs):
         raise RuntimeError('An exception')
@@ -34,7 +39,8 @@ async def test_app(client):
 
         async def middleware(request, *args):
             response = await app(request, *args)
-            if response and response.status_code == 200:
+            if response and response.status_code == 200 and \
+                    response.headers['content-type'].startswith('text'):
                 response.content = "Simple %s" % response.content
             return response
 
@@ -67,6 +73,10 @@ async def test_app(client):
             res = await req.get('/static/test_app.py')
             assert res.status_code == 200
             assert res.text.startswith('"""Application Tests."""')
+
+            res = await req.post('/data', json={'test': 'passed'})
+            assert res.status_code == 200
+            assert res.json() == {'test': 'passed'}
 
 
 async def test_app_static(client):
