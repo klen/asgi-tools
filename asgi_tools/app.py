@@ -24,9 +24,8 @@ class HTTPView:
     @classmethod
     def __route__(cls, router, *paths, **params):
         """Bind the class view to the given router."""
-        params.setdefault('methods', [
-            m for m in HTTP_METHODS if m.lower() in dict(inspect.getmembers(cls, inspect.ismethod))
-        ])
+        methods = dict(inspect.getmembers(cls, inspect.isfunction))
+        params.setdefault('methods', [m for m in HTTP_METHODS if m.lower() in methods])
         return router.route(*paths, **params)(cls)
 
     def __call__(self, request, **matches):
