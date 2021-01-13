@@ -92,7 +92,7 @@ async def test_error_response():
     assert response.content == "The server cannot process the request due to a high load"
 
 
-async def test_stream_response(anyio_backend):
+async def test_stream_response(anyio_backend, Client):
     import anyio as aio
     from asgi_tools import ResponseStream
 
@@ -114,13 +114,10 @@ async def test_stream_response(anyio_backend):
         response = ResponseStream(fill())
         return response(scope, receive, send)
 
-    from httpx import AsyncClient
-
-    async with AsyncClient(
-            app=app, base_url='http://testserver') as client:
-        res = await client.get('/')
-        assert res.status_code == 200
-        assert res.text == '0123456789'
+    client = Client(app)
+    res = await client.get('/')
+    assert res.status_code == 200
+    assert res.text == '0123456789'
 
 
 async def test_file_response(anyio_backend):
