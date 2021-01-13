@@ -10,21 +10,21 @@ async def test_app(client):
 
     app = App(static_folders=[Path(__file__).parent])
 
-    @app.route('/test', methods='get')
-    async def test_request(request, **kwargs):
-        return "Done"
+    @app.route('/test/{param}', methods='get')
+    async def test_request(request):
+        return "Done %s" % request.matches['param']
 
     @app.route('/data', methods='post')
-    async def test_data(request, **kwargs):
+    async def test_data(request):
         data = await request.data()
         return dict(data)
 
     @app.route('/error')
-    async def test_unhandled_exception(request, **kwargs):
+    async def test_unhandled_exception(request):
         raise RuntimeError('An exception')
 
     @app.route('/502')
-    async def test_response_error(request, **kwargs):
+    async def test_response_error(request):
         raise ResponseError(502)
 
     @app.middleware
@@ -49,16 +49,16 @@ async def test_app(client):
     async with LifespanManager(app):
         async with client(app) as req:
 
-            res = await req.get('/test')
+            res = await req.get('/test/42')
             assert res.status_code == 200
             assert res.headers['x-simple'] == '42'
-            assert res.text == "Simple Done"
+            assert res.text == "Simple Done 42"
 
             res = await req.get('/404')
             assert res.status_code == 404
             assert res.text == "Nothing matches the given URI"
 
-            res = await req.post('/test')
+            res = await req.post('/test/42')
             assert res.status_code == 405
             assert res.text == 'Specified method is invalid for this resource'
 

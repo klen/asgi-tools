@@ -76,8 +76,8 @@ class App:
     async def __process__(self, request, receive, send):
         """Find and call a callback."""
         try:
-            cb, matches = self.router(request.url.path, request.method)
-            response = await cb(request, **matches)
+            cb, request['matches'] = self.router(request.url.path, request.method)
+            response = await cb(request)
 
         # Process exceptions
         except Exception as exc:
