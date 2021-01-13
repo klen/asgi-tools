@@ -1,5 +1,4 @@
 import pytest
-from httpx import AsyncClient
 
 
 @pytest.fixture(params=[
@@ -11,12 +10,10 @@ def anyio_backend(request):
 
 
 @pytest.fixture(scope='session')
-def client():
+def Client():
+    from asgi_tools.tests import TestClient
 
-    def fabric(app):
-        return AsyncClient(app=app, base_url='http://testserver')
-
-    return fabric
+    return TestClient
 
 
 @pytest.fixture
@@ -31,3 +28,8 @@ def app():
         return 'OK'
 
     return app
+
+
+@pytest.fixture
+def client(app, Client):
+    return Client(app)

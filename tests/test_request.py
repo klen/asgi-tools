@@ -61,25 +61,25 @@ async def test_request():
     assert data == formdata
 
 
-async def test_multipart(client):
+async def test_multipart(Client):
     from asgi_tools import Request, ResponseHTML
 
     async def app(scope, receive, send):
         request = Request(scope, receive)
         data = await request.form()
         response = ResponseHTML(
-            data['test'].split(b'\n')[0]
+            data['test'].split('\n')[0]
         )
         return await response(scope, receive, send)
 
-    async with client(app) as req:
-        res = await req.post('/', files={'test': open(__file__)})
-        assert res.status_code == 200
-        assert res.text == '"""Test Request."""'
-        assert res.headers['content-length'] == str(len(res.text))
+    client = Client(app)
+    res = await client.post('/', files={'test': open(__file__)})
+    assert res.status_code == 200
+    assert res.text == '"""Test Request."""'
+    assert res.headers['content-length'] == str(len(res.text))
 
 
-async def test_data(client):
+async def test_data(Client):
     from asgi_tools import ResponseMiddleware, Request
 
     async def app(scope, receive, send):
@@ -88,18 +88,19 @@ async def test_data(client):
         return isinstance(data, str) and data or dict(data)
 
     app = ResponseMiddleware(app)
-    async with client(app) as req:
-        # Post formdata
-        res = await req.post('/', data={'test': 'passed'})
-        assert res.status_code == 200
-        assert res.json() == {'test': 'passed'}
+    client = Client(app)
 
-        # Post json
-        res = await req.post('/', json={'test': 'passed'})
-        assert res.status_code == 200
-        assert res.json() == {'test': 'passed'}
+    # Post formdata
+    res = await client.post('/', data={'test': 'passed'})
+    assert res.status_code == 200
+    assert res.json() == {'test': 'passed'}
 
-        # Post other
-        res = await req.post('/', data='test passed')
-        assert res.status_code == 200
-        assert res.text == 'test passed'
+    # Post json
+    res = await client.post('/', json={'test': 'passed'})
+    assert res.status_code == 200
+    assert res.json() == {'test': 'passed'}
+
+    # Post other
+    res = await client.post('/', data='test passed')
+    assert res.status_code == 200
+    assert res.text == 'test passed'

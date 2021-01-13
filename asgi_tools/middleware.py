@@ -17,7 +17,7 @@ from .utils import to_awaitable
 class BaseMiddeware:
     """Base class for ASGI-Tools middlewares."""
 
-    scopes = {'http', 'websockets'}
+    scopes = {'http', 'websocket'}
 
     def __init__(self, app=None, **params):
         """Save ASGI App."""
@@ -185,6 +185,17 @@ class StaticFilesMiddleware(BaseMiddeware):
 
         async for msg in response:
             await send(msg)
+
+
+class WebSocketMiddleware(BaseMiddeware):
+    """Work with websockets."""
+
+    scopes = {'websocket'}
+
+    async def __process__(self, scope, receive, send):
+        """Process websocket connection."""
+        breakpoint()
+        pass
 
 
 def AppMiddleware(

@@ -5,7 +5,7 @@ from pathlib import Path
 from asgi_lifespan import LifespanManager
 
 
-async def test_app(client):
+async def test_app(Client):
     from asgi_tools.app import App, ResponseError
 
     app = App(static_folders=[Path(__file__).parent])
@@ -46,53 +46,52 @@ async def test_app(client):
 
         return middleware
 
-    async with LifespanManager(app):
-        async with client(app) as req:
+    client = Client(app)
 
-            res = await req.get('/test/42')
-            assert res.status_code == 200
-            assert res.headers['x-simple'] == '42'
-            assert res.text == "Simple Done 42"
+    res = await client.get('/test/42')
+    assert res.status_code == 200
+    assert res.headers['x-simple'] == '42'
+    assert res.text == "Simple Done 42"
 
-            res = await req.get('/404')
-            assert res.status_code == 404
-            assert res.text == "Nothing matches the given URI"
+    res = await client.get('/404')
+    assert res.status_code == 404
+    assert res.text == "Nothing matches the given URI"
 
-            res = await req.post('/test/42')
-            assert res.status_code == 405
-            assert res.text == 'Specified method is invalid for this resource'
+    res = await client.post('/test/42')
+    assert res.status_code == 405
+    assert res.text == 'Specified method is invalid for this resource'
 
-            res = await req.get('/502')
-            assert res.status_code == 502
-            assert res.text == "Invalid responses from another server/proxy"
+    res = await client.get('/502')
+    assert res.status_code == 502
+    assert res.text == "Invalid responses from another server/proxy"
 
-            res = await req.get('/error')
-            assert res.status_code == 500
-            assert res.text == "Server got itself in trouble"
+    res = await client.get('/error')
+    assert res.status_code == 500
+    assert res.text == "Server got itself in trouble"
 
-            res = await req.get('/static/test_app.py')
-            assert res.status_code == 200
-            assert res.text.startswith('"""Application Tests."""')
+    res = await client.get('/static/test_app.py')
+    assert res.status_code == 200
+    assert res.text.startswith('"""Application Tests."""')
 
-            res = await req.post('/data', json={'test': 'passed'})
-            assert res.status_code == 200
-            assert res.json() == {'test': 'passed'}
+    res = await client.post('/data', json={'test': 'passed'})
+    assert res.status_code == 200
+    assert res.json() == {'test': 'passed'}
 
 
-async def test_app_static(client):
+async def test_app_static(Client):
     from asgi_tools.app import App
 
     app = App(static_folders=[Path(__file__).parent])
 
     async with LifespanManager(app):
-        async with client(app) as req:
+        client = Client(app)
 
-            res = await req.get('/static/test_app.py')
-            assert res.status_code == 200
-            assert res.text.startswith('"""Application Tests."""')
+        res = await client.get('/static/test_app.py')
+        assert res.status_code == 200
+        assert res.text.startswith('"""Application Tests."""')
 
 
-async def test_app_handle_exception(client):
+async def test_app_handle_exception(Client):
     from asgi_tools.app import App, ASGINotFound
 
     app = App()
@@ -110,21 +109,19 @@ async def test_app_handle_exception(client):
         raise Exception('Unknown Exception')
 
     async with LifespanManager(app):
-        async with client(app) as req:
+        client = Client(app)
 
-            res = await req.get('/500')
-            assert res.status_code == 200
-            assert res.text == 'UNKNOWN: Unknown Exception'
+        res = await client.get('/500')
+        assert res.status_code == 200
+        assert res.text == 'UNKNOWN: Unknown Exception'
 
-            res = await req.get('/404')
-            assert res.status_code == 200
-            assert res.text == 'Response 404'
+        res = await client.get('/404')
+        assert res.status_code == 200
+        assert res.text == 'Response 404'
 
 
 async def test_cbv(app, client):
-    from asgi_tools.app import App, HTTPView
-
-    app = App()
+    from asgi_tools.app import HTTPView
 
     @app.route('/cbv')
     class Custom(HTTPView):
@@ -135,15 +132,13 @@ async def test_cbv(app, client):
         async def post(self, request):
             return 'CBV: post'
 
-    async with client(app) as req:
+    res = await client.get('/cbv')
+    assert res.status_code == 200
+    assert res.text == 'CBV: get'
 
-        res = await req.get('/cbv')
-        assert res.status_code == 200
-        assert res.text == 'CBV: get'
+    res = await client.post('/cbv')
+    assert res.status_code == 200
+    assert res.text == 'CBV: post'
 
-        res = await req.post('/cbv')
-        assert res.status_code == 200
-        assert res.text == 'CBV: post'
-
-        res = await req.put('/cbv')
-        assert res.status_code == 405
+    res = await client.put('/cbv')
+    assert res.status_code == 405

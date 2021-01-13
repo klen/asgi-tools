@@ -37,7 +37,7 @@ from .response import (  # noqa
 )
 from .middleware import (  # noqa
     RequestMiddleware, ResponseMiddleware, AppMiddleware, LifespanMiddleware,
-    RouterMiddleware, StaticFilesMiddleware, combine
+    RouterMiddleware, StaticFilesMiddleware, WebSocketMiddleware, combine
 )
 from .app import App, HTTPView  # noqa
 

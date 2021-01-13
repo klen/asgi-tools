@@ -2,15 +2,15 @@
 
 from cgi import parse_header, parse_multipart
 from functools import wraps, cached_property
-from http import cookies
 from io import BytesIO
 from json import loads
 from urllib.parse import parse_qsl
 
-from multidict import CIMultiDict, MultiDict
+from multidict import MultiDict
 from yarl import URL
 
 from . import ASGIDecodeError, DEFAULT_CHARSET
+from .utils import parse_headers, parse_cookies
 
 
 def process_decode(meta=None, message=None):
@@ -67,18 +67,12 @@ class Request(dict):
     @cached_property
     def headers(self):
         """Parse headers from self scope."""
-        return CIMultiDict(
-            [[v.decode('latin-1') for v in item] for item in self.get('headers', [])])
+        return parse_headers(self.get('headers'))
 
     @cached_property
     def cookies(self):
         """Parse cookies from self scope."""
-        data = {}
-        for chunk in self.headers.get('cookie', '').split(';'):
-            key, _, val = chunk.partition('=')
-            data[key.strip()] = cookies._unquote(val.strip())
-
-        return data
+        return parse_cookies(self.headers.get('cookie'))
 
     @property
     def query(self):
@@ -143,6 +137,8 @@ class Request(dict):
             data = parse_multipart(BytesIO(await self.body()), pdict, encoding=self.charset)
             for name, values in data.items():
                 for val in values:
+                    if isinstance(val, bytes):
+                        val = val.decode(self.charset)
                     form[name] = val
 
             return form

@@ -1,9 +1,7 @@
 aiofile
 anyio
 asgi-lifespan
-httpx
 pytest
 trio
-uvicorn
 
 -e .

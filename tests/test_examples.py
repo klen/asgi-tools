@@ -1,4 +1,4 @@
-async def test_readme_request_response(client):
+async def test_readme_request_response(Client):
 
     # Example
     import json
@@ -36,15 +36,16 @@ async def test_readme_request_response(client):
         return await response(scope, receive, send)
 
     # Test
-    async with client(app) as req:
-        res = await req.get('/test?var=42')
-        assert res.status_code == 200
-        data = res.json()
-        assert data['url'] == 'http://testserver/test?var=42'
-        assert data['query'] == {'var': '42'}
+    client = Client(app)
+
+    res = await client.get('/test?var=42')
+    assert res.status_code == 200
+    data = res.json()
+    assert data['url'] == 'http://localhost:80/test?var=42'
+    assert data['query'] == {'var': '42'}
 
 
-async def test_readme_request_response_middleware(client):
+async def test_readme_request_response_middleware(Client):
 
     # Example
     from asgi_tools import RequestMiddleware, ResponseHTML
@@ -58,10 +59,10 @@ async def test_readme_request_response_middleware(client):
     app = RequestMiddleware(app)
 
     # Test
-    async with client(app) as req:
-        res = await req.post('/test', json={'name': 'passed'})
-        assert res.status_code == 200
-        assert res.text == 'passed'
+    client = Client(app)
+    res = await client.post('/test', json={'name': 'passed'})
+    assert res.status_code == 200
+    assert res.text == 'passed'
 
     # Example
     from asgi_tools import ResponseMiddleware
@@ -72,16 +73,15 @@ async def test_readme_request_response_middleware(client):
     app = ResponseMiddleware(app)
 
     # Test
-    async with client(app) as req:
-        res = await req.post('/test', json={'name': 'passed'})
-        assert res.status_code == 200
-        assert res.headers['content-type'] == 'text/html; charset=utf-8'
-        assert res.text == 'Hello World!'
+    client = Client(app)
+    res = await client.post('/test', json={'name': 'passed'})
+    assert res.status_code == 200
+    assert res.headers['content-type'] == 'text/html; charset=utf-8'
+    assert res.text == 'Hello World!'
 
 
-async def test_readme_router_middleware(client):
+async def test_readme_router_middleware():
     from http_router import Router
-    from asgi_tools import RouterMiddleware, RequestMiddleware, ResponseMiddleware
 
     router = Router()
 
@@ -92,4 +92,3 @@ async def test_readme_router_middleware(client):
     @router.route('/page2')
     async def page2(request, receive, send):
         return 'page2'
-
