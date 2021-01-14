@@ -44,10 +44,6 @@ async def test_parse_response():
     assert response.content == 'go away'
     assert response.headers['location'] == 'https://google.com'
 
-    response = await parse_response(None)
-    assert response.status_code == 200
-    assert response.headers['content-type'] == 'application/json'
-
 
 async def test_html_response():
     from asgi_tools import ResponseHTML
@@ -147,3 +143,22 @@ async def test_file_response(anyio_backend):
 
     with pytest.raises(ASGIError):
         response = ResponseFile('unknown')
+
+
+async def test_websocket_response(anyio_backend, Client):
+    from asgi_tools import ResponseWebSocket, ASGIConnectionClosed
+
+    async def app(scope, receive, send):
+        ws = ResponseWebSocket(scope, receive, send)
+        await ws.accept()
+        msg = await ws.receive()
+        assert msg == 'ping'
+        await ws.send('pong')
+        await ws.close()
+
+    async with Client(app).websocket('/') as ws:
+        await ws.send('ping')
+        msg = await ws.receive()
+        assert msg == 'pong'
+        with pytest.raises(ASGIConnectionClosed):
+            await ws.receive()

@@ -37,14 +37,13 @@ class ASGIMethodNotAllowed(ASGIError):
 DEFAULT_CHARSET = 'utf-8'
 
 from .request import Request  # noqa
-from .websocket import WebSocket  # noqa
 from .response import (  # noqa
-    Response, ResponseHTML, ResponseJSON, ResponseText,
-    ResponseRedirect, ResponseError, ResponseStream, ResponseFile, parse_response
+    Response, ResponseHTML, ResponseJSON, ResponseText, ResponseRedirect,
+    ResponseError, ResponseStream, ResponseFile, ResponseWebSocket, parse_response
 )
 from .middleware import (  # noqa
     RequestMiddleware, ResponseMiddleware, AppMiddleware, LifespanMiddleware,
-    RouterMiddleware, StaticFilesMiddleware, WebSocketMiddleware, combine
+    RouterMiddleware, StaticFilesMiddleware, combine
 )
 from .app import App, HTTPView  # noqa
 

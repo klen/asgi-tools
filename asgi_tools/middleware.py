@@ -7,9 +7,8 @@ from http_router import Router
 
 from . import ASGIError
 from .request import Request
-from .response import ResponseHTML, parse_response, ResponseError, ResponseFile
+from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, ResponseWebSocket
 from .utils import to_awaitable
-from .websocket import WebSocket
 
 
 #  TODO: StaticFilesMiddleware
@@ -76,16 +75,6 @@ class RequestMiddleware(BaseMiddeware):
     async def __process__(self, scope, receive, send):
         """Replace scope with request object."""
         return await self.app(Request(scope, receive, send), receive, send)
-
-
-class WebSocketMiddleware(BaseMiddeware):
-    """Work with websockets."""
-
-    scopes = {'websocket'}
-
-    async def __process__(self, scope, receive, send):
-        """Process websocket connection."""
-        return await self.app(WebSocket(scope, receive, send), receive, send)
 
 
 class LifespanMiddleware(BaseMiddeware):

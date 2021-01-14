@@ -10,8 +10,8 @@ from contextlib import asynccontextmanager
 from collections import deque
 from sniffio import current_async_library
 
-from .websocket import WebSocket, ASGIConnectionClosed, parse_msg
-from .response import Response
+from . import ASGIConnectionClosed
+from .response import Response, ResponseWebSocket, parse_websocket_msg
 from .utils import parse_headers, parse_cookies, trio, to_awaitable
 
 
@@ -41,14 +41,16 @@ class TestResponse(Response):
         return loads(self.text)
 
 
-class TestWebsocket(WebSocket):
-
-    def __init__(self, scope):
-        self._send_to_client, receive_from_client = simple_stream()
-        send_to_app, self._receive_from_app = simple_stream()
-        super().__init__(scope, receive_from_client, send_to_app)
+class TestWebSocketResponse(ResponseWebSocket):
 
     accept = close = None
+
+    def connect(self):
+        return self.send({'type': 'websocket.connect'})
+
+    async def disconnect(self):
+        await self.send({'type': 'websocket.disconnect'})
+        self.state = self.STATES.disconnected
 
     def send(self, msg, type='websocket.receive'):
         """Send a message to a client."""
@@ -68,14 +70,7 @@ class TestWebsocket(WebSocket):
             self.partner_state == self.STATES.disconnected
             raise ASGIConnectionClosed('Connection has been closed.')
 
-        return raw and msg or parse_msg(msg, charset=self.charset)
-
-    def connect(self):
-        return self.send({'type': 'websocket.connect'})
-
-    async def disconnect(self):
-        await self.send({'type': 'websocket.disconnect'})
-        self.state = self.STATES.disconnected
+        return raw and msg or parse_websocket_msg(msg, charset=self.charset)
 
 
 class TestClient:
@@ -128,10 +123,14 @@ class TestClient:
     @asynccontextmanager
     async def websocket(self, path, query=None, headers=None, data=b'', cookies=None):
         """Connect to a websocket."""
-        ws = TestWebsocket(scope := self.build_scope(
+        receive_from_client, send_to_app = simple_stream()
+        receive_from_app, send_to_client = simple_stream()
+
+        scope = self.build_scope(
             path, headers=headers, query=query, cookies=cookies, type='websocket'
-        ))
-        async with aio_spawn(self.app, scope, ws._receive_from_app, ws._send_to_client):
+        )
+        ws = TestWebSocketResponse(scope, receive_from_client, send_to_client)
+        async with aio_spawn(self.app, scope, receive_from_app, send_to_app):
             await ws.connect()
             yield ws
             await ws.disconnect()
@@ -204,7 +203,7 @@ def simple_stream(maxlen=None):
             await aio_sleep(1e-2)
         return queue.popleft()
 
-    return to_awaitable(queue.append), receive
+    return receive, to_awaitable(queue.append)
 
 
 # Compatibility (asyncio, trio)

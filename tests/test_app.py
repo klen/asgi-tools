@@ -145,20 +145,21 @@ async def test_cbv(app, client):
 
 
 async def test_websockets(app, client):
-    from asgi_tools import WebSocketMiddleware
+    from asgi_tools import ResponseWebSocket
 
     @app.route('/websocket')
-    async def websocket(ws):
+    async def websocket(request):
+        ws = ResponseWebSocket(request)
         await ws.accept()
         msg = await ws.receive()
         assert msg == 'ping'
         await ws.send('pong')
-        await ws.close()
-
-    res = await client.get('/')
-    assert res.status_code == 200
+        return ws
 
     async with client.websocket('/websocket') as ws:
         await ws.send('ping')
         msg = await ws.receive()
         assert msg == 'pong'
+
+    res = await client.get('/')
+    assert res.status_code == 200

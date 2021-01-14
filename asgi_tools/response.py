@@ -1,6 +1,7 @@
 """ASGI responses."""
 
 import os
+from enum import Enum
 from inspect import isawaitable, isasyncgen
 from http import cookies, HTTPStatus
 from json import dumps
@@ -13,7 +14,8 @@ from hashlib import md5
 from multidict import CIMultiDict
 from sniffio import current_async_library
 
-from . import DEFAULT_CHARSET, ASGIError
+from . import DEFAULT_CHARSET, ASGIError, ASGIConnectionClosed
+from .request import Request
 from .utils import aiofile, trio
 
 
@@ -41,7 +43,7 @@ class Response:
 
     def __repr__(self):
         """Stringify the response."""
-        return f"<Response '{ self }'"
+        return f"<{ self.__class__.__name__ } '{ self }'"
 
     async def __aiter__(self):
         """Iterate self through ASGI messages."""
@@ -207,6 +209,87 @@ class ResponseFile(Response):
         yield self.msg_end()
 
 
+class ResponseWebSocket(Response):
+    """Work with websockets."""
+
+    class STATES(Enum):
+        """Represent websocket states."""
+
+        connecting = 0
+        connected = 1
+        disconnected = 2
+
+    def __init__(self, scope, receive=None, send=None):
+        """Initialize the websocket response."""
+        if isinstance(scope, Request):
+            receive, send = scope._receive, scope._send
+
+        super(ResponseWebSocket, self).__init__()
+        assert receive and send, 'Invalid initialization'
+        self._receive = receive
+        self._send = send
+        self.state = self.STATES.connecting
+        self.partner_state = self.STATES.connecting
+
+    async def __aiter__(self):
+        """Close websocket if the response has been returned."""
+        yield {'type': 'websocket.close'}
+
+    @property
+    def connected(self):
+        """Check that is the websocket connected."""
+        return self.state == self.STATES.connected
+
+    async def _connect(self):
+        """Wait for connect message."""
+        if self.partner_state == self.STATES.connecting:
+            msg = await self._receive()
+            assert msg.get('type') == 'websocket.connect'
+            self.partner_state = self.STATES.connected
+
+        return self.partner_state == self.STATES.connected
+
+    async def accept(self, **params):
+        """Accept a websocket connection."""
+        if self.partner_state == self.STATES.connecting:
+            await self._connect()
+
+        await self.send({'type': 'websocket.accept', **params})
+        self.state = self.STATES.connected
+
+    async def close(self, code=1000):
+        """Sent by the application to tell the server to close the connection."""
+        if self.state != self.STATES.disconnected:
+            await self.send({'type': 'websocket.close', 'code': code})
+            self.state = self.STATES.disconnected
+
+    def send(self, msg, type='websocket.send'):
+        """Send the given message to a client."""
+        if self.state == self.STATES.disconnected:
+            raise ASGIConnectionClosed('Cannot send once the connection has been disconnected.')
+
+        if not isinstance(msg, dict):
+            msg = {'type': type, (isinstance(msg, str) and 'text' or 'bytes'): msg}
+
+        return self._send(msg)
+
+    async def receive(self, raw=False):
+        """Receive messages from a client."""
+        if self.partner_state == self.STATES.disconnected:
+            raise ASGIConnectionClosed('Cannot receive once a connection has been disconnected.')
+
+        if self.partner_state == self.STATES.connecting:
+            await self._connect()
+            return await self.receive(raw=raw)
+
+        msg = await self._receive()
+        if msg['type'] == 'websocket.disconnect':
+            self.partner_state == self.STATES.disconnected
+            raise ASGIConnectionClosed('Connection has been disconnected.')
+
+        return raw and msg or parse_websocket_msg(msg, charset=self.charset)
+
+
 async def parse_response(response, headers=None) -> Response:
     """Parse the given object and convert it into a asgi_tools.Response."""
 
@@ -227,7 +310,13 @@ async def parse_response(response, headers=None) -> Response:
         response.status_code = status
         return response
 
-    if response is None or isinstance(response, (dict, list, int, bool)):
+    if isinstance(response, (dict, list, int, bool)):
         return ResponseJSON(response, headers=headers)
 
-    return ResponseText(str(response), headers=headers)
+    if response is not None:
+        return ResponseText(str(response), headers=headers)
+
+
+def parse_websocket_msg(msg, charset=None):
+    """Prepare websocket message."""
+    return msg.get('text') or msg.get('bytes').decode(charset)

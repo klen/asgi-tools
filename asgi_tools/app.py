@@ -9,7 +9,6 @@ from http_router import Router, METHODS as HTTP_METHODS
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed
 from .middleware import LifespanMiddleware, StaticFilesMiddleware
 from .request import Request
-from .websocket import WebSocket
 from .response import parse_response, Response, ResponseError
 from .utils import to_awaitable, iscoroutinefunction, is_awaitable
 
@@ -72,11 +71,6 @@ class App:
     async def __call__(self, scope, receive, send):
         """Process ASGI call."""
         scope['app'] = self
-        if scope['type'] == 'websocket':
-            scope = WebSocket(scope, receive, send)
-            await self.lifespan(scope, receive, send)
-            return
-
         scope = Request(scope, receive, send)
         response = await self.lifespan(scope, receive, send)
         if isinstance(response, Response):

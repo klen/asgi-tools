@@ -33,12 +33,13 @@ def process_decode(meta=None, message=None):
     return decorator
 
 
-class Connection(dict):
-    """Base class for http/websocket connections."""
+class Request(dict):
+    """Represent HTTP Request."""
 
     def __init__(self, scope, receive=None, send=None):
-        """Bind the given scope."""
-        super().__init__(scope)
+        """Create a request based on the given scope."""
+        super(Request, self).__init__(scope)
+        self._body = None
         self._receive = receive
         self._send = send
 
@@ -83,15 +84,6 @@ class Connection(dict):
     def charset(self):
         """Get a charset."""
         return self.meta['opts'].get('charset', DEFAULT_CHARSET)
-
-
-class Request(Connection):
-    """Represent HTTP Request."""
-
-    def __init__(self, scope, receive=None, send=None):
-        """Create a request based on the given scope."""
-        super(Request, self).__init__(scope, receive, send)
-        self._body = None
 
     @property
     def content_type(self):
