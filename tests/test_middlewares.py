@@ -123,16 +123,21 @@ async def test_staticfiles_middleware(Client, app):
     res = await client.get('/static/unknown')
     assert res.status_code == 404
 
-import pytest
 
-@pytest.mark.skip('not implemented')
 async def test_websocket_middleware(Client):
-    from asgi_tools import WebSocketMiddleware, ResponseMiddleware
+    from asgi_tools import WebSocketMiddleware, WebSocket
 
-    app = WebSocketMiddleware(ResponseMiddleware())
-    client = Client(app)
-    res = await client.get('/')
-    assert res.status_code == 404
+    async def app(ws, *args):
+        assert isinstance(ws, WebSocket)
+        await ws.accept()
+        msg = await ws.receive()
+        await ws.send("hello %s" % msg.split()[1])
+        await ws.close()
 
-    res = await client.websocket('/')
-    breakpoint()
+    app = WebSocketMiddleware(app)
+    async with Client(app).websocket('/') as ws:
+        assert ws.path
+        assert ws.headers
+        await ws.send('iam nick')
+        msg = await ws.receive()
+        assert msg == 'hello nick'

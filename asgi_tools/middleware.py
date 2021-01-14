@@ -9,6 +9,7 @@ from . import ASGIError
 from .request import Request
 from .response import ResponseHTML, parse_response, ResponseError, ResponseFile
 from .utils import to_awaitable
+from .websocket import WebSocket
 
 
 #  TODO: StaticFilesMiddleware
@@ -43,7 +44,7 @@ class BaseMiddeware:
         return partial(cls, **params)
 
     def bind(self, app=None):
-        """Rebind the middleware to an ASGI application."""
+        """Rebind the middleware to an ASGI application if it has been inited already."""
         self.app = app or ResponseHTML("Not Found", status_code=404)
         return self
 
@@ -75,6 +76,16 @@ class RequestMiddleware(BaseMiddeware):
     async def __process__(self, scope, receive, send):
         """Replace scope with request object."""
         return await self.app(Request(scope, receive, send), receive, send)
+
+
+class WebSocketMiddleware(BaseMiddeware):
+    """Work with websockets."""
+
+    scopes = {'websocket'}
+
+    async def __process__(self, scope, receive, send):
+        """Process websocket connection."""
+        return await self.app(WebSocket(scope, receive, send), receive, send)
 
 
 class LifespanMiddleware(BaseMiddeware):
@@ -185,17 +196,6 @@ class StaticFilesMiddleware(BaseMiddeware):
 
         async for msg in response:
             await send(msg)
-
-
-class WebSocketMiddleware(BaseMiddeware):
-    """Work with websockets."""
-
-    scopes = {'websocket'}
-
-    async def __process__(self, scope, receive, send):
-        """Process websocket connection."""
-        breakpoint()
-        pass
 
 
 def AppMiddleware(

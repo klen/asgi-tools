@@ -10,8 +10,10 @@ ASGI-Tools
 - Supports `Asyncio`_ and `Trio`_ libraries
 - `Request`                 -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
 - `Response`                -- Send HTTP (text, html, json, stream, file, http errors) responses
+- `WebSocket`               -- Work with websockets
 - `RequestMiddleware`       -- Parse a scope and insert the parsed request into the scope
 - `ResponseMiddleware`      -- Parse responses and convert them into ASGI messages
+- `WebSocketMiddleware`     -- Process websockets
 - `RouterMiddleware`        -- Route HTTP requests
 - `LifespanMiddleware`      -- Process a lifespan cycle
 - `StaticFilesMiddleware`   -- Serve static files from URL prefixes

@@ -1,3 +1,4 @@
+import asyncio
 from http import cookies
 from json import loads, dumps
 from functools import partial
@@ -5,9 +6,13 @@ from urllib.parse import urlencode
 from yarl import URL
 from email.mime import multipart
 from email.mime import nonmultipart
+from contextlib import asynccontextmanager
+from collections import deque
+from sniffio import current_async_library
 
+from .websocket import WebSocket, ASGIConnectionClosed, parse_msg
 from .response import Response
-from .utils import parse_headers, parse_cookies
+from .utils import parse_headers, parse_cookies, trio, to_awaitable
 
 
 class TestResponse(Response):
@@ -15,7 +20,7 @@ class TestResponse(Response):
     def __init__(self):
         super(TestResponse, self).__init__(content=b'', status_code=None)
 
-    async def feed(self, msg):
+    async def _receive_from_app(self, msg):
         if msg.get('type') == 'http.response.start':
             self.status_code = msg.get('status')
             self.headers = parse_headers(msg.get('headers', []))
@@ -36,17 +41,58 @@ class TestResponse(Response):
         return loads(self.text)
 
 
+class TestWebsocket(WebSocket):
+
+    def __init__(self, scope):
+        self._send_to_client, receive_from_client = simple_stream()
+        send_to_app, self._receive_from_app = simple_stream()
+        super().__init__(scope, receive_from_client, send_to_app)
+
+    accept = close = None
+
+    def send(self, msg, type='websocket.receive'):
+        """Send a message to a client."""
+        return super().send(msg, type=type)
+
+    async def receive(self, raw=False):
+        """Receive messages from a client."""
+        if self.partner_state == self.STATES.disconnected:
+            raise ASGIConnectionClosed
+
+        msg = await self._receive()
+        if msg['type'] == 'websocket.accept':
+            self.partner_state = self.STATES.connected
+            return await self.receive(raw=raw)
+
+        if msg['type'] == 'websocket.close':
+            self.partner_state == self.STATES.disconnected
+            raise ASGIConnectionClosed('Connection has been closed.')
+
+        return raw and msg or parse_msg(msg, charset=self.charset)
+
+    def connect(self):
+        return self.send({'type': 'websocket.connect'})
+
+    async def disconnect(self):
+        await self.send({'type': 'websocket.disconnect'})
+        self.state = self.STATES.disconnected
+
+
 class TestClient:
 
     def __init__(self, app, base_url='http://localhost'):
         self.app = app
-        self.cookies = cookies.SimpleCookie()
         self.base_url = URL(base_url)
+        self.cookies = cookies.SimpleCookie()
 
-    # TODO: WebSockets, Request/Response Streams
+    def __getattr__(self, name):
+        return partial(self.request, method=name.upper())
+
+    # TODO: Request/Response Streams
     async def request(
             self, path, method='GET', query='', headers=None, data=b'',
             json=None, cookies=None, files=None, allow_redirects=True):
+        """Make a http request."""
 
         headers = headers or {}
         res = TestResponse()
@@ -66,34 +112,29 @@ class TestClient:
             headers['Content-Type'], data = encode_multipart_formdata(files)
             data = data.encode(res.charset)
 
-        async def receive():
+        async def send():
             return {'type': 'http.request', 'body': data, 'mode_body': False}
 
         headers.setdefault('Content-Length', str(len(data)))
         await self.app(self.build_scope(
             path, headers=headers, query=query, cookies=cookies, type='http', method=method,
-        ), receive, res.feed)
+        ), send, res._receive_from_app)
 
         if allow_redirects and res.status_code in {301, 302, 303, 307, 308}:
             return await self.get(res.headers['location'])
 
         return res
 
+    @asynccontextmanager
     async def websocket(self, path, query=None, headers=None, data=b'', cookies=None):
-        headers = headers or {}
-
-        async def send(msg):
-            breakpoint()
-
-        async def receive():
-            breakpoint()
-
-        await self.app(self.build_scope(
+        """Connect to a websocket."""
+        ws = TestWebsocket(scope := self.build_scope(
             path, headers=headers, query=query, cookies=cookies, type='websocket'
-        ), receive, send)
-
-    def __getattr__(self, name):
-        return partial(self.request, method=name.upper())
+        ))
+        async with aio_spawn(self.app, scope, ws._receive_from_app, ws._send_to_client):
+            await ws.connect()
+            yield ws
+            await ws.disconnect()
 
     def build_scope(
             self, path, headers=None, query=None, cookies=None, **scope):
@@ -153,5 +194,37 @@ def encode_multipart_formdata(fields):
 
     header, _, data = str(m).partition('\n')
     return header[len('Content-Type: '):], data
+
+
+def simple_stream(maxlen=None):
+    queue = deque(maxlen=maxlen)
+
+    async def receive():
+        while not queue:
+            await aio_sleep(1e-2)
+        return queue.popleft()
+
+    return to_awaitable(queue.append), receive
+
+
+# Compatibility (asyncio, trio)
+# -----------------------------
+
+
+def aio_sleep(seconds):
+    """Return sleep coroutine."""
+    if trio and current_async_library() == 'trio':
+        return trio.sleep(seconds)
+    return asyncio.sleep(seconds)
+
+
+@asynccontextmanager
+async def aio_spawn(fn, *args, **kwargs):
+    if trio and current_async_library() == 'trio':
+        async with trio.open_nursery() as tasks:
+            yield tasks.start_soon(fn, *args, **kwargs)
+
+    else:
+        yield asyncio.create_task(fn(*args, **kwargs))
 
 # pylama:ignore=D

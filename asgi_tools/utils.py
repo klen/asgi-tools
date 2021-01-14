@@ -1,9 +1,12 @@
 """ASGI-Tools Utils."""
 
+import asyncio as aio
 from functools import wraps
-from inspect import iscoroutinefunction, isasyncgenfunction
-from multidict import CIMultiDict
 from http import cookies
+from inspect import iscoroutinefunction, isasyncgenfunction
+
+from multidict import CIMultiDict
+from sniffio import current_async_library
 
 
 try:
@@ -16,6 +19,13 @@ try:
     import trio
 except ImportError:
     trio = None
+
+
+def aio_sleep(seconds):
+    """Return sleep coroutine."""
+    if trio and current_async_library() == 'trio':
+        return trio.sleep(seconds)
+    return aio.sleep(seconds)
 
 
 def is_awaitable(fn):

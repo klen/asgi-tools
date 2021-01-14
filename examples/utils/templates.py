@@ -72,3 +72,60 @@ router = Template(
         </html>
     """
 )
+
+websockets = Template(
+    """
+        <html>
+            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+            <body>
+                <div class="container">
+                    <h1 class="mb-4"> ASGI Tools Websockets example </h1>
+                    <div class="mb-4 p-2" style="background: #ccc; height: 30em; overflow-y: scroll;" id="messages">
+                    </div>
+                    <button class="btn btn-primary" onclick="send('ping')">Send Ping</button>
+                    <button class="btn btn-danger" onclick="disconnect()">Disconnect</button>
+                    <button class="btn btn-success" onclick="connect()">Connect</button>
+                </div>
+            </body>
+            <script>
+                let ws, messages = document.querySelector('#messages');
+
+                window.onmessage = (text, className) => {
+                    let message = document.createElement('p');
+                    message.className = className;
+                    message.innerHTML = text;
+                    messages.appendChild(message);
+                    messages.scrollTop = messages.scrollHeight;
+                }
+
+                window.send = (message) => {
+                    ws.send(message);
+                    onmessage(`Client (${Date.now()}): ${message}`, 'text-success');
+                }
+
+                window.disconnect = () => { ws.close() }
+
+                window.connect = () => {
+                    if (ws && ws.readyState == 1) return;
+
+                    ws = new WebSocket('ws://localhost:8000/socket');
+
+                    ws.onopen = (e) => {
+                        onmessage('Connected to server', 'text-danger');
+                    }
+
+                    ws.onclose = (e) => {
+                        onmessage('Disconnected from server', 'text-danger');
+                    }
+
+                    ws.onmessage = (e) => {
+                        onmessage(`Server (${Date.now()}): ${e.data}`, 'text-primary');
+                    }
+                }
+
+                connect();
+
+            </script>
+        </html>
+    """
+)

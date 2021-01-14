@@ -6,11 +6,12 @@ import inspect
 
 from http_router import Router, METHODS as HTTP_METHODS
 
-from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed
+from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed
 from .middleware import LifespanMiddleware, StaticFilesMiddleware
 from .request import Request
+from .websocket import WebSocket
 from .response import parse_response, Response, ResponseError
-from .utils import to_awaitable, iscoroutinefunction
+from .utils import to_awaitable, iscoroutinefunction, is_awaitable
 
 
 class HTTPView:
@@ -48,6 +49,7 @@ class App:
     exception_handlers[Exception] = to_awaitable(lambda exc: ResponseError(500))
     exception_handlers[ASGINotFound] = to_awaitable(lambda exc: ResponseError(404))
     exception_handlers[ASGIMethodNotAllowed] = to_awaitable(lambda exc: ResponseError(405))
+    exception_handlers[ASGIConnectionClosed] = to_awaitable(lambda exc: None)
 
     def __init__(self, logger=None, static_folders=None, static_url_prefix='/static', **kwargs):
         """Initialize router and lifespan middleware."""
@@ -65,19 +67,26 @@ class App:
         self.lifespan = LifespanMiddleware()
         self.lifespan.bind(self.app)
 
+        self.exception_handlers = dict(self.exception_handlers)
+
     async def __call__(self, scope, receive, send):
         """Process ASGI call."""
-        request = Request(scope, receive, send)
-        request.app = scope['app'] = self
-        response = await self.lifespan(request, receive, send)
+        scope['app'] = self
+        if scope['type'] == 'websocket':
+            scope = WebSocket(scope, receive, send)
+            await self.lifespan(scope, receive, send)
+            return
+
+        scope = Request(scope, receive, send)
+        response = await self.lifespan(scope, receive, send)
         if isinstance(response, Response):
             await response(scope, receive, send)
 
-    async def __process__(self, request, receive, send):
+    async def __process__(self, scope, receive, send):
         """Find and call a callback."""
         try:
-            cb, request['matches'] = self.router(request.url.path, request.method)
-            response = await cb(request)
+            cb, scope['matches'] = self.router(scope.url.path, scope.get('method'))
+            response = await cb(scope)
 
         # Process exceptions
         except Exception as exc:
@@ -101,7 +110,12 @@ class App:
         def wrapper(cb):
             if hasattr(cb, '__route__'):
                 return cb.__route__(self.router, *args, **kwargs)
-            return self.router.route(*args, **kwargs)(to_awaitable(cb))
+
+            if not is_awaitable(cb):
+                raise TypeError('Cannot use `app.route` once a callback is now awaitable.')
+
+            return self.router.route(*args, **kwargs)(cb)
+
         return wrapper
 
     def middleware(self, md):

@@ -1,4 +1,7 @@
-"""A simple example for ASGI-Tools."""
+"""A simple example for ASGI-Tools.
+
+The example requires httpx to be installed.
+"""
 
 from httpx import AsyncClient
 

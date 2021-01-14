@@ -10,6 +10,12 @@ class ASGIError(Exception):
     pass
 
 
+class ASGIConnectionClosed(ASGIError):
+    """ASGI-Tools connection closed error."""
+
+    pass
+
+
 class ASGIDecodeError(ASGIError):
     """ASGI-Tools decoding error."""
 
@@ -31,6 +37,7 @@ class ASGIMethodNotAllowed(ASGIError):
 DEFAULT_CHARSET = 'utf-8'
 
 from .request import Request  # noqa
+from .websocket import WebSocket  # noqa
 from .response import (  # noqa
     Response, ResponseHTML, ResponseJSON, ResponseText,
     ResponseRedirect, ResponseError, ResponseStream, ResponseFile, parse_response

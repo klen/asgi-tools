@@ -33,14 +33,14 @@ def process_decode(meta=None, message=None):
     return decorator
 
 
-class Request(dict):
-    """Scope to request parser."""
+class Connection(dict):
+    """Base class for http/websocket connections."""
 
     def __init__(self, scope, receive=None, send=None):
-        """Create a request based on the given scope."""
-        super(Request, self).__init__(scope)
-        self.receive = receive
-        self._body = None
+        """Bind the given scope."""
+        super().__init__(scope)
+        self._receive = receive
+        self._send = send
 
     def __getattr__(self, name):
         """Proxy the request's unknown attributes to scope."""
@@ -84,6 +84,15 @@ class Request(dict):
         """Get a charset."""
         return self.meta['opts'].get('charset', DEFAULT_CHARSET)
 
+
+class Request(Connection):
+    """Represent HTTP Request."""
+
+    def __init__(self, scope, receive=None, send=None):
+        """Create a request based on the given scope."""
+        super(Request, self).__init__(scope, receive, send)
+        self._body = None
+
     @property
     def content_type(self):
         """Get a content type."""
@@ -91,13 +100,13 @@ class Request(dict):
 
     async def stream(self):
         """Stream ASGI flow."""
-        if not self.receive:
+        if not self._receive:
             raise RuntimeError('Request doesnt have a receive coroutine')
 
-        message = await self.receive()
+        message = await self._receive()
         yield message.get('body', b'')
         while message.get('more_body'):
-            message = await self.receive()
+            message = await self._receive()
             yield message.get('body', b'')
 
     async def body(self):
