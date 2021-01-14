@@ -1,7 +1,8 @@
-aiofile
-anyio
-asgi-lifespan
 pytest
+anyio
+
+aiofile
+asgi-lifespan
 trio
 
 -e .
