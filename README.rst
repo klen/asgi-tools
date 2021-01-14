@@ -16,7 +16,8 @@ ASGI-Tools
 - `RouterMiddleware`        -- Route HTTP requests
 - `LifespanMiddleware`      -- Process a lifespan cycle
 - `StaticFilesMiddleware`   -- Serve static files from URL prefixes
-- `AppMiddleware`           -- A combined (request, response, router, lifespan) middleware to quikly create ASGI apps
+- `asgi_tools.tests.TestClient` -- A test client with websockets support to test asgi applications
+- `App`                     -- A simple foundation for ASGI apps
 
 .. _badges:
 
