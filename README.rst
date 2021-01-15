@@ -3,7 +3,7 @@ ASGI-Tools
 
 .. _description:
 
-**asgi-tools** -- Tools to make ASGI Applications
+**asgi-tools** -- Is a toolkit to build ASGI applications faster
 
 **Features:**
 
