@@ -81,3 +81,11 @@ async def test_client(app):
 
     res = await client.put('/redirect')
     assert res.status_code == 200
+
+    @app.route('/caldav', methods='PROPFIND')
+    async def propfind(request):
+        return 'PROPFIND'
+
+    res = await client.propfind('/caldav')
+    assert res.status_code == 200
+    assert res.text == 'PROPFIND'
