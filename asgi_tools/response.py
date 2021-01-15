@@ -2,7 +2,7 @@
 
 import os
 from enum import Enum
-from inspect import isawaitable, isasyncgen
+from inspect import isasyncgen
 from http import cookies, HTTPStatus
 from json import dumps
 from urllib.parse import quote_plus
@@ -292,9 +292,6 @@ class ResponseWebSocket(Response):
 
 async def parse_response(response, headers=None) -> Response:
     """Parse the given object and convert it into a asgi_tools.Response."""
-
-    while isawaitable(response):
-        response = await response
 
     if isinstance(response, Response):
         return response

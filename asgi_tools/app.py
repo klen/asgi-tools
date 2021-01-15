@@ -81,6 +81,8 @@ class App:
         try:
             cb, scope['path_params'] = self.router(scope.url.path, scope.get('method'))
             response = await cb(scope)
+            if response is None and scope['type'] == 'websocket':
+                return
 
         # Process exceptions
         except Exception as exc:
@@ -96,9 +98,6 @@ class App:
                 raise
 
             response = await handler(exc)
-
-        if response is None and scope['type'] == 'websocket':
-            return
 
         return await parse_response(response)
 
