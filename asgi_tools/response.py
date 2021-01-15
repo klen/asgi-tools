@@ -310,11 +310,10 @@ async def parse_response(response, headers=None) -> Response:
         response.status_code = status
         return response
 
-    if isinstance(response, (dict, list, int, bool)):
+    if response is None or isinstance(response, (dict, list, int, bool)):
         return ResponseJSON(response, headers=headers)
 
-    if response is not None:
-        return ResponseText(str(response), headers=headers)
+    return ResponseText(str(response), headers=headers)
 
 
 def parse_websocket_msg(msg, charset=None):

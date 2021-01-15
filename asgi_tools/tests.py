@@ -118,6 +118,7 @@ class TestClient:
         if allow_redirects and res.status_code in {301, 302, 303, 307, 308}:
             return await self.get(res.headers['location'])
 
+        assert res.status_code, 'Response is not completed'
         return res
 
     @asynccontextmanager

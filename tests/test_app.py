@@ -14,19 +14,6 @@ async def test_app(Client):
     async def test_request(request):
         return "Done %s" % request.matches['param']
 
-    @app.route('/data', methods='post')
-    async def test_data(request):
-        data = await request.data()
-        return dict(data)
-
-    @app.route('/error')
-    async def test_unhandled_exception(request):
-        raise RuntimeError('An exception')
-
-    @app.route('/502')
-    async def test_response_error(request):
-        raise ResponseError(502)
-
     @app.middleware
     async def simple_md(app, request, *args):
         response = await app(request, *args)
@@ -48,34 +35,54 @@ async def test_app(Client):
 
     client = Client(app)
 
-    res = await client.get('/test/42')
-    assert res.status_code == 200
-    assert res.headers['x-simple'] == '42'
-    assert res.text == "Simple Done 42"
-
     res = await client.get('/404')
     assert res.status_code == 404
     assert res.text == "Nothing matches the given URI"
-
-    res = await client.post('/test/42')
-    assert res.status_code == 405
-    assert res.text == 'Specified method is invalid for this resource'
-
-    res = await client.get('/502')
-    assert res.status_code == 502
-    assert res.text == "Invalid responses from another server/proxy"
-
-    res = await client.get('/error')
-    assert res.status_code == 500
-    assert res.text == "Server got itself in trouble"
 
     res = await client.get('/static/test_app.py')
     assert res.status_code == 200
     assert res.text.startswith('"""Application Tests."""')
 
+    res = await client.get('/test/42')
+    assert res.status_code == 200
+    assert res.headers['x-simple'] == '42'
+    assert res.text == "Simple Done 42"
+
+    res = await client.post('/test/42')
+    assert res.status_code == 405
+    assert res.text == 'Specified method is invalid for this resource'
+
+    @app.route('/502')
+    async def test_response_error(request):
+        raise ResponseError(502)
+
+    res = await client.get('/502')
+    assert res.status_code == 502
+    assert res.text == "Invalid responses from another server/proxy"
+
+    @app.route('/error')
+    async def test_unhandled_exception(request):
+        raise RuntimeError('An exception')
+
+    res = await client.get('/error')
+    assert res.status_code == 500
+    assert res.text == "Server got itself in trouble"
+
+    @app.route('/data', methods='post')
+    async def test_data(request):
+        data = await request.data()
+        return dict(data)
+
     res = await client.post('/data', json={'test': 'passed'})
     assert res.status_code == 200
     assert res.json() == {'test': 'passed'}
+
+    @app.route('/none')
+    async def test_none(request):
+        return
+
+    res = await client.get('/none')
+    assert res.status_code == 200
 
 
 async def test_app_static(Client):
@@ -154,7 +161,7 @@ async def test_websockets(app, client):
         msg = await ws.receive()
         assert msg == 'ping'
         await ws.send('pong')
-        return ws
+        await ws.close()
 
     async with client.websocket('/websocket') as ws:
         await ws.send('ping')

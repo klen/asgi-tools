@@ -97,6 +97,9 @@ class App:
 
             response = await handler(exc)
 
+        if response is None and scope['type'] == 'websocket':
+            return
+
         return await parse_response(response)
 
     def route(self, *args, **kwargs):
@@ -106,7 +109,7 @@ class App:
                 return cb.__route__(self.router, *args, **kwargs)
 
             if not is_awaitable(cb):
-                raise TypeError('Cannot use `app.route` once a callback is now awaitable.')
+                raise TypeError('Cannot use `app.route` once a callback is not awaitable.')
 
             return self.router.route(*args, **kwargs)(cb)
 
