@@ -84,7 +84,7 @@ async def test_router_middleware(Client):
 
     @router.route('/page2/{mode}')
     async def page2(scope, receive, send):
-        mode = scope['matches']['mode']
+        mode = scope['path_params']['mode']
         return f'page2: {mode}'
 
     client = Client(app)

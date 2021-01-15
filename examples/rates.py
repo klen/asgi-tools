@@ -9,6 +9,7 @@ from asgi_tools import App
 
 
 app = App()
+del app.exception_handlers[Exception]
 client = AsyncClient(timeout=10.0)
 
 
@@ -26,8 +27,9 @@ async def shutdown():
 
 
 @app.route('/', '/base/{currency}')
-async def rates(request, currency='USD', **kwargs):
+async def rates(request):
     """Load currency rates and render a template."""
+    currency = request.path_params.get('currency', 'USD')
     response = await client.request(
         'GET', f"https://api.exchangeratesapi.io/latest?base={ currency }")
 

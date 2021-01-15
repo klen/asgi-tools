@@ -16,10 +16,10 @@ from .utils import to_awaitable, iscoroutinefunction, is_awaitable
 class HTTPView:
     """Class Based Views."""
 
-    def __new__(cls, request=None, **matches):
+    def __new__(cls, request=None, **path_params):
         """Init the class and call it."""
         self = super().__new__(cls)
-        return self(request, **matches)
+        return self(request, **path_params)
 
     @classmethod
     def __route__(cls, router, *paths, **params):
@@ -28,11 +28,11 @@ class HTTPView:
         params.setdefault('methods', [m for m in HTTP_METHODS if m.lower() in methods])
         return router.route(*paths, **params)(cls)
 
-    def __call__(self, request, **matches):
+    def __call__(self, request, **path_params):
         """Dispatch the given request by HTTP method."""
         method = getattr(
             self, request.method.lower(), App.exception_handlers[ASGIMethodNotAllowed])
-        return method(request, **matches)
+        return method(request, **path_params)
 
 
 class App:
@@ -79,7 +79,7 @@ class App:
     async def __process__(self, scope, receive, send):
         """Find and call a callback."""
         try:
-            cb, scope['matches'] = self.router(scope.url.path, scope.get('method'))
+            cb, scope['path_params'] = self.router(scope.url.path, scope.get('method'))
             response = await cb(scope)
 
         # Process exceptions

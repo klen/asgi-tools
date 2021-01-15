@@ -12,7 +12,7 @@ async def test_app(Client):
 
     @app.route('/test/{param}', methods='get')
     async def test_request(request):
-        return "Done %s" % request.matches['param']
+        return "Done %s" % request.path_params['param']
 
     @app.middleware
     async def simple_md(app, request, *args):

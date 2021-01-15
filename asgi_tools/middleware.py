@@ -7,7 +7,7 @@ from http_router import Router
 
 from . import ASGIError
 from .request import Request
-from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, ResponseWebSocket
+from .response import ResponseHTML, parse_response, ResponseError, ResponseFile
 from .utils import to_awaitable
 
 
@@ -142,8 +142,8 @@ class RouterMiddleware(BaseMiddeware):
 
     async def __process__(self, scope, receive, send):
         """Get an app and process."""
-        app, matches = self.__dispatch__(scope)
-        scope['matches'] = matches
+        app, path_params = self.__dispatch__(scope)
+        scope['path_params'] = path_params
         return await app(scope, receive, send)
 
     def __dispatch__(self, scope):
@@ -188,15 +188,15 @@ class StaticFilesMiddleware(BaseMiddeware):
 
 
 def AppMiddleware(
-        app=None, *app_middlewares, pass_matches_only=True, parse_response=True, **params):
+        app=None, *app_middlewares, **params):
     """Combine middlewares to create an application."""
 
     async def default404(request, **params):
         return ResponseHTML("Not Found", status_code=404)
 
     middlewares = [
-        LifespanMiddleware, RequestMiddleware, ResponseMiddleware, *app_middlewares,
-        RouterMiddleware.setup(pass_matches_only=pass_matches_only, parse_response=parse_response)
+        LifespanMiddleware, RequestMiddleware, ResponseMiddleware,
+        *app_middlewares, RouterMiddleware
     ]
     return combine(app or default404, *middlewares, **params)
 
