@@ -50,7 +50,8 @@ class App:
     exception_handlers[ASGIMethodNotAllowed] = to_awaitable(lambda exc: ResponseError(405))
     exception_handlers[ASGIConnectionClosed] = to_awaitable(lambda exc: None)
 
-    def __init__(self, logger=None, static_folders=None, static_url_prefix='/static', **kwargs):
+    def __init__(self, *, debug=False, logger=None,
+                 static_folders=None, static_url_prefix='/static', **kwargs):
         """Initialize router and lifespan middleware."""
         self.app = self.__process__
 
@@ -59,6 +60,7 @@ class App:
         self.router.MethodNotAllowed = ASGIMethodNotAllowed
 
         self.logger = logger or logging.getLogger('asgi-tools')
+
         if static_folders and static_url_prefix:
             self.app = StaticFilesMiddleware(
                 self.app, folders=static_folders, url_prefix=static_url_prefix)
@@ -67,6 +69,11 @@ class App:
         self.lifespan.bind(self.app)
 
         self.exception_handlers = dict(self.exception_handlers)
+
+        self.debug = debug
+        if self.debug:
+            self.logger.setLevel('DEBUG')
+            self.exception_handlers[Exception] = None
 
     async def __call__(self, scope, receive, send):
         """Process ASGI call."""

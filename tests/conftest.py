@@ -21,7 +21,7 @@ def app():
 
     from asgi_tools import App
 
-    app = App()
+    app = App(debug=True)
 
     @app.route('/')
     async def index(request):
