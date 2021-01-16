@@ -119,6 +119,8 @@ class TestClient:
             return await self.get(res.headers['location'])
 
         assert res.status_code, 'Response is not completed'
+        for n, v in res.cookies.items():
+            self.cookies[n] = v
         return res
 
     @asynccontextmanager
@@ -149,7 +151,7 @@ class TestClient:
                 self.cookies[c] = v
 
         if len(self.cookies):
-            headers.setdefault('Cookie', self.cookies.output(header=''))
+            headers.setdefault('Cookie', self.cookies.output(header='', sep=';'))
 
         path = URL(path)
         query = query or path.query_string

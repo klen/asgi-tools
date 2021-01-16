@@ -70,10 +70,18 @@ async def test_client(app):
         res.cookies['tests'] = 'passed'
         return res
 
-    res = await client.delete('/set-cookie')
+    @app.route('/get-cookie')
+    async def get_cookie(request):
+        return dict(request.cookies)
+
+    res = await client.get('/set-cookie')
     assert res.status_code == 200
     assert res.text == '42'
     assert res.cookies['tests'] == 'passed'
+    assert {n: v.value for n, v in client.cookies.items() } == {'var': '42', 'tests': 'passed'}
+
+    res = await client.get('/get-cookie')
+    assert res.json() == {'var': '42', 'tests': 'passed'}
 
     @app.route('/redirect')
     async def redirect(request):
