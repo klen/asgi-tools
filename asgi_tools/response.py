@@ -124,7 +124,7 @@ class ResponseJSON(Response):
         return dumps(self.content, ensure_ascii=False, allow_nan=False).encode(self.charset)
 
 
-class ResponseRedirect(Response):
+class ResponseRedirect(Response, Exception):
     """Redirect Response."""
 
     def __init__(self, url, *args, status_code=HTTPStatus.TEMPORARY_REDIRECT.value, **kwargs):

@@ -69,10 +69,11 @@ async def test_client(app):
     # ---------------
     @app.route('/redirect')
     async def redirect(request):
-        return ResponseRedirect('/')
+        raise ResponseRedirect('/')
 
-    res = await client.put('/redirect')
-    assert res.status_code == 200
+    res = await client.put('/redirect', allow_redirects=False)
+    assert res.status_code == 307
+    assert res.headers['location'] == '/'
 
     # Custom methods
     # --------------

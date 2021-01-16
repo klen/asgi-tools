@@ -9,7 +9,7 @@ from http_router import Router, METHODS as HTTP_METHODS
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed
 from .middleware import LifespanMiddleware, StaticFilesMiddleware
 from .request import Request
-from .response import parse_response, Response, ResponseError
+from .response import parse_response, Response, ResponseRedirect, ResponseError
 from .utils import to_awaitable, iscoroutinefunction, is_awaitable
 
 
@@ -93,7 +93,7 @@ class App:
 
         # Process exceptions
         except Exception as exc:
-            if isinstance(exc, ResponseError) and ResponseError not in self.exception_handlers:
+            if isinstance(exc, Response) and type(exc) not in self.exception_handlers:
                 return exc
 
             for etype in type(exc).mro():
