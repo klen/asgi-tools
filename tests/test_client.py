@@ -2,7 +2,9 @@
 
 
 async def test_client(app):
-    from asgi_tools.tests import TestClient
+    from asgi_tools.tests import ASGITestClient
+
+    client = ASGITestClient(app)
 
     @app.route('/test')
     async def test(request):
@@ -17,7 +19,6 @@ async def test_client(app):
             "data": data,
         }
 
-    client = TestClient(app)
     res = await client.get('/')
     assert res
     assert res.status_code == 200
@@ -62,7 +63,7 @@ async def test_client(app):
     assert res.status_code == 200
     assert res.json()['cookies'] == {'var': '42'}
 
-    from asgi_tools import Response, ResponseRedirect
+    from asgi_tools import ResponseRedirect
 
     # Follow Redirect
     # ---------------

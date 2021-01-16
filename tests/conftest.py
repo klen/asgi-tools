@@ -11,9 +11,9 @@ def anyio_backend(request):
 
 @pytest.fixture(scope='session')
 def Client():
-    from asgi_tools.tests import TestClient
+    from asgi_tools.tests import ASGITestClient
 
-    return TestClient
+    return ASGITestClient
 
 
 @pytest.fixture
