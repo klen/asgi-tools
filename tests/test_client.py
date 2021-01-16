@@ -64,25 +64,8 @@ async def test_client(app):
 
     from asgi_tools import Response, ResponseRedirect
 
-    @app.route('/set-cookie')
-    async def set_cookie(request):
-        res = Response(request.cookies['var'])
-        res.cookies['tests'] = 'passed'
-        return res
-
-    @app.route('/get-cookie')
-    async def get_cookie(request):
-        return dict(request.cookies)
-
-    res = await client.get('/set-cookie')
-    assert res.status_code == 200
-    assert res.text == '42'
-    assert res.cookies['tests'] == 'passed'
-    assert {n: v.value for n, v in client.cookies.items() } == {'var': '42', 'tests': 'passed'}
-
-    res = await client.get('/get-cookie')
-    assert res.json() == {'var': '42', 'tests': 'passed'}
-
+    # Follow Redirect
+    # ---------------
     @app.route('/redirect')
     async def redirect(request):
         return ResponseRedirect('/')
@@ -90,6 +73,8 @@ async def test_client(app):
     res = await client.put('/redirect')
     assert res.status_code == 200
 
+    # Custom methods
+    # --------------
     @app.route('/caldav', methods='PROPFIND')
     async def propfind(request):
         return 'PROPFIND'
@@ -97,3 +82,22 @@ async def test_client(app):
     res = await client.propfind('/caldav')
     assert res.status_code == 200
     assert res.text == 'PROPFIND'
+
+    # Work with cookies
+    # -----------------
+    @app.route('/set-cookie')
+    async def set_cookie(request):
+        res = ResponseRedirect('/test')
+        res.cookies['tests'] = 'passed'
+        return res
+
+    res = await client.get('/set-cookie')
+    assert res.status_code == 200
+    assert {n: v.value for n, v in client.cookies.items() } == {'var': '42', 'tests': 'passed'}
+
+    @app.route('/get-cookie')
+    async def get_cookie(request):
+        return dict(request.cookies)
+
+    res = await client.get('/get-cookie')
+    assert res.json() == {'var': '42', 'tests': 'passed'}

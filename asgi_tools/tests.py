@@ -115,12 +115,13 @@ class TestClient:
             path, headers=headers, query=query, cookies=cookies, type='http', method=method,
         ), send, res._receive_from_app)
 
-        if allow_redirects and res.status_code in {301, 302, 303, 307, 308}:
-            return await self.get(res.headers['location'])
-
         assert res.status_code, 'Response is not completed'
         for n, v in res.cookies.items():
             self.cookies[n] = v
+
+        if allow_redirects and res.status_code in {301, 302, 303, 307, 308}:
+            return await self.get(res.headers['location'])
+
         return res
 
     @asynccontextmanager
