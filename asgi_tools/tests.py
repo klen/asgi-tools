@@ -76,7 +76,7 @@ class TestWebSocketResponse(ResponseWebSocket):
         return raw and msg or parse_websocket_msg(msg, charset=self.charset)
 
 
-class TestClient:
+class ASGITestClient:
 
     def __init__(self, app, base_url='http://localhost'):
         self.app = app
