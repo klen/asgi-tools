@@ -88,16 +88,17 @@ async def test_client(app):
     @app.route('/set-cookie')
     async def set_cookie(request):
         res = ResponseRedirect('/test')
-        res.cookies['tests'] = 'passed'
+        res.cookies['c1'] = 'c1'
+        res.cookies['c2'] = 'c2'
         return res
 
     res = await client.get('/set-cookie')
     assert res.status_code == 200
-    assert {n: v.value for n, v in client.cookies.items() } == {'var': '42', 'tests': 'passed'}
+    assert {n: v.value for n, v in client.cookies.items()} == {'var': '42', 'c1': 'c1', 'c2': 'c2'}
 
     @app.route('/get-cookie')
     async def get_cookie(request):
         return dict(request.cookies)
 
     res = await client.get('/get-cookie')
-    assert res.json() == {'var': '42', 'tests': 'passed'}
+    assert res.json() == {'var': '42', 'c1': 'c1', 'c2': 'c2'}

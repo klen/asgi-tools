@@ -12,7 +12,7 @@ from sniffio import current_async_library
 
 from . import ASGIConnectionClosed
 from .response import Response, ResponseWebSocket, parse_websocket_msg
-from .utils import parse_headers, parse_cookies, trio, to_awaitable
+from .utils import parse_headers, trio, to_awaitable
 
 
 class TestResponse(Response):
@@ -24,7 +24,10 @@ class TestResponse(Response):
         if msg.get('type') == 'http.response.start':
             self.status_code = msg.get('status')
             self.headers = parse_headers(msg.get('headers', []))
-            self.cookies = parse_cookies(self.headers.get('set-cookie'))
+            sc = cookies.SimpleCookie()
+            for cookie in self.headers.getall('set-cookie', []):
+                sc.load(cookie)
+            self.cookies = {n: c.value for n, c in sc.items()}
 
         if msg.get('type') == 'http.response.body':
             self.content += msg.get('body', b'')

@@ -2,7 +2,6 @@
 
 import asyncio as aio
 from functools import wraps
-from http import cookies
 from inspect import iscoroutinefunction, isasyncgenfunction
 
 from multidict import CIMultiDict
@@ -51,15 +50,3 @@ def parse_headers(headers: list):
         return CIMultiDict()
 
     return CIMultiDict([[v.decode('latin-1') for v in item] for item in headers])
-
-
-def parse_cookies(cookie: str):
-    """Decode the given cookie header."""
-    data = {}
-
-    if cookie:
-        for chunk in cookie.split(';'):
-            key, _, val = chunk.partition('=')
-            data[key.strip()] = cookies._unquote(val.strip())
-
-    return data

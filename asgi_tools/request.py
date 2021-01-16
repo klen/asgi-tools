@@ -2,6 +2,7 @@
 
 from cgi import parse_header, parse_multipart
 from functools import wraps, cached_property
+from http import cookies
 from io import BytesIO
 from json import loads
 from urllib.parse import parse_qsl
@@ -10,7 +11,7 @@ from multidict import MultiDict
 from yarl import URL
 
 from . import ASGIDecodeError, DEFAULT_CHARSET
-from .utils import parse_headers, parse_cookies
+from .utils import parse_headers
 
 
 def process_decode(meta=None, message=None):
@@ -73,7 +74,14 @@ class Request(dict):
     @cached_property
     def cookies(self):
         """Parse cookies from self scope."""
-        return parse_cookies(self.headers.get('cookie'))
+        data = {}
+        cookie = self.headers.get('cookie')
+        if cookie:
+            for chunk in cookie.split(';'):
+                key, _, val = chunk.partition('=')
+                data[key.strip()] = cookies._unquote(val.strip())
+
+        return data
 
     @property
     def query(self):

@@ -74,9 +74,8 @@ class Response:
             (key.lower().encode('latin-1'), str(val).encode('latin-1'))
             for key, val in self.headers.items()
         ]
-        if self.cookies:
-            val = self.cookies.output(header='').strip()
-            headers.append((b"set-cookie", val.encode('latin-1')))
+        for cookie in self.cookies.values():
+            headers.append((b"set-cookie", cookie.output(header='').strip().encode('latin-1')))
 
         return {
             "type": "http.response.start",

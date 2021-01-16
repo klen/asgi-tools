@@ -9,6 +9,7 @@ async def test_response():
     response = Response("Content", content_type='text/html')
     response.cookies['session'] = 'test-session'
     response.cookies['session']['path'] = '/'
+    response.cookies['lang'] = 'en'
     assert response.body == b"Content"
     assert response.status_code == 200
     messages = [m async for m in response]
@@ -18,6 +19,7 @@ async def test_response():
             (b'content-type', b'text/html; charset=utf-8'),
             (b'content-length', b'7'),
             (b'set-cookie', b'session=test-session; Path=/'),
+            (b'set-cookie', b'lang=en'),
         ],
         'status': 200,
         'type': 'http.response.start'
