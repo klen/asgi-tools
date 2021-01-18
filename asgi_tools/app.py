@@ -9,7 +9,7 @@ from http_router import Router, METHODS as HTTP_METHODS
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed
 from .middleware import LifespanMiddleware, StaticFilesMiddleware
 from .request import Request
-from .response import parse_response, Response, ResponseRedirect, ResponseError
+from .response import parse_response, Response, ResponseError, ResponseRedirect
 from .utils import to_awaitable, iscoroutinefunction, is_awaitable
 
 
@@ -77,25 +77,16 @@ class App:
 
     async def __call__(self, scope, receive, send):
         """Process ASGI call."""
-        scope['app'] = self
         scope = Request(scope, receive, send)
-        response = await self.lifespan(scope, receive, send)
-        if isinstance(response, Response):
-            await response(scope, receive, send)
+        scope['app'] = self
 
-    async def __process__(self, scope, receive, send):
-        """Find and call a callback."""
         try:
-            cb, scope['path_params'] = self.router(scope.url.path, scope.get('method'))
-            response = await cb(scope)
-            if response is None and scope['type'] == 'websocket':
-                return
+            response = await self.lifespan(scope, receive, send)
 
-        # Process exceptions
+        except (ResponseRedirect, ResponseError) as exc:
+            response = exc
+
         except Exception as exc:
-            if isinstance(exc, Response) and type(exc) not in self.exception_handlers:
-                return exc
-
             for etype in type(exc).mro():
                 handler = self.exception_handlers.get(etype)
                 if handler:
@@ -105,6 +96,17 @@ class App:
                 raise
 
             response = await handler(exc)
+            response = await parse_response(response)
+
+        if isinstance(response, Response):
+            await response(scope, receive, send)
+
+    async def __process__(self, scope, receive, send):
+        """Find and call a callback, process a response."""
+        cb, scope['path_params'] = self.router(scope.url.path, scope.get('method'))
+        response = await cb(scope)
+        if response is None and scope['type'] == 'websocket':
+            return
 
         return await parse_response(response)
 
