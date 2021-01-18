@@ -9,7 +9,7 @@ from http_router import Router, METHODS as HTTP_METHODS
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed
 from .middleware import LifespanMiddleware, StaticFilesMiddleware
 from .request import Request
-from .response import parse_response, Response, ResponseError, ResponseRedirect
+from .response import parse_response, Response, ResponseError
 from .utils import to_awaitable, iscoroutinefunction, is_awaitable
 
 
@@ -83,20 +83,17 @@ class App:
         try:
             response = await self.lifespan(scope, receive, send)
 
-        except (ResponseRedirect, ResponseError) as exc:
-            response = exc
+        except BaseException as exc:
+            handler = self.__process_exception(exc)
+            if handler:
+                response = await handler(exc)
+                response = await parse_response(response)
 
-        except Exception as exc:
-            for etype in type(exc).mro():
-                handler = self.exception_handlers.get(etype)
-                if handler:
-                    break
+            elif isinstance(exc, Response):
+                response = exc
 
             else:
                 raise
-
-            response = await handler(exc)
-            response = await parse_response(response)
 
         if isinstance(response, Response):
             await response(scope, receive, send)
@@ -109,6 +106,12 @@ class App:
             return
 
         return await parse_response(response)
+
+    def __process_exception(self, exc):
+        for etype in type(exc).mro():
+            handler = self.exception_handlers.get(etype)
+            if handler:
+                return handler
 
     def route(self, *args, **kwargs):
         """Register an route."""
@@ -139,7 +142,7 @@ class App:
 
     def on_exception(self, etype):
         """Register an exception handler."""
-        if not (inspect.isclass(etype) and issubclass(etype, Exception)):
+        if not (inspect.isclass(etype) and issubclass(etype, BaseException)):
             raise ASGIError('Wrong argument: %s' % etype)
 
         def wrapper(handler):

@@ -124,7 +124,7 @@ class ResponseJSON(Response):
         return dumps(self.content, ensure_ascii=False, allow_nan=False).encode(self.charset)
 
 
-class ResponseRedirect(Response, Exception):
+class ResponseRedirect(Response, BaseException):
     """Redirect Response."""
 
     def __init__(self, url, *args, status_code=HTTPStatus.TEMPORARY_REDIRECT.value, **kwargs):
@@ -136,7 +136,7 @@ class ResponseRedirect(Response, Exception):
         self.headers["location"] = quote_plus(str(url), safe=":/%#?&=@[]!$&'()*+,;")
 
 
-class ResponseError(Response, Exception):
+class ResponseError(Response, BaseException):
     """Raise `ErrorResponse` to stop processing and return HTTP Error Response."""
 
     def __init__(self, status_code=HTTPStatus.INTERNAL_SERVER_ERROR.value, content=None, **kwargs):

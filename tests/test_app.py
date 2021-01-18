@@ -99,7 +99,7 @@ async def test_app_static(Client):
 
 
 async def test_app_handle_exception(Client):
-    from asgi_tools.app import App, ASGINotFound
+    from asgi_tools.app import App, ASGINotFound, ResponseError
 
     app = App()
 
@@ -111,9 +111,17 @@ async def test_app_handle_exception(Client):
     async def handle_response_error(exc):
         return 'Response 404'
 
+    @app.on_exception(ResponseError)
+    async def handler(exc):
+        return 'Custom Server Error'
+
     @app.route('/500')
     async def raise_unknown(request):
         raise Exception('Unknown Exception')
+
+    @app.route('/501')
+    async def raise_response_error(request):
+        raise ResponseError(501)
 
     async with LifespanManager(app):
         client = Client(app)
@@ -125,6 +133,10 @@ async def test_app_handle_exception(Client):
         res = await client.get('/404')
         assert res.status_code == 200
         assert res.text == 'Response 404'
+
+        res = await client.get('/501')
+        assert res.status_code == 200
+        assert res.text == 'Custom Server Error'
 
 
 async def test_cbv(app, client):
