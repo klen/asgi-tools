@@ -1,4 +1,0 @@
-multidict
-yarl
-http-router     >= 0.2.0
-sniffio         >= 1.2.0

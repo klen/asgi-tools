@@ -1,8 +1,0 @@
-pytest
-anyio
-
-aiofile
-asgi-lifespan
-trio
-
--e .

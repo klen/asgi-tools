@@ -2,9 +2,9 @@ VIRTUAL_ENV 	?= env
 
 all: $(VIRTUAL_ENV)
 
-$(VIRTUAL_ENV): $(CURDIR)/requirements.txt $(CURDIR)/requirements-tests.txt
+$(VIRTUAL_ENV): setup.cfg
 	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
-	@$(VIRTUAL_ENV)/bin/pip install -r requirements-tests.txt
+	@$(VIRTUAL_ENV)/bin/pip install -e .[tests,examples]
 	@touch $(VIRTUAL_ENV)
 
 VERSION	?= minor
@@ -59,5 +59,4 @@ test t: $(VIRTUAL_ENV)
 
 
 example: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/pip install uvicorn jinja2
-	$(VIRTUAL_ENV)/bin/uvicorn --reload example:app
+	$(VIRTUAL_ENV)/bin/uvicorn --reload examples.rates:app
