@@ -8,16 +8,16 @@ ASGI-Tools
 **Features:**
 
 - Supports `Asyncio`_ and `Trio`_ libraries
-- `Request`                 -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
-- `Response`                -- Send HTTP (text, html, json, stream, file, http errors) responses
-- `ResponseWebsocket`       -- Work with websockets
-- `RequestMiddleware`       -- Parse a scope and insert the parsed request into the scope
-- `ResponseMiddleware`      -- Parse responses and convert them into ASGI messages
-- `RouterMiddleware`        -- Route HTTP requests
-- `LifespanMiddleware`      -- Process a lifespan cycle
-- `StaticFilesMiddleware`   -- Serve static files from URL prefixes
-- `asgi_tools.tests.TestClient` -- A test client with websockets support to test asgi applications
-- `App`                     -- A simple foundation for ASGI apps
+- ``Request``                 -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
+- ``Response``                -- Send HTTP (text, html, json, stream, file, http errors) responses
+- ``ResponseWebsocket``       -- Work with websockets
+- ``RequestMiddleware``       -- Parse a scope and insert the parsed request into the scope
+- ``ResponseMiddleware``      -- Parse responses and convert them into ASGI messages
+- ``RouterMiddleware``        -- Route HTTP requests
+- ``LifespanMiddleware``      -- Process a lifespan cycle
+- ``StaticFilesMiddleware``   -- Serve static files from URL prefixes
+- ``asgi_tools.tests.TestClient`` -- A test client with websockets support to test asgi applications
+- ``App``                     -- A simple foundation for ASGI apps
 
 .. _badges:
 
@@ -97,7 +97,7 @@ Parse HTTP Request data from a scope and return it as JSON response:
 Response/Request Middlewares
 -----------------------------
 
-Automatically convert a scope into a `asgi_tools.Request`
+Automatically convert a scope into a ``asgi_tools.Request``
 
 .. code-block:: python
 
@@ -112,7 +112,7 @@ Automatically convert a scope into a `asgi_tools.Request`
     app = RequestMiddleware(app)
 
 
-Automatically parse an result from asgi apps and convert it into a `asgi_tools.Response`
+Automatically parse an result from asgi apps and convert it into a ``asgi_tools.Response``
 
 .. code-block:: python
 
