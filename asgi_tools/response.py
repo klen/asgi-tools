@@ -237,7 +237,7 @@ class ResponseWebSocket(Response):
     @property
     def connected(self):
         """Check that is the websocket connected."""
-        return self.state == self.STATES.connected
+        return self.state == self.STATES.connected and self.partner_state == self.STATES.connected
 
     async def _connect(self):
         """Wait for connect message."""
@@ -258,9 +258,9 @@ class ResponseWebSocket(Response):
 
     async def close(self, code=1000):
         """Sent by the application to tell the server to close the connection."""
-        if self.state != self.STATES.disconnected:
+        if self.connected:
             await self.send({'type': 'websocket.close', 'code': code})
-            self.state = self.STATES.disconnected
+        self.state = self.STATES.disconnected
 
     def send(self, msg, type='websocket.send'):
         """Send the given message to a client."""
@@ -283,8 +283,7 @@ class ResponseWebSocket(Response):
 
         msg = await self._receive()
         if msg['type'] == 'websocket.disconnect':
-            self.partner_state == self.STATES.disconnected
-            raise ASGIConnectionClosed('Connection has been disconnected.')
+            self.partner_state = self.STATES.disconnected
 
         return raw and msg or parse_websocket_msg(msg, charset=self.charset)
 
@@ -314,4 +313,10 @@ async def parse_response(response, headers=None) -> Response:
 
 def parse_websocket_msg(msg, charset=None):
     """Prepare websocket message."""
-    return msg.get('text') or msg.get('bytes').decode(charset)
+    if data := msg.get('text'):
+        return data
+
+    if data := msg.get('bytes'):
+        return data.decode(charset)
+
+    return msg

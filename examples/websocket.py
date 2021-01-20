@@ -8,8 +8,7 @@ from asgi_tools import App, ResponseWebSocket
 from .utils.templates import websockets as template
 
 
-app = App()
-del app.exception_handlers[Exception]
+app = App(debug=True)
 
 
 @app.route('/')
@@ -20,6 +19,7 @@ async def index(request):
 
 @app.route('/socket')
 async def socket(request):
+    """Play to ping pong."""
     ws = ResponseWebSocket(request)
     await ws.accept()
     while ws.connected:

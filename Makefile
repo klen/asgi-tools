@@ -4,15 +4,14 @@ all: $(VIRTUAL_ENV)
 
 $(VIRTUAL_ENV): setup.cfg
 	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
-	@$(VIRTUAL_ENV)/bin/pip install -e .[tests,examples]
+	@$(VIRTUAL_ENV)/bin/pip install -e .[build,tests,examples]
 	@touch $(VIRTUAL_ENV)
 
 VERSION	?= minor
 
 .PHONY: version
 version:
-	pip install bump2version
-	bump2version $(VERSION)
+	$(VIRTUAL_ENV)/bin/bump2version $(VERSION)
 	git checkout master
 	git pull
 	git merge develop
@@ -49,9 +48,8 @@ register:
 .PHONY: upload
 # target: upload - Upload module on PyPi
 upload: clean
-	@pip install twine wheel
 	@python setup.py bdist_wheel
-	@twine upload dist/*
+	@$(VIRTUAL_ENV)/bin/twine upload dist/*
 
 
 test t: $(VIRTUAL_ENV)
@@ -59,4 +57,8 @@ test t: $(VIRTUAL_ENV)
 
 
 example: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/uvicorn --reload examples.rates:app
+	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.rates:app
+
+
+example-websocket: $(VIRTUAL_ENV)
+	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.websocket:app

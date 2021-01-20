@@ -83,8 +83,8 @@ websockets = Template(
                     <div class="mb-4 p-2" style="background: #ccc; height: 30em; overflow-y: scroll;" id="messages">
                     </div>
                     <button class="btn btn-primary" onclick="send('ping')">Send Ping</button>
-                    <button class="btn btn-danger" onclick="disconnect()">Disconnect</button>
                     <button class="btn btn-success" onclick="connect()">Connect</button>
+                    <button class="btn btn-danger" onclick="disconnect()">Disconnect</button>
                 </div>
             </body>
             <script>
@@ -108,7 +108,7 @@ websockets = Template(
                 window.connect = () => {
                     if (ws && ws.readyState == 1) return;
 
-                    ws = new WebSocket('ws://localhost:8000/socket');
+                    ws = new WebSocket(`ws://${location.host}/socket`);
 
                     ws.onopen = (e) => {
                         onmessage('Connected to server', 'text-danger');

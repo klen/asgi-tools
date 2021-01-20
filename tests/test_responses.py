@@ -149,6 +149,20 @@ async def test_file_response(anyio_backend):
 
 async def test_websocket_response(anyio_backend, Client):
     from asgi_tools import ResponseWebSocket, ASGIConnectionClosed
+    from asgi_tools.tests import simple_stream
+
+    app_receive, send_to_app = simple_stream()
+    client_receive, send_to_client = simple_stream()
+
+    ws = ResponseWebSocket({}, app_receive, send_to_client)
+    await send_to_app({'type': 'websocket.connect'})
+    await ws.accept()
+    msg = await client_receive()
+    assert msg == {'type': 'websocket.accept'}
+    await send_to_app({'type': 'websocket.disconnect'})
+    msg = await ws.receive()
+    assert msg == {'type': 'websocket.disconnect'}
+    assert not ws.connected
 
     async def app(scope, receive, send):
         ws = ResponseWebSocket(scope, receive, send)
