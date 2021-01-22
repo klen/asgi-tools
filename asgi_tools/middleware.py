@@ -1,5 +1,6 @@
 """ASGI-Tools Middlewares."""
 
+import typing as t
 from functools import partial
 from pathlib import Path
 
@@ -7,30 +8,28 @@ from http_router import Router
 
 from . import ASGIError
 from .request import Request
-from .response import ResponseHTML, parse_response, ResponseError, ResponseFile
+from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, Response
 from .utils import to_awaitable
-
-
-#  TODO: StaticFilesMiddleware
+from .types import ASGIApp, Scope, Receive, Send
 
 
 class BaseMiddeware:
     """Base class for ASGI-Tools middlewares."""
 
-    scopes = {'http', 'websocket'}
+    scopes: t.Union[t.Set, t.Sequence] = {'http', 'websocket'}
 
-    def __init__(self, app=None, **params):
+    def __init__(self, app: ASGIApp = None) -> None:
         """Save ASGI App."""
 
         self.bind(app)
 
-    async def __call__(self, scope, *args, **kwargs):
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Handle ASGI call."""
 
         if scope['type'] in self.scopes:
-            return await self.__process__(scope, *args, **kwargs)
+            return await self.__process__(scope, receive, send)
 
-        return await self.app(scope, *args, **kwargs)
+        return await self.app(scope, receive, send)
 
     async def __process__(self, scope, receive, send):
         """Do the middleware's logic."""
@@ -38,11 +37,11 @@ class BaseMiddeware:
         raise NotImplementedError()
 
     @classmethod
-    def setup(cls, **params):
+    def setup(cls, **params) -> t.Callable:
         """Setup the middleware without an initialization."""
         return partial(cls, **params)
 
-    def bind(self, app=None):
+    def bind(self, app: ASGIApp = None):
         """Rebind the middleware to an ASGI application if it has been inited already."""
         self.app = app or ResponseHTML("Not Found", status_code=404)
         return self
@@ -51,7 +50,7 @@ class BaseMiddeware:
 class ResponseMiddleware(BaseMiddeware):
     """Parse different responses from ASGI applications."""
 
-    async def __process__(self, scope, receive, send):
+    async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Parse responses from callbacks."""
 
         try:
@@ -72,7 +71,7 @@ class ResponseMiddleware(BaseMiddeware):
 class RequestMiddleware(BaseMiddeware):
     """Provider asgi_tools.Request to apps."""
 
-    async def __process__(self, scope, receive, send):
+    async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Replace scope with request object."""
         return await self.app(Request(scope, receive, send), receive, send)
 
@@ -82,27 +81,30 @@ class LifespanMiddleware(BaseMiddeware):
 
     scopes = {'lifespan'}
 
-    def __init__(self, app=None, on_startup=None, on_shutdown=None, **params):
+    def __init__(self, app: ASGIApp = None,
+                 on_startup: t.Union[t.Callable, t.List[t.Callable]] = None,
+                 on_shutdown: t.Union[t.Callable, t.List[t.Callable]] = None) -> None:
         """Prepare the middleware."""
-        super(LifespanMiddleware, self).__init__(app, **params)
-        self._startup = []
-        self._shutdown = []
+        super(LifespanMiddleware, self).__init__(app)
+        self._startup: t.List[t.Callable] = []
+        self._shutdown: t.List[t.Callable] = []
         self.__register__(on_startup, self._startup)
         self.__register__(on_shutdown, self._shutdown)
 
-    async def __process__(self, scope, receive, send):
+    async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Manage lifespan cycle."""
         while True:
             message = await receive()
             if message['type'] == 'lifespan.startup':
-                await self.__startup__(scope)
+                await self.__startup__()
                 await send({'type': 'lifespan.startup.complete'})
 
             elif message['type'] == 'lifespan.shutdown':
-                await self.__shutdown__(scope)
+                await self.__shutdown__()
                 return await send({'type': 'lifespan.shutdown.complete'})
 
-    def __register__(self, handlers, container):
+    def __register__(self, handlers: t.Union[t.Callable, t.List[t.Callable], None],
+                     container: t.List[t.Callable]) -> None:
         """Register lifespan handlers."""
         if not handlers:
             return
@@ -111,23 +113,22 @@ class LifespanMiddleware(BaseMiddeware):
             handlers = [handlers]
 
         container += [to_awaitable(fn) for fn in handlers]
-        return container
 
-    async def __startup__(self, scope):
+    async def __startup__(self) -> None:
         """Run startup callbacks."""
         for fn in self._startup:
             await fn()
 
-    async def __shutdown__(self, scope):
+    async def __shutdown__(self) -> None:
         """Run shutdown callbacks."""
         for fn in self._shutdown:
             await fn()
 
-    def on_startup(self, fn):
+    def on_startup(self, fn: t.Callable) -> None:
         """Add a function to startup."""
         self.__register__(fn, self._startup)
 
-    def on_shutdown(self, fn):
+    def on_shutdown(self, fn: t.Callable) -> None:
         """Add a function to shutdown."""
         self.__register__(fn, self._shutdown)
 
@@ -135,18 +136,18 @@ class LifespanMiddleware(BaseMiddeware):
 class RouterMiddleware(BaseMiddeware):
     """Bind callbacks to HTTP paths."""
 
-    def __init__(self, app=None, router: Router = None, **params):
+    def __init__(self, app: ASGIApp = None, router: Router = None) -> None:
         """Initialize HTTP router. """
-        super(RouterMiddleware, self).__init__(app, **params)
-        self.router = router
+        super(RouterMiddleware, self).__init__(app)
+        self.router = router or Router()
 
-    async def __process__(self, scope, receive, send):
+    async def __process__(self, scope: Scope, receive: Receive, send: Send):
         """Get an app and process."""
         app, path_params = self.__dispatch__(scope)
         scope['path_params'] = path_params
         return await app(scope, receive, send)
 
-    def __dispatch__(self, scope):
+    def __dispatch__(self, scope: Scope) -> t.Tuple[t.Callable, t.Mapping]:
         """Lookup for a callback."""
         try:
             return self.router(scope.get("root_path", "") + scope["path"], scope['method'])
@@ -157,16 +158,17 @@ class RouterMiddleware(BaseMiddeware):
 class StaticFilesMiddleware(BaseMiddeware):
     """Serve static files."""
 
-    def __init__(self, app=None, url_prefix='/static', folders=None, **params) -> None:
+    def __init__(self, app: ASGIApp = None, url_prefix: str = '/static',
+                 folders: t.Union[str, t.List[str]] = None) -> None:
         """Initialize the middleware. """
-        super(StaticFilesMiddleware, self).__init__(app, **params)
+        super(StaticFilesMiddleware, self).__init__(app)
         self.url_prefix = url_prefix
         folders = folders or []
         if isinstance(folders, str):
             folders = [folders]
-        self.folders = [Path(folder) for folder in folders]
+        self.folders: t.List[Path] = [Path(folder) for folder in folders]
 
-    async def __process__(self, scope, receive, send):
+    async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Serve static files for self url prefix."""
         if not self.folders or not scope['path'].startswith(self.url_prefix):
             return await self.app(scope, receive, send)
@@ -175,7 +177,8 @@ class StaticFilesMiddleware(BaseMiddeware):
         for folder in self.folders:
             filepath = folder.joinpath(filename).resolve()
             try:
-                response = ResponseFile(filepath, headers_only=scope['method'] == 'HEAD')
+                response: t.Optional[Response] = ResponseFile(
+                    filepath, headers_only=scope['method'] == 'HEAD')
                 break
 
             except ASGIError:
@@ -185,26 +188,3 @@ class StaticFilesMiddleware(BaseMiddeware):
 
         async for msg in response:
             await send(msg)
-
-
-def AppMiddleware(
-        app=None, *app_middlewares, **params):
-    """Combine middlewares to create an application."""
-
-    async def default404(request, **params):
-        return ResponseHTML("Not Found", status_code=404)
-
-    middlewares = [
-        LifespanMiddleware, RequestMiddleware, ResponseMiddleware,
-        *app_middlewares, RouterMiddleware
-    ]
-    return combine(app or default404, *middlewares, **params)
-
-
-def combine(app, *middlewares, **params):
-    """Combine the given middlewares into the given application."""
-
-    for md in list(middlewares)[::-1]:
-        app = md(app, **params)
-
-    return app

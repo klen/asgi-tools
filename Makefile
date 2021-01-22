@@ -56,6 +56,10 @@ test t: $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/pytest tests
 
 
+mypy: $(VIRTUAL_ENV)
+	$(VIRTUAL_ENV)/bin/mypy asgi_tools
+
+
 example: $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.rates:app
 

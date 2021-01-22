@@ -46,7 +46,8 @@ class TestResponse(Response):
 
 class TestWebSocketResponse(ResponseWebSocket):
 
-    accept = close = None
+    # Disable app methods for clients
+    accept = close = None  # type: ignore
 
     def connect(self):
         return self.send({'type': 'websocket.connect'})

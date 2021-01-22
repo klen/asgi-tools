@@ -31,7 +31,7 @@ async def test_response_middleware(Client):
 
 
 async def test_request_response_middlewares(Client):
-    from asgi_tools import RequestMiddleware, ResponseMiddleware, combine
+    from asgi_tools import RequestMiddleware, ResponseMiddleware
 
     async def app(request, receive, send):
         data = await request.form()
@@ -40,7 +40,7 @@ async def test_request_response_middlewares(Client):
         last_name = request.query.get('last_name', 'Test')
         return f"Hello {first_name} {last_name} from '{ request.url.path }'"
 
-    app = combine(app, ResponseMiddleware, RequestMiddleware)
+    app = RequestMiddleware(ResponseMiddleware(app))
 
     client = Client(app)
     res = await client.post(
