@@ -3,6 +3,7 @@
 import typing as t
 from functools import partial
 from pathlib import Path
+import abc
 
 from http_router import Router
 
@@ -10,10 +11,10 @@ from . import ASGIError
 from .request import Request
 from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, Response
 from .utils import to_awaitable
-from .types import ASGIApp, Scope, Receive, Send
+from .types import Scope, Receive, Send, ASGIApp
 
 
-class BaseMiddeware:
+class BaseMiddeware(metaclass=abc.ABCMeta):
     """Base class for ASGI-Tools middlewares."""
 
     scopes: t.Union[t.Set, t.Sequence] = {'http', 'websocket'}
@@ -31,6 +32,7 @@ class BaseMiddeware:
 
         return await self.app(scope, receive, send)
 
+    @abc.abstractmethod
     async def __process__(self, scope, receive, send):
         """Do the middleware's logic."""
 
