@@ -23,6 +23,9 @@ except ImportError:
     trio = None
 
 
+F = t.TypeVar('F', bound=t.Callable[..., t.Any])
+
+
 def aio_sleep(seconds: float) -> t.Awaitable:
     """Return sleep coroutine."""
     if trio and current_async_library() == 'trio':
@@ -36,7 +39,7 @@ def is_awaitable(fn: t.Callable) -> bool:
     return iscoroutinefunction(fn) or isasyncgenfunction(fn)
 
 
-def to_awaitable(fn: t.Callable) -> t.Callable:
+def to_awaitable(fn: F) -> t.Union[F, t.Callable[..., t.Coroutine]]:
     """Convert the given function to a coroutine function if it isn't"""
     if is_awaitable(fn):
         return fn
