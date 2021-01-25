@@ -26,7 +26,7 @@ class Response:
 
     charset: str = DEFAULT_CHARSET
 
-    #  __slots__ = 'conetnt', 'status_code', 'headers', 'cookies'
+    #  __slots__ = 'content', 'status_code', 'headers', 'cookies'
 
     def __init__(
             self, content: ResponseContent = None, status_code: int = HTTPStatus.OK.value,

@@ -8,7 +8,7 @@ import inspect
 from http_router import Router, METHODS as HTTP_METHODS
 
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed
-from .middleware import LifespanMiddleware, StaticFilesMiddleware
+from .middleware import LifespanMiddleware, StaticFilesMiddleware, ASGIApp
 from .request import Request
 from .response import parse_response, Response, ResponseError
 from .utils import to_awaitable, iscoroutinefunction, is_awaitable
@@ -46,7 +46,7 @@ class App:
 
     """
 
-    exception_handlers = {}
+    exception_handlers: t.Dict[t.Type[BaseException], t.Callable[[BaseException], t.Optional[Response]]] = {}  # noqa
     exception_handlers[Exception] = to_awaitable(lambda exc: ResponseError(500))
     exception_handlers[ASGINotFound] = to_awaitable(lambda exc: ResponseError(404))
     exception_handlers[ASGIMethodNotAllowed] = to_awaitable(lambda exc: ResponseError(405))
@@ -56,19 +56,19 @@ class App:
                  static_folders: t.Union[str, t.List[str]] = None,
                  static_url_prefix: str = '/static', trim_last_slash: bool = False):
         """Initialize router and lifespan middleware."""
-        self.app = self.__process__
+        self.app: ASGIApp = self.__process__  # type: ignore
 
         self.router = Router(trim_last_slash=trim_last_slash)
-        self.router.NotFound = ASGINotFound  # type: ignore
-        self.router.MethodNotAllowed = ASGIMethodNotAllowed  # type: ignore
+        self.router.NotFound = ASGINotFound
+        self.router.MethodNotAllowed = ASGIMethodNotAllowed
 
         self.logger = logger or logging.getLogger('asgi-tools')
 
         if static_folders and static_url_prefix:
             self.app = StaticFilesMiddleware(
-                self.app, folders=static_folders, url_prefix=static_url_prefix)  # type: ignore
+                self.app, folders=static_folders, url_prefix=static_url_prefix)
 
-        self.lifespan = LifespanMiddleware(self.app)  # type: ignore
+        self.lifespan = LifespanMiddleware(self.app)
 
         self.exception_handlers = dict(self.exception_handlers)
 
@@ -100,18 +100,20 @@ class App:
         if isinstance(response, Response):
             await response(scope, receive, send)
 
-    async def __process__(self, scope: Request, receive: Receive, send: Send):
+    async def __process__(
+            self, scope: Request, receive: Receive, send: Send) -> t.Optional[Response]:
         """Find and call a callback, process a response."""
         cb, scope['path_params'] = self.router(scope.url.path, scope.get('method') or 'GET')
         response = await cb(scope)
         if response is None and scope['type'] == 'websocket':
-            return
+            return None
 
-        return await parse_response(response)
+        response = await parse_response(response)
+        return response
 
     def __process_exception(self, exc: BaseException) -> t.Union[t.Callable, None]:
         for etype in type(exc).mro():
-            handler = self.exception_handlers.get(etype)  # type: ignore
+            handler = self.exception_handlers.get(etype)
             if handler:
                 return handler
 
@@ -144,9 +146,9 @@ class App:
         """Register a shutdown handler."""
         return self.lifespan.on_shutdown(fn)
 
-    def on_exception(self, etype: BaseException) -> t.Callable:
+    def on_exception(self, etype: t.Type[BaseException]) -> t.Callable:
         """Register an exception handler."""
-        if not (inspect.isclass(etype) and issubclass(etype, BaseException)):  # type: ignore
+        if not (inspect.isclass(etype) and issubclass(etype, BaseException)):
             raise ASGIError('Wrong argument: %s' % etype)
 
         def wrapper(handler):

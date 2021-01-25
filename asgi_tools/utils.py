@@ -12,13 +12,13 @@ from .types import ScopeHeaders
 
 
 try:
-    import aiofile  # type: ignore
+    import aiofile
 except ImportError:
     aiofile = None
 
 
 try:
-    import trio  # type: ignore
+    import trio
 except ImportError:
     trio = None
 
@@ -39,7 +39,7 @@ def is_awaitable(fn: t.Callable) -> bool:
     return iscoroutinefunction(fn) or isasyncgenfunction(fn)
 
 
-def to_awaitable(fn: F) -> t.Union[F, t.Callable[..., t.Coroutine]]:
+def to_awaitable(fn: F) -> F:
     """Convert the given function to a coroutine function if it isn't"""
     if is_awaitable(fn):
         return fn
@@ -48,10 +48,9 @@ def to_awaitable(fn: F) -> t.Union[F, t.Callable[..., t.Coroutine]]:
     async def coro(*args, **kwargs):
         return fn(*args, **kwargs)
 
-    return coro
+    return t.cast(F, coro)
 
 
 def parse_headers(headers: ScopeHeaders) -> CIMultiDict[str]:
     """Decode the given headers list."""
-    return CIMultiDict(
-        [tuple([n.decode('latin-1'), v.decode('latin-1')]) for n, v in headers])  # type: ignore
+    return CIMultiDict([(n.decode('latin-1'), v.decode('latin-1')) for n, v in headers])

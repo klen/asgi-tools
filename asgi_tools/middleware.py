@@ -11,7 +11,10 @@ from . import ASGIError
 from .request import Request
 from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, Response
 from .utils import to_awaitable
-from .types import Scope, Receive, Send, ASGIApp
+from .types import Scope, Receive, Send
+
+
+ASGIApp = t.Callable[[t.Union[Scope, Request], Receive, Send], t.Awaitable]
 
 
 class BaseMiddeware(metaclass=abc.ABCMeta):
@@ -33,7 +36,7 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
         return await self.app(scope, receive, send)
 
     @abc.abstractmethod
-    async def __process__(self, scope, receive, send):
+    async def __process__(self, scope: Scope, receive: Receive, send: Send):
         """Do the middleware's logic."""
 
         raise NotImplementedError()

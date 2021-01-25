@@ -1,7 +1,7 @@
 """ASGI Request."""
 
 import typing as t
-from cgi import parse_header, parse_multipart
+from cgi import parse_header, FieldStorage
 from functools import wraps, cached_property
 from http import cookies
 from io import BytesIO
@@ -16,7 +16,7 @@ from .types import Scope, Receive, Send, JSONType
 from .utils import parse_headers, CIMultiDict
 
 
-def process_decode(meta=None, message=None):
+def process_decode(message: str):
     """Handle errors."""
 
     def decorator(amethod):
@@ -24,16 +24,19 @@ def process_decode(meta=None, message=None):
         @wraps(amethod)
         async def wrapper(self, *args, **kwargs):
             try:
-                if not meta:
-                    return await amethod(self, *args, **kwargs)
-                if meta not in self.meta:
-                    self.meta[meta] = await amethod(self, *args, **kwargs)
-                return self.meta[meta]
+                return await amethod(self, *args, **kwargs)
             except (LookupError, ValueError):
                 raise ASGIDecodeError(message)
 
         return wrapper
     return decorator
+
+
+class Media(t.TypedDict):
+    """Keep requests media data."""
+
+    opts: t.Dict[str, str]
+    content_type: str
 
 
 class Request(dict):
@@ -49,12 +52,6 @@ class Request(dict):
     def __getattr__(self, name: str) -> t.Any:
         """Proxy the request's unknown attributes to scope."""
         return self[name]
-
-    @cached_property
-    def meta(self) -> t.Dict[str, t.Union[str, t.Dict]]:
-        """Prepare a meta data for the request."""
-        content_type, opts = parse_header(self.headers.get('content-type', ''))
-        return {'opts': opts, 'content-type': content_type}
 
     @cached_property
     def url(self) -> URL:
@@ -90,15 +87,21 @@ class Request(dict):
         """Get a query part."""
         return self.url.query
 
+    @cached_property
+    def media(self) -> Media:
+        """Prepare a media data for the request."""
+        content_type, opts = parse_header(self.headers.get('content-type', ''))
+        return Media(opts=opts, content_type=content_type)
+
     @property
     def charset(self) -> str:
         """Get a charset."""
-        return self.meta['opts'].get('charset', DEFAULT_CHARSET)  # type: ignore
+        return self.media['opts'].get('charset', DEFAULT_CHARSET)
 
     @property
     def content_type(self) -> str:
         """Get a content type."""
-        return self.meta['content-type']    # type: ignore
+        return self.media['content_type']
 
     async def stream(self) -> t.AsyncGenerator:
         """Stream ASGI flow."""
@@ -139,22 +142,19 @@ class Request(dict):
     async def form(self) -> MultiDict:
         """Read the request formdata."""
         form: MultiDict = MultiDict()
+        body = await self.body()
 
         # TODO: Improve multipart parsing
         if self.content_type == 'multipart/form-data':
-            pdict = dict(self.meta['opts'])  # type: ignore
-            pdict['boundary'] = bytes(pdict.get('boundary', ''), self.charset)
-            pdict['CONTENT-LENGTH'] = self.headers.get('content-length')
-            data = parse_multipart(BytesIO(await self.body()), pdict, encoding=self.charset)
-            for name, values in data.items():
-                for val in values:
-                    if isinstance(val, bytes):
-                        val = val.decode(self.charset)
+            fs = FieldStorage(
+                BytesIO(body), headers=self.headers, encoding=self.charset,
+                environ={'REQUEST_METHOD': self.method})
+            for name in fs:
+                for val in fs.getlist(name):
                     form[name] = val
 
             return form
 
-        body = await self.body()
         query = body.decode(self.charset)
         form.extend(parse_qsl(qs=query, keep_blank_values=True, encoding=self.charset))
 
