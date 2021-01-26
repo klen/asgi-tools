@@ -37,20 +37,21 @@ async def test_app(Client):
 
     res = await client.get('/404')
     assert res.status_code == 404
-    assert res.text == "Nothing matches the given URI"
+    assert await res.text() == "Nothing matches the given URI"
 
     res = await client.get('/static/test_app.py')
     assert res.status_code == 200
-    assert res.text.startswith('"""Application Tests."""')
+    text = await res.text()
+    assert text.startswith('"""Application Tests."""')
 
     res = await client.get('/test/42')
     assert res.status_code == 200
     assert res.headers['x-simple'] == '42'
-    assert res.text == "Simple Done 42"
+    assert await res.text() == "Simple Done 42"
 
     res = await client.post('/test/42')
     assert res.status_code == 405
-    assert res.text == 'Specified method is invalid for this resource'
+    assert await res.text() == 'Specified method is invalid for this resource'
 
     @app.route('/502')
     async def test_response_error(request):
@@ -58,7 +59,7 @@ async def test_app(Client):
 
     res = await client.get('/502')
     assert res.status_code == 502
-    assert res.text == "Invalid responses from another server/proxy"
+    assert await res.text() == "Invalid responses from another server/proxy"
 
     @app.route('/error')
     async def test_unhandled_exception(request):
@@ -66,7 +67,7 @@ async def test_app(Client):
 
     res = await client.get('/error')
     assert res.status_code == 500
-    assert res.text == "Server got itself in trouble"
+    assert await res.text() == "Server got itself in trouble"
 
     @app.route('/data', methods='post')
     async def test_data(request):
@@ -75,7 +76,7 @@ async def test_app(Client):
 
     res = await client.post('/data', json={'test': 'passed'})
     assert res.status_code == 200
-    assert res.json() == {'test': 'passed'}
+    assert await res.json() == {'test': 'passed'}
 
     @app.route('/none')
     async def test_none(request):
@@ -95,7 +96,8 @@ async def test_app_static(Client):
 
         res = await client.get('/static/test_app.py')
         assert res.status_code == 200
-        assert res.text.startswith('"""Application Tests."""')
+        text = await res.text()
+        assert text.startswith('"""Application Tests."""')
 
 
 async def test_app_handle_exception(Client):
@@ -128,15 +130,15 @@ async def test_app_handle_exception(Client):
 
         res = await client.get('/500')
         assert res.status_code == 200
-        assert res.text == 'UNKNOWN: Unknown Exception'
+        assert await res.text() == 'UNKNOWN: Unknown Exception'
 
         res = await client.get('/404')
         assert res.status_code == 200
-        assert res.text == 'Response 404'
+        assert await res.text() == 'Response 404'
 
         res = await client.get('/501')
         assert res.status_code == 200
-        assert res.text == 'Custom Server Error'
+        assert await res.text() == 'Custom Server Error'
 
 
 async def test_cbv(app, client):
@@ -153,11 +155,11 @@ async def test_cbv(app, client):
 
     res = await client.get('/cbv')
     assert res.status_code == 200
-    assert res.text == 'CBV: get'
+    assert await res.text() == 'CBV: get'
 
     res = await client.post('/cbv')
     assert res.status_code == 200
-    assert res.text == 'CBV: post'
+    assert await res.text() == 'CBV: post'
 
     res = await client.put('/cbv')
     assert res.status_code == 405

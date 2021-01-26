@@ -1,47 +1,58 @@
-import asyncio
+import typing as t
+from collections import deque
+from contextlib import asynccontextmanager
+from email.mime import multipart, nonmultipart
+from functools import partial
 from http import cookies
 from json import loads, dumps
-from functools import partial
 from urllib.parse import urlencode
+
 from yarl import URL
-from email.mime import multipart
-from email.mime import nonmultipart
-from contextlib import asynccontextmanager
-from collections import deque
-from sniffio import current_async_library
 
 from . import ASGIConnectionClosed
+from ._compat import aio_sleep, aio_spawn
+from ._types import JSONType, Scope, Receive, Send, Message
+from .middleware import ASGIApp
 from .response import Response, ResponseWebSocket, parse_websocket_msg
-from .utils import parse_headers, trio, to_awaitable
+from .utils import to_awaitable, parse_headers
 
 
 class TestResponse(Response):
 
-    def __init__(self):
-        super(TestResponse, self).__init__(content=b'', status_code=None)
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        self._receive = receive
+        msg = await self._receive()
+        assert msg.get('type') == 'http.response.start', 'Invalid Response'
+        self.status_code = msg.get('status', 502)
+        self.headers = parse_headers(msg.get('headers', []))
+        for cookie in self.headers.getall('set-cookie', []):
+            self.cookies.load(cookie)
 
-    async def _receive_from_app(self, msg):
-        if msg.get('type') == 'http.response.start':
-            self.status_code = msg.get('status')
-            self.headers = parse_headers(msg.get('headers', []))
-            sc = cookies.SimpleCookie()
-            for cookie in self.headers.getall('set-cookie', []):
-                sc.load(cookie)
-            self.cookies = {n: c.value for n, c in sc.items()}
+    async def stream(self) -> t.AsyncGenerator[bytes, None]:
+        """Stream the response."""
+        more_body = True
+        while more_body:
+            msg = await self._receive()
+            if msg.get('type') == 'http.response.body':
+                chunk = msg.get('body')
+                if chunk:
+                    yield chunk
+                more_body = msg.get('more_body', False)
 
-        if msg.get('type') == 'http.response.body':
-            self.content += msg.get('body', b'')
+    async def body(self) -> bytes:
+        """Load response body."""
+        _body = b''
+        async for chunk in self.stream():
+            _body += chunk
+        return _body
 
-    @property
-    def body(self):
-        return self.content
+    async def text(self) -> str:
+        body = await self.body()
+        return body.decode(self.charset)
 
-    @property
-    def text(self):
-        return self.content.decode(self.charset)
-
-    def json(self):
-        return loads(self.text)
+    async def json(self) -> JSONType:
+        text = await self.text()
+        return loads(text)
 
 
 class TestWebSocketResponse(ResponseWebSocket):
@@ -49,7 +60,7 @@ class TestWebSocketResponse(ResponseWebSocket):
     # Disable app methods for clients
     accept = close = None  # type: ignore
 
-    def connect(self):
+    def connect(self) -> t.Coroutine[Message, t.Any, t.Any]:
         return self.send({'type': 'websocket.connect'})
 
     async def disconnect(self):
@@ -79,47 +90,55 @@ class TestWebSocketResponse(ResponseWebSocket):
 
 class ASGITestClient:
 
-    def __init__(self, app, base_url='http://localhost'):
+    def __init__(self, app: ASGIApp, base_url: str = 'http://localhost'):
         self.app = app
         self.base_url = URL(base_url)
-        self.cookies = cookies.SimpleCookie()
+        self.cookies: cookies.SimpleCookie = cookies.SimpleCookie()
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> t.Callable[..., t.Awaitable]:
         return partial(self.request, method=name.upper())
 
     # TODO: Request/Response Streams
     async def request(
-            self, path, method='GET', query='', headers=None, data=b'',
-            json=None, cookies=None, files=None, allow_redirects=True):
+            self, path: str, method: str = 'GET', query: t.Union[str, t.Dict] = '',
+            headers: t.Dict = None, data: t.Union[bytes, str, t.Dict] = b'',
+            json: JSONType = None, cookies: t.Dict = None, files: t.Dict = None,
+            allow_redirects: bool = True) -> TestResponse:
         """Make a http request."""
 
-        headers = headers or {}
         res = TestResponse()
+        headers = headers or {}
 
         if isinstance(data, str):
             data = data.encode(res.charset)
 
-        if isinstance(data, dict):
+        elif isinstance(data, dict):
             headers['Content-Type'], data = encode_multipart_formdata(data)
             data = data.encode(res.charset)
 
-        if json is not None:
+        elif json is not None:
             headers['Content-Type'] = 'application/json'
             data = dumps(json).encode(res.charset)
 
-        if files:
+        elif files:
             headers['Content-Type'], data = encode_multipart_formdata(files)
             data = data.encode(res.charset)
 
-        async def send():
-            return {'type': 'http.request', 'body': data, 'mode_body': False}
-
         headers.setdefault('Content-Length', str(len(data)))
-        await self.app(self.build_scope(
-            path, headers=headers, query=query, cookies=cookies, type='http', method=method,
-        ), send, res._receive_from_app)
 
-        assert res.status_code, 'Response is not completed'
+        receive_from_client, send_to_app = simple_stream()
+        receive_from_app, send_to_client = simple_stream()
+
+        # Prepare a request data
+        await send_to_app({'type': 'http.request', 'body': data, 'more_body': False})
+
+        scope = self.build_scope(
+            path, headers=headers, query=query, cookies=cookies, type='http', method=method,
+        )
+
+        await self.app(scope, receive_from_client, send_to_client)
+        await send_to_client({'type': 'http.response.body', 'more_body': False})
+        await res(scope, receive_from_app, send_to_app)
         for n, v in res.cookies.items():
             self.cookies[n] = v
 
@@ -129,7 +148,8 @@ class ASGITestClient:
         return res
 
     @asynccontextmanager
-    async def websocket(self, path, query=None, headers=None, data=b'', cookies=None):
+    async def websocket(self, path: str, query: t.Union[str, t.Dict] = None,
+                        headers: t.Dict = None, cookies: t.Dict = None):
         """Connect to a websocket."""
         receive_from_client, send_to_app = simple_stream()
         receive_from_app, send_to_client = simple_stream()
@@ -144,7 +164,8 @@ class ASGITestClient:
             await ws.disconnect()
 
     def build_scope(
-            self, path, headers=None, query=None, cookies=None, **scope):
+            self, path: str, headers: t.Dict = None, query: t.Union[str, t.Dict] = None,
+            cookies: t.Dict = None, **scope) -> Scope:
         """Prepare a request scope."""
         headers = headers or {}
         headers.setdefault('Remote-Addr', '127.0.0.1')
@@ -158,8 +179,8 @@ class ASGITestClient:
         if len(self.cookies):
             headers.setdefault('Cookie', self.cookies.output(header='', sep=';'))
 
-        path = URL(path)
-        query = query or path.query_string
+        url = URL(path)
+        query = query or url.query_string
 
         if isinstance(query, dict):
             query = urlencode(query, doseq=True)
@@ -167,7 +188,7 @@ class ASGITestClient:
         return dict({
             'asgi': {'version': '3.0'},
             'http_version': '1.1',
-            'path': path.path,
+            'path': url.path,
             'query_string': query.encode(),
             'root_path': '',
             'scheme': scope.get('type') == 'http' and self.base_url.scheme or 'ws',
@@ -187,7 +208,7 @@ class MIMEFormdata(nonmultipart.MIMENonMultipart):
             "Content-Disposition", "form-data; name=\"%s\"" % keyname)
 
 
-def encode_multipart_formdata(fields):
+def encode_multipart_formdata(fields: t.Dict) -> t.Tuple[str, str]:
     # Based on https://julien.danjou.info/handling-multipart-form-data-python/
     m = multipart.MIMEMultipart("form-data")
 
@@ -199,8 +220,8 @@ def encode_multipart_formdata(fields):
         data.set_payload(str(value))
         m.attach(data)
 
-    header, _, data = str(m).partition('\n')
-    return header[len('Content-Type: '):], data
+    header, _, body = str(m).partition('\n')
+    return header[len('Content-Type: '):], body
 
 
 def simple_stream(maxlen=None):
@@ -208,30 +229,9 @@ def simple_stream(maxlen=None):
 
     async def receive():
         while not queue:
-            await aio_sleep(1e-2)
+            await aio_sleep()
         return queue.popleft()
 
     return receive, to_awaitable(queue.append)
-
-
-# Compatibility (asyncio, trio)
-# -----------------------------
-
-
-def aio_sleep(seconds):
-    """Return sleep coroutine."""
-    if trio and current_async_library() == 'trio':
-        return trio.sleep(seconds)
-    return asyncio.sleep(seconds)
-
-
-@asynccontextmanager
-async def aio_spawn(fn, *args, **kwargs):
-    if trio and current_async_library() == 'trio':
-        async with trio.open_nursery() as tasks:
-            yield tasks.start_soon(fn, *args, **kwargs)
-
-    else:
-        yield asyncio.create_task(fn(*args, **kwargs))
 
 # pylama:ignore=D

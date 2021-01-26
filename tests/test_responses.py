@@ -10,8 +10,8 @@ async def test_response():
     response.cookies['session'] = 'test-session'
     response.cookies['session']['path'] = '/'
     response.cookies['lang'] = 'en'
-    assert response.body == b"Content"
     assert response.status_code == 200
+    assert await response.body() == b"Content"
     messages = [m async for m in response]
     assert messages
     assert messages[0] == {
@@ -51,36 +51,36 @@ async def test_html_response():
     from asgi_tools import ResponseHTML
 
     response = ResponseHTML("Content")
-    assert response.body == b"Content"
     assert response.status_code == 200
     assert response.headers['content-type'] == 'text/html; charset=utf-8'
+    assert await response.body() == b"Content"
 
 
 async def test_text_response():
     from asgi_tools import ResponseText
 
     response = ResponseText("Content")
-    assert response.body == b"Content"
     assert response.status_code == 200
     assert response.headers['content-type'] == 'text/plain; charset=utf-8'
+    assert await response.body() == b"Content"
 
 
 async def test_json_response():
     from asgi_tools import ResponseJSON
 
     response = ResponseJSON([1, 2, 3])
-    assert response.body == b"[1, 2, 3]"
     assert response.status_code == 200
     assert response.headers['content-type'] == 'application/json'
+    assert await response.body() == b"[1, 2, 3]"
 
 
 async def test_redirect_response():
     from asgi_tools import ResponseRedirect
 
     response = ResponseRedirect('/logout')
-    assert response.body == b""
     assert response.status_code == 307
     assert response.headers['location'] == '/logout'
+    assert await response.body() == b""
 
 
 async def test_error_response():
@@ -90,16 +90,17 @@ async def test_error_response():
     assert response.content == "The server cannot process the request due to a high load"
 
 
+# TODO: Exceptions
 async def test_stream_response(anyio_backend, Client):
-    import anyio as aio
     from asgi_tools import ResponseStream
+    from asgi_tools._compat import aio_sleep
 
-    async def fill(timeout=.001):
+    async def filler(timeout=.001):
         for idx in range(10):
-            await aio.sleep(timeout)
+            await aio_sleep(timeout)
             yield idx
 
-    response = ResponseStream(fill())
+    response = ResponseStream(filler())
     messages = []
     async for msg in response:
         messages.append(msg)
@@ -109,13 +110,13 @@ async def test_stream_response(anyio_backend, Client):
     assert messages[-1] == {'body': b'', 'more_body': False, 'type': 'http.response.body'}
 
     def app(scope, receive, send):
-        response = ResponseStream(fill())
+        response = ResponseStream(filler())
         return response(scope, receive, send)
 
     client = Client(app)
     res = await client.get('/')
     assert res.status_code == 200
-    assert res.text == '0123456789'
+    assert await res.text() == '0123456789'
 
 
 async def test_file_response(anyio_backend):

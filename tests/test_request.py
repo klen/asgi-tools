@@ -75,8 +75,8 @@ async def test_multipart(Client):
     client = Client(app)
     res = await client.post('/', files={'test': open(__file__)})
     assert res.status_code == 200
-    assert res.text == '"""Test Request."""'
-    assert res.headers['content-length'] == str(len(res.text))
+    assert await res.text() == '"""Test Request."""'
+    assert res.headers['content-length'] == str(len('"""Test Request."""'))
 
 
 async def test_data(Client):
@@ -93,14 +93,14 @@ async def test_data(Client):
     # Post formdata
     res = await client.post('/', data={'test': 'passed'})
     assert res.status_code == 200
-    assert res.json() == {'test': 'passed'}
+    assert await res.json() == {'test': 'passed'}
 
     # Post json
     res = await client.post('/', json={'test': 'passed'})
     assert res.status_code == 200
-    assert res.json() == {'test': 'passed'}
+    assert await res.json() == {'test': 'passed'}
 
     # Post other
     res = await client.post('/', data='test passed')
     assert res.status_code == 200
-    assert res.text == 'test passed'
+    assert await res.text() == 'test passed'

@@ -40,7 +40,7 @@ async def test_readme_request_response(Client):
 
     res = await client.get('/test?var=42')
     assert res.status_code == 200
-    data = res.json()
+    data = await res.json()
     assert data['url'] == 'http://localhost:80/test?var=42'
     assert data['query'] == {'var': '42'}
 
@@ -62,7 +62,7 @@ async def test_readme_request_response_middleware(Client):
     client = Client(app)
     res = await client.post('/test', json={'name': 'passed'})
     assert res.status_code == 200
-    assert res.text == 'passed'
+    assert await res.text() == 'passed'
 
     # Example
     from asgi_tools import ResponseMiddleware
@@ -77,7 +77,7 @@ async def test_readme_request_response_middleware(Client):
     res = await client.post('/test', json={'name': 'passed'})
     assert res.status_code == 200
     assert res.headers['content-type'] == 'text/html; charset=utf-8'
-    assert res.text == 'Hello World!'
+    assert await res.text() == 'Hello World!'
 
 
 async def test_readme_router_middleware():

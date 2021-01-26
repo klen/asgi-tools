@@ -9,7 +9,7 @@ async def test_response_middleware(Client):
     client = Client(app)
     res = await client.get('/')
     assert res.status_code == 404
-    assert res.text == 'Not Found'
+    assert await res.text() == 'Not Found'
 
     async def app(*args):
         return False
@@ -18,7 +18,7 @@ async def test_response_middleware(Client):
     client = Client(app)
     res = await client.get('/')
     assert res.status_code == 200
-    assert res.text == 'false'
+    assert await res.text() == 'false'
 
     async def app(*args):
         raise ResponseError(502)
@@ -27,7 +27,7 @@ async def test_response_middleware(Client):
     client = Client(app)
     res = await client.get('/')
     assert res.status_code == 502
-    assert res.text == 'Invalid responses from another server/proxy'
+    assert await res.text() == 'Invalid responses from another server/proxy'
 
 
 async def test_request_response_middlewares(Client):
@@ -49,8 +49,8 @@ async def test_request_response_middlewares(Client):
         headers={'test-header': 'test-value'},
         cookies={'session': 'test-session'})
     assert res.status_code == 200
-    assert res.text == "Hello Jack Daniels from '/testurl'"
-    assert res.headers['content-length'] == str(len(res.text))
+    assert await res.text() == "Hello Jack Daniels from '/testurl'"
+    assert res.headers['content-length'] == str(len("Hello Jack Daniels from '/testurl'"))
 
 
 async def test_lifespan_middleware():
@@ -89,16 +89,16 @@ async def test_router_middleware(Client):
 
     client = Client(app)
     res = await client.get('/')
-    assert res.text == 'Not Found'
     assert res.status_code == 404
+    assert await res.text() == 'Not Found'
 
     res = await client.get('/page1')
     assert res.status_code == 200
-    assert res.text == 'page1'
+    assert await res.text() == 'page1'
 
     res = await client.get('/page2/42')
     assert res.status_code == 200
-    assert res.text == 'page2: 42'
+    assert await res.text() == 'page2: 42'
 
 
 async def test_staticfiles_middleware(Client, app):
@@ -114,11 +114,12 @@ async def test_staticfiles_middleware(Client, app):
     res = await client.head('/static/test_middlewares.py')
     assert res.status_code == 200
     assert res.headers['content-type'] == 'text/x-python'
-    assert not res.text
+    assert not await res.text()
 
     res = await client.get('/static/test_middlewares.py')
     assert res.status_code == 200
-    assert res.text.startswith('"""test middlewares"""')
+    text = await res.text()
+    assert text.startswith('"""test middlewares"""')
 
     res = await client.get('/static/unknown')
     assert res.status_code == 404

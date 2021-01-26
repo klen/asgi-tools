@@ -12,7 +12,7 @@ from multidict import MultiDict
 from yarl import URL
 
 from . import ASGIDecodeError, DEFAULT_CHARSET
-from .types import Scope, Receive, Send, JSONType
+from ._types import Scope, Receive, Send, JSONType
 from .utils import parse_headers, CIMultiDict
 
 

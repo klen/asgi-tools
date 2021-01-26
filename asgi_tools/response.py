@@ -1,24 +1,23 @@
 """ASGI responses."""
 
 import os
+import typing as t
+from email.utils import formatdate
 from enum import Enum
-from inspect import isasyncgen
+from hashlib import md5
 from http import cookies, HTTPStatus
 from json import dumps
-from urllib.parse import quote_plus
-from pathlib import Path
-from email.utils import formatdate
 from mimetypes import guess_type
-from hashlib import md5
-import typing as t
+from pathlib import Path
+from urllib.parse import quote_plus
 
 from multidict import CIMultiDict
 from sniffio import current_async_library
 
 from . import DEFAULT_CHARSET, ASGIError, ASGIConnectionClosed
+from ._compat import aiofile, trio, wait_for_first
+from ._types import Message, ResponseContent, Scope, Receive, Send
 from .request import Request
-from .utils import aiofile, trio
-from .types import Message, ResponseContent, Scope, Receive, Send
 
 
 class Response:
@@ -52,26 +51,29 @@ class Response:
 
     async def __aiter__(self) -> t.AsyncGenerator:
         """Iterate self through ASGI messages."""
-        self.headers.setdefault('content-length', str(len(self.body)))
+        body = await self.body()
+        self.headers.setdefault('content-length', str(len(body)))
 
         yield self.msg_start()
-        yield self.msg_body(self.body)
+        yield self.msg_body(body)
 
     async def __call__(self, scope: t.Any, receive: t.Any, send: Send) -> None:
         """Behave as an ASGI application."""
         async for message in self:
             await send(message)
 
-    @property
-    def body(self) -> bytes:
-        """Create a response body."""
+    async def body(self) -> bytes:
+        """Stream the response's body."""
         if self.content is None:
             return b""
+
+        if isinstance(self.content, str):
+            return self.content.encode(self.charset)
 
         if isinstance(self.content, bytes):
             return self.content
 
-        return self.content.encode(self.charset)
+        return str(self.content).encode(self.charset)
 
     def msg_start(self) -> Message:
         """Get ASGI response start message."""
@@ -88,13 +90,10 @@ class Response:
             "headers": headers,
         }
 
-    def msg_body(self, body: bytes, /, more_body: bool = False) -> Message:
+    @staticmethod
+    def msg_body(body: bytes = b'', /, more_body: bool = False) -> Message:
         """Get ASGI response body message."""
         return {"type": "http.response.body", "body": body, "more_body": more_body}
-
-    def msg_end(self) -> Message:
-        """Get ASGI response finish message."""
-        return self.msg_body(b'')
 
 
 class ResponseText(Response):
@@ -123,8 +122,7 @@ class ResponseJSON(Response):
         kwargs['content_type'] = 'application/json'
         super().__init__(*args, **kwargs)
 
-    @property
-    def body(self) -> bytes:
+    async def body(self) -> bytes:
         """Jsonify the content."""
         return dumps(self.content, ensure_ascii=False, allow_nan=False).encode(self.charset)
 
@@ -157,9 +155,8 @@ class ResponseError(Response, BaseException):
 class ResponseStream(Response):
     """Stream response."""
 
-    def __init__(self, content: t.AsyncGenerator[ResponseContent, None], **kwargs) -> None:
+    def __init__(self, content: t.AsyncGenerator[ResponseContent, None] = None, **kwargs) -> None:
         """Ensure that the content is awaitable."""
-        assert isasyncgen(content), "Content have to be awaitable"
         super(ResponseStream, self).__init__(**kwargs)
         self.content: t.AsyncGenerator[ResponseContent, None] = content  # type: ignore
 
@@ -167,55 +164,56 @@ class ResponseStream(Response):
         """Iterate through the response."""
         yield self.msg_start()
 
-        async for chunk in self.content:
-            if not isinstance(chunk, bytes):
-                chunk = str(chunk).encode(self.charset)
-            yield self.msg_body(chunk, more_body=True)
+        if self.content:
+            async for chunk in self.content:
+                if not isinstance(chunk, bytes):
+                    chunk = str(chunk).encode(self.charset)
+                yield self.msg_body(chunk, more_body=True)
 
-        yield self.msg_end()
+        yield self.msg_body()
+
+    async def listen_for_disconnect(self, receive: Receive):
+        """Listen for the client has been disconnected."""
+        while True:
+            message = await receive()
+            if message['type'] == 'http.disconnect':
+                break
+
+    async def stream_response(self, send: Send):
+        """Stream response content."""
+        async for message in self:
+            await send(message)
+
+    async def __call__(self, scope: t.Any, receive: t.Any, send: Send) -> None:
+        """Behave as an ASGI application."""
+        await wait_for_first(
+            self.listen_for_disconnect(receive),
+            self.stream_response(send),
+        )
 
 
-class ResponseFile(Response):
+class ResponseFile(ResponseStream):
     """Read and stream a file."""
 
-    def __init__(self, filepath: t.Union[str, Path], chunk_size: int = 32 * 1024,
+    def __init__(self, filename: t.Union[str, Path], chunk_size: int = 32 * 1024,
                  headers_only: bool = False, **kwargs) -> None:
         """Store filepath to self."""
-        super(ResponseFile, self).__init__(**kwargs)
-        self.chunk_size = chunk_size
-        self.headers_only = headers_only
-        self.filepath: Path = Path(filepath)
+        filepath: Path = Path(filename)
         try:
             stat = os.stat(filepath)
         except FileNotFoundError as exc:
             raise ASGIError(*exc.args)
 
+        stream = stream_file(filepath, chunk_size) if not headers_only else None
+        super(ResponseFile, self).__init__(stream, **kwargs)
+        self.headers_only = headers_only
         self.headers.setdefault(
-            'content-disposition', f'attachment; filename="{self.filepath.name}"')
-        self.headers.setdefault('content-type', guess_type(self.filepath)[0] or "text/plain")
+            'content-disposition', f'attachment; filename="{filepath.name}"')
+        self.headers.setdefault('content-type', guess_type(filepath)[0] or "text/plain")
         self.headers.setdefault('content-length', str(stat.st_size))
         self.headers.setdefault('last-modified', formatdate(stat.st_mtime, usegmt=True))
         etag = str(stat.st_mtime) + "-" + str(stat.st_size)
         self.headers.setdefault('etag', md5(etag.encode()).hexdigest())
-
-    async def __aiter__(self) -> t.AsyncGenerator[Message, None]:
-        """Iterate throug the file."""
-        yield self.msg_start()
-        if not self.headers_only:
-            if current_async_library() == 'trio':
-                async with await trio.open_file(self.filepath, 'rb') as fp:
-                    while chunk := await fp.read(self.chunk_size):
-                        yield self.msg_body(chunk, more_body=True)
-
-            else:
-                if aiofile is None:
-                    raise ASGIError('`aiofile` is required to return files with asyncio')
-
-                async with aiofile.AIOFile(self.filepath, mode='rb') as fp:
-                    async for chunk in aiofile.Reader(fp, chunk_size=self.chunk_size):
-                        yield self.msg_body(chunk, more_body=True)
-
-        yield self.msg_end()
 
 
 class ResponseWebSocket(Response):
@@ -330,3 +328,19 @@ def parse_websocket_msg(msg: Message, charset: str = None) -> t.Union[Message, s
         return data.decode(charset)
 
     return msg
+
+
+async def stream_file(filepath: t.Union[str, Path], chunk_size: int = 32 * 1024) -> t.AsyncGenerator[bytes, None]:  # noqa
+    """Stream the given file."""
+    if current_async_library() == 'trio':
+        async with await trio.open_file(filepath, 'rb') as fp:
+            while chunk := await fp.read(chunk_size):
+                yield chunk
+
+    else:
+        if aiofile is None:
+            raise ASGIError('`aiofile` is required to return files with asyncio')
+
+        async with aiofile.AIOFile(filepath, mode='rb') as fp:
+            async for chunk in aiofile.Reader(fp, chunk_size=chunk_size):
+                yield chunk

@@ -1,37 +1,15 @@
 """ASGI-Tools Utils."""
 
-import asyncio as aio
 from functools import wraps
 from inspect import iscoroutinefunction, isasyncgenfunction
 import typing as t
 
 from multidict import CIMultiDict
-from sniffio import current_async_library
 
-from .types import ScopeHeaders
-
-
-try:
-    import aiofile
-except ImportError:
-    aiofile = None
-
-
-try:
-    import trio
-except ImportError:
-    trio = None
+from ._types import ScopeHeaders
 
 
 F = t.TypeVar('F', bound=t.Callable[..., t.Any])
-
-
-def aio_sleep(seconds: float) -> t.Awaitable:
-    """Return sleep coroutine."""
-    if trio and current_async_library() == 'trio':
-        return trio.sleep(seconds)
-
-    return aio.sleep(seconds)
 
 
 def is_awaitable(fn: t.Callable) -> bool:
