@@ -28,7 +28,7 @@ class HTTPView:
         """Bind the class view to the given router."""
         methods = dict(inspect.getmembers(cls, inspect.isfunction))
         params.setdefault('methods', [m for m in HTTP_METHODS if m.lower() in methods])
-        return router.route(*paths, **params)(cls)
+        return router.bind(cls, *paths, **params)
 
     def __call__(self, request: Request, **path_params) -> t.Awaitable:
         """Dispatch the given request by HTTP method."""
@@ -58,20 +58,27 @@ class App:
         """Initialize router and lifespan middleware."""
         self.app: ASGIApp = self.__process__  # type: ignore
 
-        self.router = Router(trim_last_slash=trim_last_slash)
+        # Setup routing
+        self.router = Router(trim_last_slash=trim_last_slash, validate_cb=is_awaitable)
         self.router.NotFound = ASGINotFound
         self.router.MethodNotAllowed = ASGIMethodNotAllowed
+        self.route = self.router.route
 
+        # Setup logging
         self.logger = logger or logging.getLogger('asgi-tools')
 
+        # Setup static files
         if static_folders and static_url_prefix:
             self.app = StaticFilesMiddleware(
                 self.app, folders=static_folders, url_prefix=static_url_prefix)
 
+        # Setup lifespan
         self.lifespan = LifespanMiddleware(self.app)
 
+        # Setup excetions
         self.exception_handlers = dict(self.exception_handlers)
 
+        # Debug mode
         self.debug = debug
         if self.debug:
             self.logger.setLevel('DEBUG')
@@ -108,8 +115,7 @@ class App:
         if response is None and scope['type'] == 'websocket':
             return None
 
-        response = await parse_response(response)
-        return response
+        return await parse_response(response)
 
     def __process_exception(self, exc: BaseException) -> t.Union[t.Callable, None]:
         for etype in type(exc).mro():
@@ -118,19 +124,6 @@ class App:
                 return handler
 
         return None
-
-    def route(self, *args, **kwargs):
-        """Register an route."""
-        def wrapper(cb):
-            if hasattr(cb, '__route__'):
-                return cb.__route__(self.router, *args, **kwargs)
-
-            if not is_awaitable(cb):
-                raise TypeError('Cannot use `app.route` once a callback is not awaitable.')
-
-            return self.router.route(*args, **kwargs)(cb)
-
-        return wrapper
 
     def middleware(self, md: t.Callable):
         """Register an middleware to internal cycle."""
