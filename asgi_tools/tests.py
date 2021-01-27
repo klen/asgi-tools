@@ -94,6 +94,7 @@ class ASGITestClient:
         self.app = app
         self.base_url = URL(base_url)
         self.cookies: cookies.SimpleCookie = cookies.SimpleCookie()
+        self.headers: t.Dict[str, str] = {}
 
     def __getattr__(self, name: str) -> t.Callable[..., t.Awaitable]:
         return partial(self.request, method=name.upper())
@@ -101,13 +102,13 @@ class ASGITestClient:
     # TODO: Request/Response Streams
     async def request(
             self, path: str, method: str = 'GET', query: t.Union[str, t.Dict] = '',
-            headers: t.Dict = None, data: t.Union[bytes, str, t.Dict] = b'',
+            headers: t.Dict[str, str] = None, data: t.Union[bytes, str, t.Dict] = b'',
             json: JSONType = None, cookies: t.Dict = None, files: t.Dict = None,
             allow_redirects: bool = True) -> TestResponse:
         """Make a http request."""
 
         res = TestResponse()
-        headers = headers or {}
+        headers = headers or dict(self.headers)
 
         if isinstance(data, str):
             data = data.encode(res.charset)
