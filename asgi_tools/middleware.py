@@ -155,8 +155,10 @@ class RouterMiddleware(BaseMiddeware):
     def __dispatch__(self, scope: Scope) -> t.Tuple[t.Callable, t.Mapping]:
         """Lookup for a callback."""
         try:
-            return self.router(scope.get("root_path", "") + scope["path"], scope['method'])
-        except self.router.NotFound:
+            match = self.router(scope.get("root_path", "") + scope["path"], scope['method'])
+            return match.callback, match.path_params
+
+        except self.router.RouterError:
             return self.app, {}
 
 
