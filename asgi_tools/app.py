@@ -5,7 +5,7 @@ import logging
 import typing as t
 from functools import partial
 
-from http_router import Router, METHODS as HTTP_METHODS, TYPE_METHODS
+from http_router import Router, TYPE_METHODS
 
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed
 from ._types import Scope, Receive, Send
@@ -13,6 +13,9 @@ from .middleware import LifespanMiddleware, StaticFilesMiddleware, ASGIApp
 from .request import Request
 from .response import parse_response, Response, ResponseError
 from .utils import to_awaitable, iscoroutinefunction, is_awaitable
+
+
+HTTP_METHODS = {'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'}
 
 
 class HTTPView:
