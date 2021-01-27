@@ -149,10 +149,13 @@ class RouterMiddleware(BaseMiddeware):
     async def __process__(self, scope: Scope, receive: Receive, send: Send):
         """Get an app and process."""
         app, path_params = self.__dispatch__(scope)
+        if not callable(app):
+            app = self.app
+
         scope['path_params'] = path_params
         return await app(scope, receive, send)
 
-    def __dispatch__(self, scope: Scope) -> t.Tuple[t.Callable, t.Mapping]:
+    def __dispatch__(self, scope: Scope) -> t.Tuple[t.Optional[t.Any], t.Optional[t.Mapping]]:
         """Lookup for a callback."""
         try:
             match = self.router(scope.get("root_path", "") + scope["path"], scope['method'])

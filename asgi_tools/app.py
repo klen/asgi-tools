@@ -5,7 +5,7 @@ import logging
 import typing as t
 from functools import partial
 
-from http_router import Router, TYPE_METHODS
+from http_router import Router as HTTPRouter, TYPE_METHODS
 
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed
 from ._types import Scope, Receive, Send
@@ -18,13 +18,20 @@ from .utils import to_awaitable, iscoroutinefunction, is_awaitable
 HTTP_METHODS = {'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'}
 
 
+class Router(HTTPRouter):
+
+    NotFound: t.ClassVar[t.Type[Exception]] = ASGINotFound
+    RouterError: t.ClassVar[t.Type[Exception]] = ASGIError
+    MethodNotAllowed: t.ClassVar[t.Type[Exception]] = ASGIMethodNotAllowed
+
+
 class HTTPView:
     """Class Based Views."""
 
-    def __new__(cls, request: Request, **path_params):
+    def __new__(cls, request: Request, **opts):
         """Init the class and call it."""
         self = super().__new__(cls)
-        return self(request, **path_params)
+        return self(request, **opts)
 
     @classmethod
     def __route__(cls, router: Router, *paths: str,
@@ -34,10 +41,10 @@ class HTTPView:
         methods = methods or [m for m in HTTP_METHODS if m.lower() in view_methods]
         return router.bind(cls, *paths, methods=methods, **params)
 
-    def __call__(self, request: Request, **path_params) -> t.Awaitable:
+    def __call__(self, request: Request, **opts) -> t.Awaitable:
         """Dispatch the given request by HTTP method."""
         method = getattr(self, request.method.lower())
-        return method(request, **path_params)
+        return method(request, **opts)
 
 
 class App:
@@ -63,8 +70,6 @@ class App:
 
         # Setup routing
         self.router = Router(trim_last_slash=trim_last_slash, validate_cb=is_awaitable)
-        self.router.NotFound = ASGINotFound
-        self.router.MethodNotAllowed = ASGIMethodNotAllowed
         self.route = self.router.route
 
         # Setup logging
@@ -115,7 +120,7 @@ class App:
         """Find and call a callback, process a response."""
         match = self.router(scope.url.path, scope.get('method') or 'GET')
         scope['path_params'] = match.path_params
-        response = await match.callback(scope)
+        response = await match.callback(scope)  # type: ignore
         if response is None and scope['type'] == 'websocket':
             return None
 
