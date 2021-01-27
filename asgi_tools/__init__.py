@@ -16,7 +16,7 @@ class ASGIConnectionClosed(ASGIError):
     pass
 
 
-class ASGIDecodeError(ASGIError):
+class ASGIDecodeError(ASGIError, ValueError):
     """ASGI-Tools decoding error."""
 
     pass
