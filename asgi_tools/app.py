@@ -5,7 +5,7 @@ import logging
 import typing as t
 from functools import partial
 
-from http_router import Router, METHODS as HTTP_METHODS
+from http_router import Router, METHODS as HTTP_METHODS, TYPE_METHODS
 
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed
 from ._types import Scope, Receive, Send
@@ -24,16 +24,16 @@ class HTTPView:
         return self(request, **path_params)
 
     @classmethod
-    def __route__(cls, router: Router, *paths: str, **params) -> t.Callable:
+    def __route__(cls, router: Router, *paths: str,
+                  methods: TYPE_METHODS = None, **params) -> t.Type['HTTPView']:
         """Bind the class view to the given router."""
-        methods = dict(inspect.getmembers(cls, inspect.isfunction))
-        params.setdefault('methods', [m for m in HTTP_METHODS if m.lower() in methods])
-        return router.bind(cls, *paths, **params)
+        view_methods = dict(inspect.getmembers(cls, inspect.isfunction))
+        methods = methods or [m for m in HTTP_METHODS if m.lower() in view_methods]
+        return router.bind(cls, *paths, methods=methods, **params)
 
     def __call__(self, request: Request, **path_params) -> t.Awaitable:
         """Dispatch the given request by HTTP method."""
-        method = getattr(
-            self, request.method.lower(), App.exception_handlers[ASGIMethodNotAllowed])
+        method = getattr(self, request.method.lower())
         return method(request, **path_params)
 
 
