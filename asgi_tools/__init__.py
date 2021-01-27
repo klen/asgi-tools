@@ -1,6 +1,6 @@
 """ ASGI-Tools -- Tools to make ASGI Applications """
 
-__version__ = "0.20.0"
+__version__ = "0.20.1"
 __license__ = "MIT"
 
 
