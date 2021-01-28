@@ -209,7 +209,7 @@ class ResponseFile(ResponseStream):
         self.headers_only = headers_only
         self.headers.setdefault(
             'content-disposition', f'attachment; filename="{filepath.name}"')
-        self.headers.setdefault('content-type', guess_type(filepath)[0] or "text/plain")
+        self.headers.setdefault('content-type', guess_type(str(filepath))[0] or "text/plain")
         self.headers.setdefault('content-length', str(stat.st_size))
         self.headers.setdefault('last-modified', formatdate(stat.st_mtime, usegmt=True))
         etag = str(stat.st_mtime) + "-" + str(stat.st_size)
