@@ -2,7 +2,7 @@
 
 import typing as t
 from cgi import parse_header, FieldStorage
-from functools import wraps, cached_property
+from functools import wraps
 from http import cookies
 from io import BytesIO
 from json import loads
@@ -12,6 +12,7 @@ from multidict import MultiDict
 from yarl import URL
 
 from . import ASGIDecodeError, DEFAULT_CHARSET
+from ._compat import cached_property, TypedDict
 from ._types import Scope, Receive, Send, JSONType
 from .utils import parse_headers, CIMultiDict
 
@@ -32,7 +33,7 @@ def process_decode(message: str):
     return decorator
 
 
-class Media(t.TypedDict):
+class Media(TypedDict):
     """Keep requests media data."""
 
     opts: t.Dict[str, str]

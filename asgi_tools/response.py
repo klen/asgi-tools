@@ -91,7 +91,7 @@ class Response:
         }
 
     @staticmethod
-    def msg_body(body: bytes = b'', /, more_body: bool = False) -> Message:
+    def msg_body(body: bytes = b'', *, more_body: bool = False) -> Message:
         """Get ASGI response body message."""
         return {"type": "http.response.body", "body": body, "more_body": more_body}
 
@@ -321,10 +321,12 @@ async def parse_response(response: t.Any, headers: t.Dict = None) -> Response:
 
 def parse_websocket_msg(msg: Message, charset: str = None) -> t.Union[Message, str]:
     """Prepare websocket message."""
-    if data := msg.get('text'):
+    data = msg.get('text')
+    if data:
         return data
 
-    if data := msg.get('bytes'):
+    data = msg.get('bytes')
+    if data:
         return data.decode(charset)
 
     return msg
@@ -334,7 +336,10 @@ async def stream_file(filepath: t.Union[str, Path], chunk_size: int = 32 * 1024)
     """Stream the given file."""
     if current_async_library() == 'trio':
         async with await trio.open_file(filepath, 'rb') as fp:
-            while chunk := await fp.read(chunk_size):
+            while True:
+                chunk = await fp.read(chunk_size)
+                if not chunk:
+                    break
                 yield chunk
 
     else:

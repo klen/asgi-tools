@@ -1,10 +1,24 @@
 """Compatability layer."""
 
 import asyncio
+import sys
 import typing as t
 from contextlib import asynccontextmanager
 
 from sniffio import current_async_library
+
+# Python < 3.8
+#  ---
+
+if sys.version_info >= (3, 8):
+    from functools import cached_property  # noqa
+    from typing import TypedDict  # noqa
+
+else:
+    from cached_property import cached_property  # noqa
+    from typing_extensions import TypedDict  # noqa
+
+#  ---
 
 
 try:
