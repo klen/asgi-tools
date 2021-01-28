@@ -67,7 +67,7 @@ class Request(dict):
         )
 
     @cached_property
-    def headers(self) -> CIMultiDict[str]:
+    def headers(self) -> CIMultiDict:
         """Parse headers from self scope."""
         return parse_headers(self.get('headers') or [])
 
@@ -84,7 +84,7 @@ class Request(dict):
         return data
 
     @property
-    def query(self) -> MultiDict[str]:
+    def query(self) -> MultiDict:
         """Get a query part."""
         return self.url.query
 

@@ -3,22 +3,32 @@
 import asyncio
 import sys
 import typing as t
-from contextlib import asynccontextmanager
 
 from sniffio import current_async_library
 
-# Python < 3.8
-#  ---
-
+# Python 3.8+
 if sys.version_info >= (3, 8):
+    from contextlib import asynccontextmanager
     from functools import cached_property  # noqa
     from typing import TypedDict  # noqa
 
-else:
+    create_task = asyncio.create_task
+
+# Python 3.7
+elif sys.version_info >= (3, 7):
+    from contextlib import asynccontextmanager
     from cached_property import cached_property  # noqa
     from typing_extensions import TypedDict  # noqa
 
-#  ---
+    create_task = asyncio.ensure_future
+
+# Python 3.6
+else:
+    from async_generator import asynccontextmanager  # type: ignore # noqa
+    from cached_property import cached_property  # noqa
+    from typing_extensions import TypedDict  # noqa
+
+    create_task = asyncio.ensure_future
 
 
 try:
@@ -49,7 +59,7 @@ async def aio_spawn(fn: t.Callable[..., t.Awaitable], *args, **kwargs):
             yield tasks.start_soon(fn, *args, **kwargs)
 
     else:
-        yield asyncio.create_task(fn(*args, **kwargs))
+        yield create_task(fn(*args, **kwargs))
 
 
 async def wait_for_first(*coros: t.Awaitable) -> t.Any:

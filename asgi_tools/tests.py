@@ -1,6 +1,5 @@
 import typing as t
 from collections import deque
-from contextlib import asynccontextmanager
 from email.mime import multipart, nonmultipart
 from functools import partial
 from http import cookies
@@ -10,7 +9,7 @@ from urllib.parse import urlencode
 from yarl import URL
 
 from . import ASGIConnectionClosed
-from ._compat import aio_sleep, aio_spawn
+from ._compat import aio_sleep, aio_spawn, asynccontextmanager
 from ._types import JSONType, Scope, Receive, Send, Message
 from .middleware import ASGIApp
 from .response import Response, ResponseWebSocket, parse_websocket_msg

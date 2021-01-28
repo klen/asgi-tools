@@ -29,6 +29,6 @@ def to_awaitable(fn: F) -> F:
     return t.cast(F, coro)
 
 
-def parse_headers(headers: ScopeHeaders) -> CIMultiDict[str]:
+def parse_headers(headers: ScopeHeaders) -> CIMultiDict:
     """Decode the given headers list."""
     return CIMultiDict([(n.decode('latin-1'), v.decode('latin-1')) for n, v in headers])
