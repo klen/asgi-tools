@@ -85,6 +85,14 @@ async def test_app(Client):
     res = await client.get('/none')
     assert res.status_code == 200
 
+    @app.route('/path_params')
+    async def path_params(request):
+        return request['path_params'].get('unknown', 42)
+
+    res = await client.get('/path_params')
+    assert res.status_code == 200
+    assert await res.text() == '42'
+
 
 async def test_app_static(Client):
     from asgi_tools.app import App

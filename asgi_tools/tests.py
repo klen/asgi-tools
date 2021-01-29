@@ -229,7 +229,7 @@ def simple_stream(maxlen=None):
 
     async def receive():
         while not queue:
-            await aio_sleep()
+            await aio_sleep(1e-3)
         return queue.popleft()
 
     return receive, to_awaitable(queue.append)

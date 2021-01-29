@@ -116,12 +116,12 @@ class App:
             await response(scope, receive, send)
 
     async def __process__(
-            self, scope: Request, receive: Receive, send: Send) -> t.Optional[Response]:
+            self, request: Request, receive: Receive, send: Send) -> t.Optional[Response]:
         """Find and call a callback, process a response."""
-        match = self.router(scope.url.path, scope.get('method') or 'GET')
-        scope['path_params'] = match.path_params
-        response = await match.callback(scope)  # type: ignore
-        if response is None and scope['type'] == 'websocket':
+        match = self.router(request.url.path, request.get('method') or 'GET')
+        request['path_params'] = {} if match.path_params is None else match.path_params
+        response = await match.callback(request)  # type: ignore
+        if response is None and request['type'] == 'websocket':
             return None
 
         return await parse_response(response)
