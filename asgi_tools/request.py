@@ -161,7 +161,7 @@ class Request(dict):
 
         return form
 
-    def data(self) -> t.Union[str, JSONType, MultiDict]:
+    def data(self) -> t.Awaitable[t.Union[str, JSONType, MultiDict]]:
         """Parse the request's data automatically."""
         if self.content_type in {'application/x-www-form-urlencoded', 'multipart/form-data'}:
             return self.form()
