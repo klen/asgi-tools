@@ -29,6 +29,10 @@ ASGI-Tools
     :target: https://pypi.org/project/asgi-tools/
     :alt: PYPI Version
 
+.. image:: https://img.shields.io/pypi/pyversions/asgi-tools
+    :target: https://pypi.org/project/asgi-tools/
+    :alt: Python Versions
+
 .. _contents:
 
 .. contents::
