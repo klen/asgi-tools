@@ -194,7 +194,7 @@ class StaticFilesMiddleware(BaseMiddeware):
             except ASGIError:
                 response = None
 
-        response = response or ResponseError(404)
+        response = response or ResponseError(status_code=404)
 
         async for msg in response:
             await send(msg)

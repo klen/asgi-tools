@@ -19,6 +19,7 @@ HTTP_METHODS = {'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'T
 
 
 class Router(HTTPRouter):
+    """Rebind router errors."""
 
     NotFound: t.ClassVar[t.Type[Exception]] = ASGINotFound
     RouterError: t.ClassVar[t.Type[Exception]] = ASGIError
@@ -57,9 +58,9 @@ class App:
     """
 
     exception_handlers: t.Dict[t.Type[BaseException], t.Callable[[BaseException], t.Optional[Response]]] = {}  # noqa
-    exception_handlers[Exception] = to_awaitable(lambda exc: ResponseError(500))
-    exception_handlers[ASGINotFound] = to_awaitable(lambda exc: ResponseError(404))
-    exception_handlers[ASGIMethodNotAllowed] = to_awaitable(lambda exc: ResponseError(405))
+    exception_handlers[Exception] = to_awaitable(lambda exc: ResponseError.INTERNAL_SERVER_ERROR())
+    exception_handlers[ASGINotFound] = to_awaitable(lambda exc: ResponseError.NOT_FOUND())
+    exception_handlers[ASGIMethodNotAllowed] = to_awaitable(lambda exc: ResponseError.METHOD_NOT_ALLOWED())  # noqa
     exception_handlers[ASGIConnectionClosed] = to_awaitable(lambda exc: None)
 
     def __init__(self, *, debug: bool = False, logger: logging.Logger = None,

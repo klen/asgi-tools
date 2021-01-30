@@ -86,8 +86,16 @@ async def test_redirect_response():
 async def test_error_response():
     from asgi_tools import ResponseError
 
-    response = ResponseError(503)
+    response = ResponseError(status_code=503)
     assert response.content == "The server cannot process the request due to a high load"
+
+    response = ResponseError.NOT_FOUND()
+    assert response.status_code == 404
+    assert response.content == "Nothing matches the given URI"
+
+    response = ResponseError.IM_A_TEAPOT('custom message')
+    assert response.status_code == 418
+    assert response.content == "custom message"
 
 
 # TODO: Exceptions

@@ -21,7 +21,7 @@ async def test_response_middleware(Client):
     assert await res.text() == 'false'
 
     async def app(*args):
-        raise ResponseError(502)
+        raise ResponseError.BAD_GATEWAY()
 
     app = ResponseMiddleware(app)
     client = Client(app)

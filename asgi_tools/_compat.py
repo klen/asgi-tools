@@ -1,10 +1,12 @@
 """Compatability layer."""
 
 import asyncio
+import inspect
 import sys
 import typing as t
 
 from sniffio import current_async_library
+
 
 # Python 3.8+
 if sys.version_info >= (3, 8):
@@ -62,23 +64,24 @@ async def aio_spawn(fn: t.Callable[..., t.Awaitable], *args, **kwargs):
         yield create_task(fn(*args, **kwargs))
 
 
-async def wait_for_first(*coros: t.Awaitable) -> t.Any:
+async def wait_for_first(*aws: t.Awaitable) -> t.Any:
     """Run the coros concurently, wait for first completed and cancel others."""
-    if not coros:
+    if not aws:
         return
 
-    if trio and current_async_library() == 'trio':
-        send_channel, receive_channel = trio.open_memory_channel(0)
+    if trio is None or current_async_library() == 'asyncio':
+        aws = [create_task(aw) if inspect.iscoroutine(aw) else aw for aw in aws]
+        (done,), pending = await asyncio.wait(aws, return_when=asyncio.FIRST_COMPLETED)
+        [task.cancel() for task in pending]
+        return done.result()
 
-        async with trio.open_nursery() as n:
-            [n.start_soon(trio_jockey, coro, send_channel) for coro in coros]
-            result = await receive_channel.receive()
-            n.cancel_scope.cancel()
-            return result
+    send_channel, receive_channel = trio.open_memory_channel(0)
 
-    (done,), pending = await asyncio.wait(coros, return_when=asyncio.FIRST_COMPLETED)
-    [task.cancel() for task in pending]
-    return done.result()
+    async with trio.open_nursery() as n:
+        [n.start_soon(trio_jockey, aw, send_channel) for aw in aws]
+        result = await receive_channel.receive()
+        n.cancel_scope.cancel()
+        return result
 
 
 async def trio_jockey(coro: t.Awaitable, channel):

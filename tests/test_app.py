@@ -55,7 +55,7 @@ async def test_app(Client):
 
     @app.route('/502')
     async def test_response_error(request):
-        raise ResponseError(502)
+        raise ResponseError.BAD_GATEWAY()
 
     res = await client.get('/502')
     assert res.status_code == 502
