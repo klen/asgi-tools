@@ -22,7 +22,7 @@ class TestResponse(Response):
         self._receive = receive
         msg = await self._receive()
         assert msg.get('type') == 'http.response.start', 'Invalid Response'
-        self.status_code = msg.get('status', 502)
+        self.status_code = int(msg.get('status', 502))
         self.headers = parse_headers(msg.get('headers', []))
         for cookie in self.headers.getall('set-cookie', []):
             self.cookies.load(cookie)

@@ -363,6 +363,7 @@ async def parse_response(response: t.Any, headers: t.Dict = None) -> Response:
 
     if isinstance(response, tuple):
         status, *contents = response
+        assert isinstance(status, int), 'Invalid Response Status'
         if len(contents) > 1:
             headers, *contents = contents
         response = await parse_response(contents[0] or '' if contents else '', headers=headers)

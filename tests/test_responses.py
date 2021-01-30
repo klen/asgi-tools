@@ -46,6 +46,9 @@ async def test_parse_response():
     assert response.content == 'go away'
     assert response.headers['location'] == 'https://google.com'
 
+    with pytest.raises(AssertionError):
+        await parse_response((None, 'SERVER ERROR'))
+
 
 async def test_html_response():
     from asgi_tools import ResponseHTML
