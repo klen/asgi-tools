@@ -144,7 +144,8 @@ class ResponseRedirect(Response, BaseException):
 class ResponseErrorMeta(type):
     """Generate Response Errors by HTTP names."""
 
-    def __getattr__(cls, name: str) -> partial['ResponseError']:
+    # XXX: From python 3.9 -> partial['ResponseError]
+    def __getattr__(cls, name: str) -> t.Callable[..., 'ResponseError']:
         """Generate Response Errors by HTTP names."""
         status = HTTPStatus[name]
         return partial(cls, status_code=status.value)
@@ -172,8 +173,9 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
     UNSUPPORTED_MEDIA_TYPE: t.Callable[..., 'ResponseError']            # 415
     REQUESTED_RANGE_NOT_SATISFIABLE: t.Callable[..., 'ResponseError']   # 416
     EXPECTATION_FAILED: t.Callable[..., 'ResponseError']                # 417
-    IM_A_TEAPOT: t.Callable[..., 'ResponseError']                       # 418
-    MISDIRECTED_REQUEST: t.Callable[..., 'ResponseError']               # 421
+    # XXX: From python 3.9
+    # IM_A_TEAPOT: t.Callable[..., 'ResponseError']                       # 418
+    # MISDIRECTED_REQUEST: t.Callable[..., 'ResponseError']               # 421
     UNPROCESSABLE_ENTITY: t.Callable[..., 'ResponseError']              # 422
     LOCKED: t.Callable[..., 'ResponseError']                            # 423
     FAILED_DEPENDENCY: t.Callable[..., 'ResponseError']                 # 424
@@ -182,7 +184,8 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
     PRECONDITION_REQUIRED: t.Callable[..., 'ResponseError']             # 428
     TOO_MANY_REQUESTS: t.Callable[..., 'ResponseError']                 # 429
     REQUEST_HEADER_FIELDS_TOO_LARGE: t.Callable[..., 'ResponseError']   # 431
-    UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., 'ResponseError']     # 451
+    # XXX: From python 3.9
+    # UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., 'ResponseError']     # 451
 
     INTERNAL_SERVER_ERROR: t.Callable[..., 'ResponseError']             # 500
     NOT_IMPLEMENTED: t.Callable[..., 'ResponseError']                   # 501

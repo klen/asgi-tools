@@ -70,7 +70,7 @@ async def wait_for_first(*aws: t.Awaitable) -> t.Any:
         return
 
     if trio is None or current_async_library() == 'asyncio':
-        aws = [create_task(aw) if inspect.iscoroutine(aw) else aw for aw in aws]
+        aws = tuple(create_task(aw) if inspect.iscoroutine(aw) else aw for aw in aws)
         (done,), pending = await asyncio.wait(aws, return_when=asyncio.FIRST_COMPLETED)
         [task.cancel() for task in pending]
         return done.result()

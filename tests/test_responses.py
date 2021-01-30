@@ -93,8 +93,8 @@ async def test_error_response():
     assert response.status_code == 404
     assert response.content == "Nothing matches the given URI"
 
-    response = ResponseError.IM_A_TEAPOT('custom message')
-    assert response.status_code == 418
+    response = ResponseError.INTERNAL_SERVER_ERROR('custom message')
+    assert response.status_code == 500
     assert response.content == "custom message"
 
 
