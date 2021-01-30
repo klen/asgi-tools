@@ -5,20 +5,6 @@ ASGI-Tools
 
 **asgi-tools** -- Is a toolkit to build ASGI applications faster
 
-**Features:**
-
-- Supports `Asyncio`_ and `Trio`_ libraries
-- ``Request``                 -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
-- ``Response``                -- Send HTTP (text, html, json, stream, file, http errors) responses
-- ``ResponseWebsocket``       -- Work with websockets
-- ``RequestMiddleware``       -- Parse a scope and insert the parsed request into the scope
-- ``ResponseMiddleware``      -- Parse responses and convert them into ASGI messages
-- ``RouterMiddleware``        -- Route HTTP requests
-- ``LifespanMiddleware``      -- Process a lifespan cycle
-- ``StaticFilesMiddleware``   -- Serve static files from URL prefixes
-- ``asgi_tools.tests.TestClient`` -- A test client with websockets support to test asgi applications
-- ``App``                     -- A simple foundation for ASGI apps
-
 .. _badges:
 
 .. image:: https://github.com/klen/asgi-tools/workflows/tests/badge.svg
@@ -32,6 +18,22 @@ ASGI-Tools
 .. image:: https://img.shields.io/pypi/pyversions/asgi-tools
     :target: https://pypi.org/project/asgi-tools/
     :alt: Python Versions
+
+.. _features:
+
+**Features:**
+
+- Supports `Asyncio`_ and `Trio`_ libraries
+- ``Request``                 -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
+- ``Response``                -- Send HTTP (text, html, json, stream, file, http errors) responses
+- ``ResponseWebsocket``       -- Work with websockets
+- ``RequestMiddleware``       -- Parse a scope and insert the parsed request into the scope
+- ``ResponseMiddleware``      -- Parse responses and convert them into ASGI messages
+- ``RouterMiddleware``        -- Route HTTP requests
+- ``LifespanMiddleware``      -- Process a lifespan cycle
+- ``StaticFilesMiddleware``   -- Serve static files from URL prefixes
+- ``asgi_tools.tests.TestClient`` -- A test client with websockets support to test asgi applications
+- ``App``                     -- A simple foundation for ASGI apps
 
 .. _contents:
 
