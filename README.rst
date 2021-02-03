@@ -1,6 +1,6 @@
 .. image:: https://raw.githubusercontent.com/klen/asgi-tools/develop/.github/assets/asgi-tools.png
-   :height: 100px
-   :width: 100px
+   :height: 100
+   :width: 100
 
 
 ASGI-Tools
