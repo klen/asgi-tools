@@ -2,10 +2,6 @@
    :height: 100
    :width: 100
 
-
-ASGI-Tools
-##########
-
 .. _description:
 
 **asgi-tools** -- Is a toolkit to build ASGI applications faster
