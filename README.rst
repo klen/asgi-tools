@@ -1,4 +1,4 @@
-.. image:: https://raw.github.com/klen/muffin/develop/.github/assets/asgi-tools.png
+.. image:: https://raw.githubusercontent.com/klen/asgi-tools/develop/.github/assets/asgi-tools.png
    :height: 100px
 
 
