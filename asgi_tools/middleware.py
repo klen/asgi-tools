@@ -4,14 +4,13 @@ import abc
 import typing as t
 from functools import partial
 from pathlib import Path
-import inspect
 
 from http_router import Router
 
 from . import ASGIError
-from ._types import Scope, Receive, Send, F
+from ._types import Scope, Receive, Send
 from .request import Request
-from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, Response
+from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, Response, ResponseRedirect
 from .utils import to_awaitable
 
 
@@ -105,20 +104,12 @@ class ResponseMiddleware(BaseMiddeware):
 
     """
 
-    exception_handlers: t.Dict[
-        t.Type[BaseException], t.Callable[[BaseException], t.Awaitable]] = {
-    }
-
-    def __init__(self, app: ASGIApp = None):
-        """Initialize the middleware."""
-        super(ResponseMiddleware, self).__init__(app)
-        self.exception_handlers = dict(self.exception_handlers)
-
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Handle ASGI call."""
         response = await self.__process__(scope, receive, send)
-        async for msg in response:
-            await send(msg)
+        if isinstance(response, Response):
+            async for msg in response:
+                await send(msg)
 
     async def __process__(self, scope: Scope, receive: Receive, send: Send):
         """Parse responses from callbacks."""
@@ -128,58 +119,11 @@ class ResponseMiddleware(BaseMiddeware):
             if response is None and scope['type'] == 'websocket':
                 return
 
-        except BaseException as exc:
-            handler = self.__handle_exc__(exc)
-            if handler is not None:
-                response = await handler(exc)
+            # Prepare a response
+            return parse_response(response)
 
-            elif isinstance(exc, Response):
-                return exc
-
-            else:
-                raise
-
-        # Send ASGI messages from the prepared response
-        return parse_response(response)
-
-    def __handle_exc__(
-            self, exc: BaseException) -> t.Optional[t.Callable[[BaseException], t.Awaitable]]:
-        """Look for a handler for the given exception."""
-        for etype in type(exc).mro():
-            handler = self.exception_handlers.get(etype)
-            if handler:
-                return handler
-
-        return None
-
-    def on_exception(self, etype: t.Type[BaseException]) -> t.Callable[[F], F]:
-        """Register an exception handler.
-
-        Developers able to register a custom handler for an Exception Type. See an example bellow:
-
-        .. code-block:: python
-
-            async def app(scope, receive, send):
-                if scope['path'] == '/err':
-                    raise RuntimeError('An exception')
-                return 'OK'
-
-            app = responses = ResponseMiddleware(app)
-
-            # Register an exception handler
-            @responses.on_exception(RuntimeError)
-            async def handle_runtime_errors(exc):
-                return 'Exception handled'
-
-        """
-        if not (inspect.isclass(etype) and issubclass(etype, BaseException)):
-            raise ASGIError('Wrong argument: %s' % etype)
-
-        def recoreder(handler: F) -> F:
-            self.exception_handlers[etype] = to_awaitable(handler)
-            return handler
-
-        return recoreder
+        except (ResponseError, ResponseRedirect) as exc:
+            return exc
 
 
 class RequestMiddleware(BaseMiddeware):

@@ -1,6 +1,5 @@
 """Application Tests."""
 
-import pytest
 from pathlib import Path
 
 from asgi_lifespan import LifespanManager
@@ -86,7 +85,7 @@ async def test_app_static(Client):
 
 
 async def test_app_handle_exception(Client):
-    from asgi_tools.app import App, ASGINotFound, ResponseError
+    from asgi_tools.app import App, ResponseError
 
     app = App()
 
@@ -108,7 +107,7 @@ async def test_app_handle_exception(Client):
     async def handle_unknown(exc):
         return 'UNKNOWN: %s' % exc
 
-    @app.on_exception(ASGINotFound)
+    @app.on_exception(404)
     async def handle_response_error(exc):
         return 'Response 404'
 
@@ -132,12 +131,28 @@ async def test_app_handle_exception(Client):
 
 
 async def test_app_middleware_simple(client, app):
+    from asgi_tools import ResponseHTML
+
+    @app.route('/err')
+    async def err(request):
+        raise RuntimeError('Handle me')
+
+    @app.on_exception(Exception)
+    async def custom_exc(exc):
+        return ResponseHTML('App Exception')
+
+    res = await client.get('/err')
+    assert res.status_code == 200
+    assert await res.text() == 'App Exception'
 
     @app.middleware
     async def simple_md(app, request, receive, send):
-        response = await app(request, receive, send)
-        response.headers['x-simple-md'] = 'passed'
-        return response
+        try:
+            response = await app(request, receive, send)
+            response.headers['x-simple-md'] = 'passed'
+            return response
+        except RuntimeError as exc:
+            return ResponseHTML('Middleware Exception')
 
     res = await client.get('/')
     assert res.status_code == 200
@@ -145,12 +160,24 @@ async def test_app_middleware_simple(client, app):
 
     res = await client.get('/404')
     assert res.status_code == 404
-    assert res.headers['x-simple-md'] == 'passed'
+    assert 'x-simple-md' not in res.headers
+
+    res = await client.get('/err')
+    assert res.status_code == 200
+    assert await res.text() == 'Middleware Exception'
 
 
 #  @pytest.mark.skip
 async def test_app_middleware_classic(client, app):
-    from asgi_tools import ResponseError
+    from asgi_tools import ResponseError, ResponseHTML
+
+    @app.route('/err')
+    async def err(request):
+        raise RuntimeError('Handle me')
+
+    @app.on_exception(Exception)
+    async def custom_exc(exc):
+        return ResponseHTML('App Exception')
 
     @app.middleware
     def classic_md(app):
@@ -158,9 +185,13 @@ async def test_app_middleware_classic(client, app):
             if not scope.headers.get('authorization'):
                 response = ResponseError.UNAUTHORIZED()
                 await response(scope, receive, send)
+                return
 
-            else:
+            try:
                 await app(scope, receive, send)
+            except RuntimeError:
+                response = ResponseHTML('Middleware Exception')
+                await response(scope, receive, send)
 
         return middleware
 
@@ -170,6 +201,10 @@ async def test_app_middleware_classic(client, app):
     res = await client.get('/', headers={'authorization': 'any'})
     assert res.status_code == 200
     assert await res.text() == 'OK'
+
+    res = await client.get('/err', headers={'authorization': 'any'})
+    assert res.status_code == 200
+    assert await res.text() == 'Middleware Exception'
 
 
 async def test_cbv(app, client):

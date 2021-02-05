@@ -29,28 +29,6 @@ async def test_response_middleware(Client):
     assert res.status_code == 502
     assert await res.text() == 'Invalid responses from another server/proxy'
 
-    async def app(scope, receive, send):
-        if scope['path'] == '/err':
-            raise RuntimeError('An exception')
-        return 'OK'
-
-    app = responses = ResponseMiddleware(app)
-
-    # Register an exception handler
-    @responses.on_exception(RuntimeError)
-    async def handle_runtime_errors(exc):
-        return 'Exception handled'
-
-    client = Client(app)
-
-    res = await client.get('/')
-    assert res.status_code == 200
-    assert await res.text() == 'OK'
-
-    res = await client.get('/err')
-    assert res.status_code == 200
-    assert await res.text() == 'Exception handled'
-
 
 async def test_request_response_middlewares(Client):
     from asgi_tools import RequestMiddleware, ResponseMiddleware
