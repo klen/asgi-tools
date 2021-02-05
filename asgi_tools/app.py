@@ -8,10 +8,15 @@ from functools import partial
 from http_router import Router as HTTPRouter, TYPE_METHODS
 
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed
-from ._types import Scope, Receive, Send
-from .middleware import LifespanMiddleware, StaticFilesMiddleware, ASGIApp
+from ._types import Scope, Receive, Send, F
+from .middleware import (
+    BaseMiddeware,
+    LifespanMiddleware,
+    ResponseMiddleware,
+    StaticFilesMiddleware,
+)
 from .request import Request
-from .response import parse_response, Response, ResponseError
+from .response import ResponseError
 from .utils import to_awaitable, iscoroutinefunction, is_awaitable
 
 
@@ -29,7 +34,7 @@ class Router(HTTPRouter):
 class HTTPView:
     """Class Based Views."""
 
-    def __new__(cls, request: Request, **opts):
+    def __new__(cls, request: Request, *args, **opts):
         """Init the class and call it."""
         self = super().__new__(cls)
         return self(request, **opts)
@@ -42,50 +47,89 @@ class HTTPView:
         methods = methods or [m for m in HTTP_METHODS if m.lower() in view_methods]
         return router.bind(cls, *paths, methods=methods, **params)
 
-    def __call__(self, request: Request, **opts) -> t.Awaitable:
+    def __call__(self, request: Request, *args, **opts) -> t.Awaitable:
         """Dispatch the given request by HTTP method."""
         method = getattr(self, request.method.lower())
         return method(request, **opts)
 
 
-class App:
-    """ASGI Application.
+class AppResponseMiddleware(ResponseMiddleware):
+    """Convert app results into a response but not send ASGI messages."""
 
-    * Supports lifespan events.
-    * Supports simple middlewares.
-    * Supports routing.
+    scopes = {'http'}
+
+    __call__ = ResponseMiddleware.__process__
+
+
+class AppInternalMiddleware(BaseMiddeware):
+    """Process responses."""
+
+    scopes = {'http'}
+
+    async def __process__(self, scope: Scope, receive: Receive, send: Send):
+        """Send ASGI messages."""
+        response = await self.app(scope, receive, send)
+        async for msg in response:
+            await send(msg)
+
+
+class App:
+    """A helper to build ASGI Applications.
+
+    Features:
+
+    * Routing
+    * ASGI-Tools :class:`Request`, :class:`Response`
+    * Exception management
+    * Static files
+    * Lifespan events
+    * Simplest middlewares
+
+    :param debug: Enable debug mode (more logging, raise unhandled exceptions)
+    :type debug: bool, False
+
+    :param logger: Custom logger for the application
+    :type logger: logging.Logger
+
+    :param static_url_prefix: A prefix for static files
+    :type static_url_prefix: str, "/static"
+
+    :param static_folders: A list of folders to look static files
+    :type static_folders: list[str]
+
+    :param trim_last_slash: Consider "/path" and "/path/" as the same
+    :type trim_last_slash: bool, False
 
     """
 
-    exception_handlers: t.Dict[t.Type[BaseException], t.Callable[[BaseException], t.Optional[Response]]] = {}  # noqa
-    exception_handlers[Exception] = to_awaitable(lambda exc: ResponseError.INTERNAL_SERVER_ERROR())
-    exception_handlers[ASGINotFound] = to_awaitable(lambda exc: ResponseError.NOT_FOUND())
-    exception_handlers[ASGIMethodNotAllowed] = to_awaitable(lambda exc: ResponseError.METHOD_NOT_ALLOWED())  # noqa
-    exception_handlers[ASGIConnectionClosed] = to_awaitable(lambda exc: None)
-
     def __init__(self, *, debug: bool = False, logger: logging.Logger = None,
-                 static_folders: t.Union[str, t.List[str]] = None,
-                 static_url_prefix: str = '/static', trim_last_slash: bool = False):
+                 static_url_prefix: str = '/static',
+                 static_folders: t.Union[str, t.List[str]] = None, trim_last_slash: bool = False):
         """Initialize router and lifespan middleware."""
-        self.app: ASGIApp = self.__process__  # type: ignore
+        self.responses = AppResponseMiddleware(self.__process__)  # type: ignore
+        self.internal = AppInternalMiddleware(self.responses)
+
+        # Register base exception handlers
+        self.exception_handlers[ASGINotFound] = to_awaitable(lambda exc: ResponseError.NOT_FOUND())
+        self.exception_handlers[ASGIMethodNotAllowed] = to_awaitable(
+            lambda exc: ResponseError.METHOD_NOT_ALLOWED())
+        self.exception_handlers[ASGIConnectionClosed] = to_awaitable(lambda exc: None)
+        self.exception_handlers[Exception] = to_awaitable(
+            lambda exc: ResponseError.INTERNAL_SERVER_ERROR())
 
         # Setup routing
         self.router = Router(trim_last_slash=trim_last_slash, validate_cb=is_awaitable)
-        self.route = self.router.route
 
         # Setup logging
         self.logger = logger or logging.getLogger('asgi-tools')
 
-        # Setup static files
-        if static_folders and static_url_prefix:
-            self.app = StaticFilesMiddleware(
-                self.app, folders=static_folders, url_prefix=static_url_prefix)
-
         # Setup lifespan
-        self.lifespan = LifespanMiddleware(self.app)
+        self.lifespan = LifespanMiddleware(self.internal)
 
-        # Setup excetions
-        self.exception_handlers = dict(self.exception_handlers)
+        # Enable middleware for static files
+        if static_folders and static_url_prefix:
+            md = StaticFilesMiddleware.setup(folders=static_folders, url_prefix=static_url_prefix)
+            self.middleware(md)
 
         # Debug mode
         self.debug = debug
@@ -94,52 +138,69 @@ class App:
             del self.exception_handlers[Exception]
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
-        """Process ASGI call."""
+        """Convert the given scope into a request and process."""
         scope = Request(scope, receive, send)
         scope['app'] = self
 
-        try:
-            response = await self.lifespan(scope, receive, send)
-
-        except BaseException as exc:
-            handler = self.__process_exception(exc)
-            if handler:
-                response = await handler(exc)
-                response = await parse_response(response)
-
-            elif isinstance(exc, Response):
-                response = exc
-
-            else:
-                raise
-
-        if isinstance(response, Response):
-            await response(scope, receive, send)
+        await self.lifespan(scope, receive, send)
 
     async def __process__(
-            self, request: Request, receive: Receive, send: Send) -> t.Optional[Response]:
-        """Find and call a callback, process a response."""
+            self, request: Request, receive: Receive, send: Send) -> t.Any:
+        """Find and call a callback, parse a response, handle exceptions."""
         match = self.router(request.url.path, request.get('method') or 'GET')
         request['path_params'] = {} if match.path_params is None else match.path_params
-        response = await match.callback(request)  # type: ignore
-        if response is None and request['type'] == 'websocket':
-            return None
+        return await match.callback(request)  # type: ignore
 
-        return await parse_response(response)
+    def middleware(self, md: F) -> F:
+        """Register a middleware.
 
-    def __process_exception(self, exc: BaseException) -> t.Union[t.Callable, None]:
-        for etype in type(exc).mro():
-            handler = self.exception_handlers.get(etype)
-            if handler:
+        The :meth:`App.middleware` supports two types of middlewares, see below:
+
+        .. code-block:: python
+
+            from asgi_tools import App, Request, ResponseError
+
+            app = App()
+
+            # Register a "classic" middleware, you able to use any ASGI middleware
+            @app.middleware
+            def classic_middleware(app):
+                async def handler(scope, receive, send):
+                    if not Request(scope).headers['authorization']:
+                        response = ResponseError.UNAUTHORIZED()
+                        await response(scope, receive, send)
+                    else:
+                        await app(scope, receive, send)
+
                 return handler
 
-        return None
+            # You also are able to register the middleware as: `app.middleware(classic_middleware)`
 
-    def middleware(self, md: t.Callable):
-        """Register an middleware to internal cycle."""
+            # Register a "simplier" middleware
+            # The middlewares is guaranted to get a response from app and should return a response
+            # also
+            @app.middleware
+            async def simple_middleware(app, request, receive, send):
+                response = await app(request, receive, send)
+                response.headers['x-agent'] = 'SimpleX'
+                return response
+
+        .. admonition:: Middleware Exceptions
+
+            Any exception raised from an middleware wouldn't be catched by the app
+
+        """
         # Register as a simple middleware
-        self.app = iscoroutinefunction(md) and partial(md, self.app) or md(self.app)
-        self.lifespan.bind(self.app)
+        if iscoroutinefunction(md):
+            self.internal.bind(partial(md, self.internal.app))
+        else:
+            self.lifespan.bind(md(self.lifespan.app))
+
+        return md
+
+    def route(self, *args, **kwargs) -> t.Callable:
+        """Register a route."""
+        return self.router.route(*args, **kwargs)
 
     def on_startup(self, fn: t.Callable):
         """Register a startup handler."""
@@ -149,11 +210,11 @@ class App:
         """Register a shutdown handler."""
         return self.lifespan.on_shutdown(fn)
 
-    def on_exception(self, etype: t.Type[BaseException]) -> t.Callable:
-        """Register an exception handler."""
-        if not (inspect.isclass(etype) and issubclass(etype, BaseException)):
-            raise ASGIError('Wrong argument: %s' % etype)
+    @property
+    def exception_handlers(self):
+        """Proxy exception_handlers from self response middleware."""
+        return self.responses.exception_handlers
 
-        def wrapper(handler):
-            self.exception_handlers[etype] = to_awaitable(handler)
-        return wrapper
+    def on_exception(self, etype: t.Type[BaseException]):
+        """Register an exception handler."""
+        return self.responses.on_exception(etype)

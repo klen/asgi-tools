@@ -76,7 +76,7 @@ async def test_client(app, client):
     async def redirect(request):
         raise ResponseRedirect('/')
 
-    res = await client.put('/redirect', allow_redirects=False)
+    res = await client.put('/redirect', follow_redirect=False)
     assert res.status_code == 307
     assert res.headers['location'] == '/'
 

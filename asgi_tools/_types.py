@@ -11,3 +11,4 @@ ScopeHeaders = t.List[t.Tuple[bytes, bytes]]
 JSONType = t.Union[str, int, float, bool, None, t.Dict[str, t.Any], t.List[t.Any]]
 
 ResponseContent = t.Union[str, bytes]
+F = t.TypeVar('F', bound=t.Callable)

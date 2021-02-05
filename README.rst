@@ -87,7 +87,7 @@ Parse HTTP Request data from a scope and return it as JSON response:
             "headers": {**request.headers},
 
             # Get query params
-            "query": dict(request.query),
+            "query": dict(request.url.query),
 
             # Get cookies
             "cookies": dict(request.cookies),

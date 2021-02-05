@@ -12,7 +12,7 @@ async def request_as_json(request, receive, send):
         "charset": request.charset,
         "content_type": request.content_type,
         "headers": dict(request.headers),
-        "query": dict(request.query),
+        "query": dict(request.url.query),
         "cookies": dict(request.cookies),
         "content": await request.text()
     }

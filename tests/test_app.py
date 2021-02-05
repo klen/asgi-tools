@@ -1,5 +1,6 @@
 """Application Tests."""
 
+import pytest
 from pathlib import Path
 
 from asgi_lifespan import LifespanManager
@@ -14,25 +15,6 @@ async def test_app(Client):
     async def test_request(request):
         return "Done %s" % request.path_params['param']
 
-    @app.middleware
-    async def simple_md(app, request, *args):
-        response = await app(request, *args)
-        if response:
-            response.headers['x-simple'] = 42
-        return response
-
-    @app.middleware
-    def simple_md2(app):
-
-        async def middleware(request, *args):
-            response = await app(request, *args)
-            if response and response.status_code == 200 and \
-                    response.headers['content-type'].startswith('text'):
-                response.content = "Simple %s" % response.content
-            return response
-
-        return middleware
-
     client = Client(app)
 
     res = await client.get('/404')
@@ -43,11 +25,6 @@ async def test_app(Client):
     assert res.status_code == 200
     text = await res.text()
     assert text.startswith('"""Application Tests."""')
-
-    res = await client.get('/test/42')
-    assert res.status_code == 200
-    assert res.headers['x-simple'] == '42'
-    assert await res.text() == "Simple Done 42"
 
     res = await client.post('/test/42')
     assert res.status_code == 405
@@ -113,6 +90,20 @@ async def test_app_handle_exception(Client):
 
     app = App()
 
+    @app.route('/500')
+    async def raise_unknown(request):
+        raise Exception('Unknown Exception')
+
+    @app.route('/501')
+    async def raise_response_error(request):
+        raise ResponseError(501)
+
+    # By default we handle all exceptions as INTERNAL SERVER ERROR 500 Response
+    client = Client(app)
+    res = await client.get('/500')
+    assert res.status_code == 500
+    assert await res.text() == 'Server got itself in trouble'
+
     @app.on_exception(Exception)
     async def handle_unknown(exc):
         return 'UNKNOWN: %s' % exc
@@ -125,16 +116,7 @@ async def test_app_handle_exception(Client):
     async def handler(exc):
         return 'Custom Server Error'
 
-    @app.route('/500')
-    async def raise_unknown(request):
-        raise Exception('Unknown Exception')
-
-    @app.route('/501')
-    async def raise_response_error(request):
-        raise ResponseError(501)
-
     async with LifespanManager(app):
-        client = Client(app)
 
         res = await client.get('/500')
         assert res.status_code == 200
@@ -147,6 +129,47 @@ async def test_app_handle_exception(Client):
         res = await client.get('/501')
         assert res.status_code == 200
         assert await res.text() == 'Custom Server Error'
+
+
+async def test_app_middleware_simple(client, app):
+
+    @app.middleware
+    async def simple_md(app, request, receive, send):
+        response = await app(request, receive, send)
+        response.headers['x-simple-md'] = 'passed'
+        return response
+
+    res = await client.get('/')
+    assert res.status_code == 200
+    assert res.headers['x-simple-md'] == 'passed'
+
+    res = await client.get('/404')
+    assert res.status_code == 404
+    assert res.headers['x-simple-md'] == 'passed'
+
+
+#  @pytest.mark.skip
+async def test_app_middleware_classic(client, app):
+    from asgi_tools import ResponseError
+
+    @app.middleware
+    def classic_md(app):
+        async def middleware(scope, receive, send):
+            if not scope.headers.get('authorization'):
+                response = ResponseError.UNAUTHORIZED()
+                await response(scope, receive, send)
+
+            else:
+                await app(scope, receive, send)
+
+        return middleware
+
+    res = await client.get('/')
+    assert res.status_code == 401
+
+    res = await client.get('/', headers={'authorization': 'any'})
+    assert res.status_code == 200
+    assert await res.text() == 'OK'
 
 
 async def test_cbv(app, client):

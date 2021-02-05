@@ -30,24 +30,24 @@ async def test_response():
 async def test_parse_response():
     from asgi_tools import parse_response
 
-    response = await parse_response({'test': 'passed'})
+    response = parse_response({'test': 'passed'})
     assert response.status_code == 200
     assert response.headers['content-type'] == 'application/json'
     _, body = [m async for m in response]
     assert body == {
         'body': b'{"test": "passed"}', 'type': 'http.response.body', 'more_body': False}
 
-    response = await parse_response((500, 'SERVER ERROR'))
+    response = parse_response((500, 'SERVER ERROR'))
     assert response.status_code == 500
     assert response.content == 'SERVER ERROR'
 
-    response = await parse_response((302, {'location': 'https://google.com'}, 'go away'))
+    response = parse_response((302, {'location': 'https://google.com'}, 'go away'))
     assert response.status_code == 302
     assert response.content == 'go away'
     assert response.headers['location'] == 'https://google.com'
 
     with pytest.raises(AssertionError):
-        await parse_response((None, 'SERVER ERROR'))
+        parse_response((None, 'SERVER ERROR'))
 
 
 async def test_html_response():

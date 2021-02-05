@@ -29,6 +29,28 @@ async def test_response_middleware(Client):
     assert res.status_code == 502
     assert await res.text() == 'Invalid responses from another server/proxy'
 
+    async def app(scope, receive, send):
+        if scope['path'] == '/err':
+            raise RuntimeError('An exception')
+        return 'OK'
+
+    app = responses = ResponseMiddleware(app)
+
+    # Register an exception handler
+    @responses.on_exception(RuntimeError)
+    async def handle_runtime_errors(exc):
+        return 'Exception handled'
+
+    client = Client(app)
+
+    res = await client.get('/')
+    assert res.status_code == 200
+    assert await res.text() == 'OK'
+
+    res = await client.get('/err')
+    assert res.status_code == 200
+    assert await res.text() == 'Exception handled'
+
 
 async def test_request_response_middlewares(Client):
     from asgi_tools import RequestMiddleware, ResponseMiddleware
@@ -37,7 +59,7 @@ async def test_request_response_middlewares(Client):
         data = await request.form()
         data = await request.json()
         first_name = data.get('first_name', 'Anonymous')
-        last_name = request.query.get('last_name', 'Test')
+        last_name = request.url.query.get('last_name', 'Test')
         return f"Hello {first_name} {last_name} from '{ request.url.path }'"
 
     app = RequestMiddleware(ResponseMiddleware(app))
@@ -72,11 +94,10 @@ async def test_lifespan_middleware():
 
 
 async def test_router_middleware(Client):
-    from http_router import Router
     from asgi_tools import RouterMiddleware, ResponseMiddleware
 
-    router = Router()
-    app = ResponseMiddleware(RouterMiddleware(router=router))
+    router = RouterMiddleware()
+    app = ResponseMiddleware(router)
 
     @router.route('/page1')
     async def page1(scope, receive, send):

@@ -9,15 +9,12 @@ from multidict import CIMultiDict
 from ._types import ScopeHeaders
 
 
-F = t.TypeVar('F', bound=t.Callable[..., t.Any])
-
-
 def is_awaitable(fn: t.Callable) -> bool:
     """Check than the given function is awaitable."""
     return iscoroutinefunction(fn) or isasyncgenfunction(fn)
 
 
-def to_awaitable(fn: F) -> F:
+def to_awaitable(fn: t.Callable) -> t.Callable[..., t.Awaitable]:
     """Convert the given function to a coroutine function if it isn't"""
     if is_awaitable(fn):
         return fn
@@ -26,7 +23,7 @@ def to_awaitable(fn: F) -> F:
     async def coro(*args, **kwargs):
         return fn(*args, **kwargs)
 
-    return t.cast(F, coro)
+    return coro
 
 
 def parse_headers(headers: ScopeHeaders) -> CIMultiDict:

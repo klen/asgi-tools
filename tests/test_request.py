@@ -3,6 +3,8 @@
 
 async def test_request():
     from asgi_tools import Request
+    from asgi_tools._types import Scope
+
 
     # Request is lazy
     request = Request([], None)
@@ -35,17 +37,16 @@ async def test_request():
         return {'body': b'name=value'}
 
     request = Request(scope, receive)
+    assert request.url
+    assert str(request.url) == 'http://testserver:8000/testurl?a=1%202'
     assert request.client == ('127.0.0.1', 123)
     assert request.cookies
     assert request.cookies['session'] == 'test-session'
     assert request.headers['User-Agent'] == 'python-httpx/0.16.1'
     assert request.http_version == '1.1'
     assert request.method == 'GET'
-    assert request.query
-    assert request.query['a'] == '1 2'
     assert request.type == 'http'
     assert request['type'] == 'http'
-    assert str(request.url) == 'http://testserver:8000/testurl?a=1%202'
 
     body = await request.body()
     assert body

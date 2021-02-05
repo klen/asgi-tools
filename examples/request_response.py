@@ -24,7 +24,7 @@ async def app(scope, receive, send):
         headers=request.headers,
 
         # Get query params
-        query=request.query,
+        query=request.url.query,
 
         # Get cookies
         cookies=request.cookies,

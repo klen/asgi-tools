@@ -4,7 +4,7 @@ all: $(VIRTUAL_ENV)
 
 $(VIRTUAL_ENV): setup.cfg
 	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
-	@$(VIRTUAL_ENV)/bin/pip install -e .[build,tests,examples]
+	@$(VIRTUAL_ENV)/bin/pip install -e .[build,tests,examples,docs]
 	@touch $(VIRTUAL_ENV)
 
 VERSION	?= minor
@@ -66,3 +66,7 @@ example: $(VIRTUAL_ENV)
 
 example-websocket: $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.websocket:app
+
+.PHONY: docs
+docs: $(VIRTUAL_ENV)
+	make -C docs html

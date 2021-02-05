@@ -1,4 +1,6 @@
-"""ASGI Request."""
+""" ASGI-Tools includes a `asgi_tools.Request` class that gives you a nicer interface onto the
+incoming request.
+"""
 
 import typing as t
 from cgi import parse_header, FieldStorage
@@ -41,7 +43,39 @@ class Media(TypedDict):
 
 
 class Request(dict):
-    """Represent HTTP Request."""
+    """Represent a HTTP Request.
+
+    :param scope: HTTP ASGI Scope
+    :param receive: an asynchronous callable which lets the application
+                    receive event messages from the client
+
+    The class gives you an nicer interface to incoming HTTP request.
+
+    .. code-block:: python
+
+        from asgi_tools import Request, Response
+
+        async def app(scope, receive, send):
+            request = Request(scope, receive)
+            content = f"{ request.method } { request.url.path }"
+            response = Response(content)
+            await response(scope, receive, send)
+
+    Requests are based on a given scope and represents a mapping interface.
+
+    .. code-block:: python
+
+        request = Request(scope)
+        assert request['version'] == scope['version']
+        assert request['method'] == scope['method']
+        assert request['scheme'] == scope['scheme']
+        assert request['path'] == scope['path']
+
+        # and etc
+
+    """
+
+    method: str  #: Contains the request's HTTP method
 
     def __init__(self, scope: Scope, receive: Receive = None, send: Send = None) -> None:
         """Create a request based on the given scope."""
@@ -56,7 +90,20 @@ class Request(dict):
 
     @cached_property
     def url(self) -> URL:
-        """Get an URL."""
+        """A lazy property that parses the current URL and returns :class:`yarl.URL` object.
+
+        .. code-block:: python
+
+            request = Request(scope)
+            assert str(request.url) == '... the full http URL ..'
+            assert request.url.scheme
+            assert request.url.host
+            assert request.url.query is not None
+            assert request.url.query_string is not None
+
+        See :py:mod:`yarl` documentation for futher reference.
+
+        """
         host, port = self.get('server') or (None, None)
         host = self.headers.get('host') or host or ''
         host, _, _ = host.partition(':')
@@ -68,12 +115,31 @@ class Request(dict):
 
     @cached_property
     def headers(self) -> CIMultiDict:
-        """Parse headers from self scope."""
+        """ A lazy property that parses the current scope's headers, decodes them as strings and
+        returns case-insensitive multi-dict :py:class:`multidict.CIMultiDict`.
+
+        .. code-block:: python
+
+            request = Request(scope)
+
+            assert request.headers['content-type']
+            assert request.headers['authorization']
+
+        See :py:mod:`multidict` documentation for futher reference.
+
+        """
         return parse_headers(self.get('headers') or [])
 
     @cached_property
     def cookies(self) -> t.Dict[str, str]:
-        """Parse cookies from self scope."""
+        """A lazy property that parses the current scope's cookies and returns a dictionary.
+
+        .. code-block:: python
+
+            request = Request(scope)
+            ses = request.cookies.get('session')
+
+        """
         data = {}
         cookie = self.headers.get('cookie')
         if cookie:
@@ -83,11 +149,6 @@ class Request(dict):
 
         return data
 
-    @property
-    def query(self) -> MultiDict:
-        """Get a query part."""
-        return self.url.query
-
     @cached_property
     def media(self) -> Media:
         """Prepare a media data for the request."""
@@ -96,16 +157,31 @@ class Request(dict):
 
     @property
     def charset(self) -> str:
-        """Get a charset."""
+        """Get an encoding charset for the current scope."""
         return self.media['opts'].get('charset', DEFAULT_CHARSET)
 
     @property
     def content_type(self) -> str:
-        """Get a content type."""
+        """Get a content type for the current scope."""
         return self.media['content_type']
 
     async def stream(self) -> t.AsyncGenerator:
-        """Stream ASGI flow."""
+        """Stream the request's body.
+
+        .. code-block:: python
+
+            from asgi_tools import Request, Response
+
+            async def app(scope, receive, send):
+                request = Request(scope, receive)
+                body = b''
+                async for chunk in request.stream():
+                    body += chunk
+
+                response = Response(body, content_type=request.content_type)
+                await response(scope, receive, send)
+
+        """
         if not self._receive:
             raise RuntimeError('Request doesnt have a receive coroutine')
 
@@ -116,7 +192,10 @@ class Request(dict):
             yield message.get('body', b'')
 
     async def body(self) -> bytes:
-        """Read the request body."""
+        """Read and return the request's body as bytes.
+
+        `body = await request.body()`
+        """
         if self._body is None:
             chunks = []
             async for chunk in self.stream():
@@ -128,20 +207,29 @@ class Request(dict):
 
     @process_decode(message='Invalid Encoding')
     async def text(self) -> str:
-        """Read the request text."""
+        """Read and return the request's body as a string.
+
+        `text = await request.text()`
+        """
         body = await self.body()
         charset = self.charset or DEFAULT_CHARSET
         return body.decode(charset)
 
     @process_decode(message='Invalid JSON')
     async def json(self) -> JSONType:
-        """Read the request json."""
+        """Read and return the request's body as a JSON.
+
+        `json = await request.json()`
+        """
         text = await self.text()
         return loads(text)
 
     @process_decode(message='Invalid Form Data')
     async def form(self) -> MultiDict:
-        """Read the request formdata."""
+        """Read and return the request's multipart formdata as a multidict.
+
+        `formdata = await request.form()`
+        """
         form: MultiDict = MultiDict()
         body = await self.body()
 
@@ -162,7 +250,12 @@ class Request(dict):
         return form
 
     def data(self) -> t.Awaitable[t.Union[str, JSONType, MultiDict]]:
-        """Parse the request's data automatically."""
+        """The method checks `request.content_type` and parse the request's body automatically.
+
+        `data = await request.data()`
+
+        Returns JSON for `application/json`, formdata for forms and text otherwise.
+        """
         if self.content_type in {'application/x-www-form-urlencoded', 'multipart/form-data'}:
             return self.form()
 

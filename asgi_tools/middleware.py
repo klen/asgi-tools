@@ -4,11 +4,12 @@ import abc
 import typing as t
 from functools import partial
 from pathlib import Path
+import inspect
 
 from http_router import Router
 
 from . import ASGIError
-from ._types import Scope, Receive, Send
+from ._types import Scope, Receive, Send, F
 from .request import Request
 from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, Response
 from .utils import to_awaitable
@@ -53,28 +54,149 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
 
 
 class ResponseMiddleware(BaseMiddeware):
-    """Parse different responses from ASGI applications."""
+    """Automatically convert ASGI_ apps results into responses :class:`~asgi_tools.Response` and
+    send them to server as ASGI_ messages.
 
-    async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    .. code-block:: python
+
+        from asgi_tools import ResponseMiddleware, ResponseText, ResponseRedirect
+
+        async def app(scope, receive, send):
+            # ResponseMiddleware catches ResponseError, ResponseRedirect and convert the exceptions
+            # into HTTP response
+            if scope['path'] == '/user':
+                raise ResponseRedirect('/login')
+
+            # Return ResponseHTML
+            if scope['method'] == 'GET':
+                return '<b>HTML is here</b>'
+
+            # Return ResponseJSON
+            if scope['method'] == 'POST':
+                return {'json': 'here'}
+
+            # Return any response explicitly
+            if scope['method'] == 'PUT':
+                return ResponseText('response is here')
+
+            # Short form to responses: (status_code, body) or (status_code, body, headers)
+            return 405, 'Unknown method'
+
+        app = ResponseMiddleware(app)
+
+    The conversion rules:
+
+    * :class:`Response` results will be left as is
+    * ``dict``, ``list``, ``int``, ``bool``, ``None`` results will be converted into :class:`ResponseJSON`
+    * ``str``, ``bytes`` results will be converted into :class:`ResponseHTML`
+    * ``tuple[int, Any, dict]`` will be converted into a :class:`Response` with ``int`` status code, ``dict`` will be used as headers, ``Any`` will be used to define the response's type
+
+    .. code-block:: python
+
+        from asgi_tools import ResponseMiddleware
+
+        # The result will be converted into HTML 404 response with the 'Not Found' body
+        async def app(request, receive, send):
+            return 404, 'Not Found'
+
+        app = ResponseMiddleware(app)
+
+    You are able to raise :class:`ResponseError` from yours ASGI_ apps and it will be catched and returned as a response
+
+    """
+
+    exception_handlers: t.Dict[
+        t.Type[BaseException], t.Callable[[BaseException], t.Awaitable]] = {
+    }
+
+    def __init__(self, app: ASGIApp = None):
+        """Initialize the middleware."""
+        super(ResponseMiddleware, self).__init__(app)
+        self.exception_handlers = dict(self.exception_handlers)
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        """Handle ASGI call."""
+        response = await self.__process__(scope, receive, send)
+        async for msg in response:
+            await send(msg)
+
+    async def __process__(self, scope: Scope, receive: Receive, send: Send):
         """Parse responses from callbacks."""
 
         try:
             response = await self.app(scope, receive, send)
-            if response is None:
+            if response is None and scope['type'] == 'websocket':
                 return
 
-            response = await parse_response(response)
+        except BaseException as exc:
+            handler = self.__handle_exc__(exc)
+            if handler is not None:
+                response = await handler(exc)
 
-        except ResponseError as exc:
-            response = exc
+            elif isinstance(exc, Response):
+                return exc
+
+            else:
+                raise
 
         # Send ASGI messages from the prepared response
-        async for msg in response:
-            await send(msg)
+        return parse_response(response)
+
+    def __handle_exc__(
+            self, exc: BaseException) -> t.Optional[t.Callable[[BaseException], t.Awaitable]]:
+        """Look for a handler for the given exception."""
+        for etype in type(exc).mro():
+            handler = self.exception_handlers.get(etype)
+            if handler:
+                return handler
+
+        return None
+
+    def on_exception(self, etype: t.Type[BaseException]) -> t.Callable[[F], F]:
+        """Register an exception handler.
+
+        Developers able to register a custom handler for an Exception Type. See an example bellow:
+
+        .. code-block:: python
+
+            async def app(scope, receive, send):
+                if scope['path'] == '/err':
+                    raise RuntimeError('An exception')
+                return 'OK'
+
+            app = responses = ResponseMiddleware(app)
+
+            # Register an exception handler
+            @responses.on_exception(RuntimeError)
+            async def handle_runtime_errors(exc):
+                return 'Exception handled'
+
+        """
+        if not (inspect.isclass(etype) and issubclass(etype, BaseException)):
+            raise ASGIError('Wrong argument: %s' % etype)
+
+        def recoreder(handler: F) -> F:
+            self.exception_handlers[etype] = to_awaitable(handler)
+            return handler
+
+        return recoreder
 
 
 class RequestMiddleware(BaseMiddeware):
-    """Provider asgi_tools.Request to apps."""
+    """Automatically create :class:`asgi_tools.Request` from the scope and pass it to ASGI_ apps.
+
+    .. code-block:: python
+
+        from asgi_tools import RequestMiddleware, Response
+
+        async def app(request, receive, send):
+            content = f"{ request.method } { request.url.path }"
+            response = Response(content)
+            await response(scope, receive, send)
+
+        app = RequestMiddleware(app)
+
+    """
 
     async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Replace scope with request object."""
@@ -82,7 +204,30 @@ class RequestMiddleware(BaseMiddeware):
 
 
 class LifespanMiddleware(BaseMiddeware):
-    """Manage lifespan events."""
+    """Manage ASGI_ Lifespan events.
+
+    :param on_startup: the list of callables to run when the app is starting
+    :param on_shutdown: the list of callables to run when the app is finishing
+
+    .. code-block:: python
+
+        from asgi_tools import LifespanMiddleware, Response
+
+        async def app(scope, receive, send):
+            response = Response('OK')
+            await response(scope, receive, send)
+
+        app = lifespan = LifespanMiddleware(app)
+
+        @lifespan.on_startup
+        async def start():
+            print('The app is starting')
+
+        @lifespan.on_shutdown
+        async def start():
+            print('The app is finishing')
+
+    """
 
     scopes = {'lifespan'}
 
@@ -139,7 +284,58 @@ class LifespanMiddleware(BaseMiddeware):
 
 
 class RouterMiddleware(BaseMiddeware):
-    """Bind callbacks to HTTP paths."""
+    r"""Manage routing.
+
+    .. code-block:: python
+
+        from asgi_tools import RouterMiddleware, ResponseHTML, ResponseError
+
+        async def default_app(scope, receive, send):
+            response = ResponseError.NOT_FOUND()
+            await response(scope, receive, send)
+
+        app = router = RouterMiddleware(default_app)
+
+        @router.route('/status')
+        async def status(scope, receive, send):
+            response = ResponseHTML('STATUS OK')
+            await response(scope, receive, send)
+
+        # Bind methods
+        # ------------
+        @router.route('/only-post', methods=['POST'])
+        async def only_post(scope, receive, send):
+            response = ResponseHTML('POST OK')
+            await response(scope, receive, send)
+
+        # Regexp paths
+        # ------------
+
+        @router.route(r'/\d+/?')
+        async def num(scope, receive, send):
+            num = int(scope['path'].strip('/'))
+            response = ResponseHTML(f'Number { num }')
+            await response(scope, receive, send)
+
+        # Dynamic paths
+        # -------------
+
+        @router.route('/hello/{name}')
+        async def hello(scope, receive, send):
+            name = scope['path_params']['name']
+            response = ResponseHTML(f'Hello { name.title() }')
+            await response(scope, receive, send)
+
+        # Set regexp for params
+        @router.route(r'/multiply/{first:\d+}/{second:\d+}')
+        async def multiply(scope, receive, send):
+            first, second = map(int, scope['path_params'].values())
+            response = ResponseHTML(str(first * second))
+            await response(scope, receive, send)
+
+    Path parameters are made available in the scope, as the `scope['path_params']` dictionary.
+
+    """
 
     def __init__(self, app: ASGIApp = None, router: Router = None) -> None:
         """Initialize HTTP router. """
@@ -164,9 +360,29 @@ class RouterMiddleware(BaseMiddeware):
         except self.router.RouterError:
             return self.app, {}
 
+    def route(self, *args, **kwargs):
+        """Register a route."""
+        return self.router.route(*args, **kwargs)
+
 
 class StaticFilesMiddleware(BaseMiddeware):
-    """Serve static files."""
+    """Serve static files.
+
+    :param url_prefix:  an URL prefix for static files
+    :type url_prefix: str, "/static"
+    :param folders: Paths to folders with static files
+    :type folders: list[str]
+
+    .. code-block:: python
+
+        from asgi_tools import StaticFilesMiddleware, ResponseHTML
+
+        async def app(scope, receive, send):
+            response = ResponseHTML('OK)
+
+        app = StaticFilesMiddleware(app, folders=['static'])
+
+    """
 
     def __init__(self, app: ASGIApp = None, url_prefix: str = '/static',
                  folders: t.Union[str, t.List[str]] = None) -> None:
@@ -180,10 +396,11 @@ class StaticFilesMiddleware(BaseMiddeware):
 
     async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Serve static files for self url prefix."""
-        if not self.folders or not scope['path'].startswith(self.url_prefix):
+        path = scope['path']
+        if not self.folders or not path.startswith(self.url_prefix):
             return await self.app(scope, receive, send)
 
-        filename = scope['path'][len(self.url_prefix):].strip('/')
+        filename = path[len(self.url_prefix):].strip('/')
         for folder in self.folders:
             filepath = folder.joinpath(filename).resolve()
             try:
@@ -198,3 +415,5 @@ class StaticFilesMiddleware(BaseMiddeware):
 
         async for msg in response:
             await send(msg)
+
+# pylama: ignore=E501

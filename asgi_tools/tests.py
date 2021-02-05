@@ -103,7 +103,7 @@ class ASGITestClient:
             self, path: str, method: str = 'GET', query: t.Union[str, t.Dict] = '',
             headers: t.Dict[str, str] = None, data: t.Union[bytes, str, t.Dict] = b'',
             json: JSONType = None, cookies: t.Dict = None, files: t.Dict = None,
-            allow_redirects: bool = True) -> TestResponse:
+            follow_redirect: bool = True) -> TestResponse:
         """Make a http request."""
 
         res = TestResponse()
@@ -142,7 +142,7 @@ class ASGITestClient:
         for n, v in res.cookies.items():
             self.cookies[n] = v
 
-        if allow_redirects and res.status_code in {301, 302, 303, 307, 308}:
+        if follow_redirect and res.status_code in {301, 302, 303, 307, 308}:
             return await self.get(res.headers['location'])
 
         return res
