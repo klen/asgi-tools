@@ -1,0 +1,298 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Welcome to asgi-tools’s documentation! &mdash; asgi-tools  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#" class="icon icon-home"> asgi-tools
+          
+
+          
+            
+            <img src="_static/asgi-tools.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">asgi-tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Welcome to asgi-tools’s documentation!</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="welcome-to-asgi-tools-s-documentation">
+<h1>Welcome to asgi-tools’s documentation!<a class="headerlink" href="#welcome-to-asgi-tools-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p><code class="xref py py-mod docutils literal notranslate"><span class="pre">ASGI-Tools</span></code> – Is a really lightweight <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> Toolkit to build ASGI applications
+faster.</p>
+<p>The Features:</p>
+<ul class="simple">
+<li><p>Both <a class="reference external" href="https://docs.python.org/3/library/asyncio.html">Asyncio</a> and <a class="reference external" href="https://trio.readthedocs.io/en/stable/index.html">Trio</a> async libraries are supported;</p></li>
+<li><p>Good Perfomance;</p></li>
+<li><p>HTTP Headers/Cookies/Form data support (<code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code>);</p></li>
+<li><p>HTTP (<code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code>), Static files (<code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseFile</span></code>), Streaming (<code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseStream</span></code>) responses;</p></li>
+<li><p>WebSocket (<code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseWebSocket</span></code>) support;</p></li>
+<li><p>ASGI Lifespan support (<code class="xref py py-class docutils literal notranslate"><span class="pre">LifespanMiddleware</span></code>) with startup and shutdown events;</p></li>
+<li><p>ASGI Routing support (<code class="xref py py-class docutils literal notranslate"><span class="pre">RouterMiddleware</span></code>) to route your handlers by http urls;</p></li>
+<li><p>Auto parsing for app responses (<code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseMiddleware</span></code>);</p></li>
+<li><p>Test client (<code class="xref py py-class docutils literal notranslate"><span class="pre">ASGITestClient</span></code>) to test <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> applications;</p></li>
+<li><p>And more</p></li>
+</ul>
+<p>Welcome to the documentation. Get started with <a class="reference internal" href="installation.html"><span class="doc">Installation</span></a> and then get
+an overview with the <a class="reference internal" href="usage.html"><span class="doc">Usage</span></a>. The rest of the docs describe each component
+of <a class="reference internal" href="api.html#module-asgi_tools" title="asgi_tools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asgi_tools</span></code></a> in detail, with a full reference in the <a class="reference internal" href="api.html"><span class="doc">API</span></a>
+section.</p>
+<div class="section" id="user-s-guide">
+<h2>User’s Guide<a class="headerlink" href="#user-s-guide" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#python-version">Python Version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-asgi-tools">Install <strong>ASGI-Tools</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#asgi-application">ASGI Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#the-request-object">The Request Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#routing">Routing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#dynamic-urls">Dynamic URLs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#static-files">Static Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#redirects-and-errors">Redirects and Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#about-responses">About Responses</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+<p>If you are looking for information on a specific function, class or
+method, this part of the documentation is for you.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#request">Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#responses">Responses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsetext">ResponseText</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsehtml">ResponseHTML</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsejson">ResponseJSON</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responseredirect">ResponseRedirect</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responseerror">ResponseError</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsestream">ResponseStream</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsefile">ResponseFile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsewebsocket">ResponseWebSocket</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#middlewares">Middlewares</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#requestmiddleware">RequestMiddleware</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsemiddleware">ResponseMiddleware</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#lifespanmiddleware">LifespanMiddleware</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#routermiddleware">RouterMiddleware</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#staticfilesmiddleware">StaticFilesMiddleware</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#application">Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#testclient">TestClient</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Kirill Klenov.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
