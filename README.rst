@@ -66,6 +66,27 @@ Installation
 
     pip install asgi-tools
 
+A Quick Example
+===============
+
+Save this to ``app.py``:
+
+.. code-block:: python
+
+    from asgi_tools import App
+
+    app = App()
+
+    @app.route('/')
+    async def hello(request):
+        return "Hello World!"
+
+Run it with `uvicorn`
+
+.. code-block:: sh
+
+   $ uvicorn app:app
+
 
 .. _bugtracker:
 
