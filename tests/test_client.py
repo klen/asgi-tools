@@ -1,5 +1,7 @@
 """Simple Test Client."""
 
+import pytest
+
 
 async def test_client(app, client):
     res = await client.get('/')
@@ -130,3 +132,38 @@ async def test_streams(app, client):
     expected = [str(n).encode() for n in range(10)]
     async for chunk in res.stream():
         assert chunk == expected.pop(0)
+
+
+async def test_websocket(app, Client):
+    from asgi_tools import ResponseWebSocket, ASGIConnectionClosed
+
+    @app.route('/websocket')
+    async def websocket(request):
+        async with ResponseWebSocket(request) as ws:
+            msg = await ws.receive()
+            assert msg == 'ping'
+            await ws.send('pong')
+
+    async with Client(app).websocket('/websocket') as ws:
+        await ws.send('ping')
+        msg = await ws.receive()
+        assert msg == 'pong'
+        with pytest.raises(ASGIConnectionClosed):
+            await ws.receive()
+
+
+async def test_timeouts(app, client):
+    from asgi_tools._compat import aio_sleep
+
+    @app.route('/sleep/{time}')
+    async def sleep(request):
+        time = float(request.path_params['time'])
+        await aio_sleep(time)
+        return 'OK'
+
+    with pytest.raises(TimeoutError):
+        await client.get('/sleep/10')
+
+    res = await client.get('/sleep/0.1')
+    assert res.status_code == 200
+    assert await res.text() == 'OK'

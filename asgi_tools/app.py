@@ -175,15 +175,12 @@ class App:
 
     async def handle_exc(self, exc: BaseException) -> t.Any:
         """Look for a handler for the given exception."""
-        if isinstance(exc, Response):
-            handler = self.exception_handlers.get(exc.status_code)
-            if handler:
-                return await handler(exc)
+        if isinstance(exc, Response) and exc.status_code in self.exception_handlers:
+            return await self.exception_handlers[exc.status_code](exc)
 
         for etype in type(exc).mro():
-            handler = self.exception_handlers.get(etype)
-            if handler:
-                return await handler(exc)
+            if etype in self.exception_handlers:
+                return await self.exception_handlers[etype](exc)
 
         return exc if isinstance(exc, Response) else ...
 
@@ -246,7 +243,7 @@ class App:
         """Register a shutdown handler."""
         return self.lifespan.on_shutdown(fn)
 
-    def on_exception(self, etype: t.Union[int, t.Type[BaseException]]):
+    def on_error(self, etype: t.Union[int, t.Type[BaseException]]):
         """Register an exception handler."""
         def recorder(handler: F) -> F:
             self.exception_handlers[etype] = to_awaitable(handler)

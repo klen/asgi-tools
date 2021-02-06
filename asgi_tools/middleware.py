@@ -85,7 +85,7 @@ class ResponseMiddleware(BaseMiddeware):
 
     The conversion rules:
 
-    * :class:`Response` results will be left as is
+    * :class:`Response` objects will be directly returned from the view
     * ``dict``, ``list``, ``int``, ``bool``, ``None`` results will be converted into :class:`ResponseJSON`
     * ``str``, ``bytes`` results will be converted into :class:`ResponseHTML`
     * ``tuple[int, Any, dict]`` will be converted into a :class:`Response` with ``int`` status code, ``dict`` will be used as headers, ``Any`` will be used to define the response's type
@@ -240,7 +240,7 @@ class RouterMiddleware(BaseMiddeware):
 
         app = router = RouterMiddleware(default_app)
 
-        @router.route('/status')
+        @router.route('/status', '/stat')
         async def status(scope, receive, send):
             response = ResponseHTML('STATUS OK')
             await response(scope, receive, send)
@@ -277,7 +277,7 @@ class RouterMiddleware(BaseMiddeware):
             response = ResponseHTML(str(first * second))
             await response(scope, receive, send)
 
-    Path parameters are made available in the scope, as the `scope['path_params']` dictionary.
+    Path parameters are made available in the request/scope, as the ``path_params`` dictionary.
 
     """
 

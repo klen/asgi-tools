@@ -447,12 +447,10 @@ class ResponseWebSocket(Response):
         from asgi_tools import ResponseWebsocket
 
         async def app(scope, receive, send):
-            ws = ResponseWebSocket(scope, receive, send)
-            await ws.accept()
-            msg = await ws.receive()
-            assert msg == 'ping'
-            await ws.send('pong')
-            await ws.close()
+            async with ResponseWebSocket(scope, receive, send) as ws:
+                msg = await ws.receive()
+                assert msg == 'ping'
+                await ws.send('pong')
 
     """
 
@@ -478,6 +476,15 @@ class ResponseWebSocket(Response):
     async def __aiter__(self) -> t.AsyncGenerator[Message, None]:
         """Close websocket if the response has been returned."""
         yield {'type': 'websocket.close'}
+
+    async def __aenter__(self):
+        """Use it as async context manager."""
+        await self.accept()
+        return self
+
+    async def __aexit__(self, *args):
+        """Use it as async context manager."""
+        await self.close()
 
     @property
     def connected(self) -> bool:

@@ -177,12 +177,11 @@ async def test_websocket_response(anyio_backend, Client):
     assert not ws.connected
 
     async def app(scope, receive, send):
-        ws = ResponseWebSocket(scope, receive, send)
-        await ws.accept()
-        msg = await ws.receive()
-        assert msg == 'ping'
-        await ws.send('pong')
-        await ws.close()
+        async with ResponseWebSocket(scope, receive, send) as ws:
+            await ws.accept()
+            msg = await ws.receive()
+            assert msg == 'ping'
+            await ws.send('pong')
 
     async with Client(app).websocket('/') as ws:
         await ws.send('ping')

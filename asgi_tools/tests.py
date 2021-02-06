@@ -9,7 +9,7 @@ from urllib.parse import urlencode
 from yarl import URL
 
 from . import ASGIConnectionClosed
-from ._compat import aio_sleep, aio_spawn, asynccontextmanager
+from ._compat import aio_sleep, aio_spawn, asynccontextmanager, wait_for_first
 from ._types import JSONType, Scope, Receive, Send, Message
 from .middleware import ASGIApp
 from .response import Response, ResponseWebSocket, parse_websocket_msg
@@ -76,6 +76,9 @@ class TestWebSocketResponse(ResponseWebSocket):
             raise ASGIConnectionClosed
 
         msg = await self._receive()
+        if not msg['type'].startswith('websocket.'):
+            raise ValueError('Invalid websocket message: %r', msg)
+
         if msg['type'] == 'websocket.accept':
             self.partner_state = self.STATES.connected
             return await self.receive(raw=raw)
@@ -88,6 +91,18 @@ class TestWebSocketResponse(ResponseWebSocket):
 
 
 class ASGITestClient:
+    """The test client allows you to make requests against an ASGI application.
+
+    Features:
+
+    * cookies
+    * multipart/form-data
+    * follow redirects
+    * response streams
+    * request streams
+    * websocket support
+
+    """
 
     def __init__(self, app: ASGIApp, base_url: str = 'http://localhost'):
         self.app = app
@@ -98,13 +113,29 @@ class ASGITestClient:
     def __getattr__(self, name: str) -> t.Callable[..., t.Awaitable]:
         return partial(self.request, method=name.upper())
 
-    # TODO: Request/Response Streams
     async def request(
             self, path: str, method: str = 'GET', query: t.Union[str, t.Dict] = '',
             headers: t.Dict[str, str] = None, data: t.Union[bytes, str, t.Dict] = b'',
             json: JSONType = None, cookies: t.Dict = None, files: t.Dict = None,
-            follow_redirect: bool = True) -> TestResponse:
-        """Make a http request."""
+            follow_redirect: bool = True, timeout: float = 0.3) -> TestResponse:
+        """Make a HTTP request.
+
+        .. code-block:: python
+
+            from asgi_tools import App, ASGITestClient
+
+            app = Application()
+
+            @app.route('/')
+            async def index(request):
+                return 'OK'
+
+            async def test_app():
+                client = ASGITestClient(app)
+                response = await client.get('/')
+                assert response.status_code == 200
+                assert await response.text() == 'OK'
+        """
 
         res = TestResponse()
         headers = headers or dict(self.headers)
@@ -136,7 +167,10 @@ class ASGITestClient:
             path, headers=headers, query=query, cookies=cookies, type='http', method=method,
         )
 
-        await self.app(scope, receive_from_client, send_to_client)
+        await wait_for_first(
+            self.app(scope, receive_from_client, send_to_client),
+            raise_timeout(timeout),
+        )
         await send_to_client({'type': 'http.response.body', 'more_body': False})
         await res(scope, receive_from_app, send_to_app)
         for n, v in res.cookies.items():
@@ -147,10 +181,32 @@ class ASGITestClient:
 
         return res
 
+    # TODO: Timeouts for websockets
     @asynccontextmanager
     async def websocket(self, path: str, query: t.Union[str, t.Dict] = None,
                         headers: t.Dict = None, cookies: t.Dict = None):
-        """Connect to a websocket."""
+        """Connect to a websocket.
+
+        .. code-block:: python
+
+            from asgi_tools import App, ASGITestClient, ResponseWebSocket
+
+            app = Application()
+
+            @app.route('/websocket')
+            async def websocket(request):
+                async with ResponseWebSocket(request) as ws:
+                    msg = await ws.receive()
+                    assert msg == 'ping'
+                    await ws.send('pong')
+
+            async def test_app():
+                client = ASGITestClient(app)
+                await ws.send('ping')
+                msg = await ws.receive()
+                assert msg == 'pong'
+
+        """
         receive_from_client, send_to_app = simple_stream()
         receive_from_app, send_to_client = simple_stream()
 
@@ -233,5 +289,10 @@ def simple_stream(maxlen=None):
         return queue.popleft()
 
     return receive, to_awaitable(queue.append)
+
+
+async def raise_timeout(timeout):
+    await aio_sleep(timeout)
+    raise TimeoutError('Timeout occured')
 
 # pylama:ignore=D

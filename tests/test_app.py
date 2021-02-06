@@ -103,15 +103,15 @@ async def test_app_handle_exception(Client):
     assert res.status_code == 500
     assert await res.text() == 'Server got itself in trouble'
 
-    @app.on_exception(Exception)
+    @app.on_error(Exception)
     async def handle_unknown(exc):
         return 'UNKNOWN: %s' % exc
 
-    @app.on_exception(404)
+    @app.on_error(404)
     async def handle_response_error(exc):
         return 'Response 404'
 
-    @app.on_exception(ResponseError)
+    @app.on_error(ResponseError)
     async def handler(exc):
         return 'Custom Server Error'
 
@@ -137,7 +137,7 @@ async def test_app_middleware_simple(client, app):
     async def err(request):
         raise RuntimeError('Handle me')
 
-    @app.on_exception(Exception)
+    @app.on_error(Exception)
     async def custom_exc(exc):
         return ResponseHTML('App Exception')
 
@@ -151,7 +151,7 @@ async def test_app_middleware_simple(client, app):
             response = await app(request, receive, send)
             response.headers['x-simple-md'] = 'passed'
             return response
-        except RuntimeError as exc:
+        except RuntimeError:
             return ResponseHTML('Middleware Exception')
 
     res = await client.get('/')
@@ -175,7 +175,7 @@ async def test_app_middleware_classic(client, app):
     async def err(request):
         raise RuntimeError('Handle me')
 
-    @app.on_exception(Exception)
+    @app.on_error(Exception)
     async def custom_exc(exc):
         return ResponseHTML('App Exception')
 

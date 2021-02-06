@@ -69,4 +69,5 @@ example-websocket: $(VIRTUAL_ENV)
 
 .PHONY: docs
 docs: $(VIRTUAL_ENV)
+	rm -rf docs/_build/html
 	make -C docs html
