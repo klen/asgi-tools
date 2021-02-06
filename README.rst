@@ -1,6 +1,5 @@
 .. image:: https://raw.githubusercontent.com/klen/asgi-tools/develop/.github/assets/asgi-tools.png
    :height: 100
-   :width: 100
 
 .. _description:
 
@@ -35,16 +34,16 @@
 **Features:**
 
 - Supports `Asyncio`_ and `Trio`_ libraries
-- ``Request``                 -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
-- ``Response``                -- Send HTTP (text, html, json, stream, file, http errors) responses
-- ``ResponseWebsocket``       -- Work with websockets
-- ``RequestMiddleware``       -- Parse a scope and insert the parsed request into the scope
-- ``ResponseMiddleware``      -- Parse responses and convert them into ASGI messages
-- ``RouterMiddleware``        -- Route HTTP requests
-- ``LifespanMiddleware``      -- Process a lifespan cycle
-- ``StaticFilesMiddleware``   -- Serve static files from URL prefixes
-- ``asgi_tools.tests.TestClient`` -- A test client with websockets support to test asgi applications
-- ``App``                     -- A simple foundation for ASGI apps
+- `Request`_                 -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
+- `Response`_                -- Send HTTP (text, html, json, stream, file, http errors) responses
+- `ResponseWebsocket`_       -- Work with websockets
+- `RequestMiddleware`_       -- Parse a scope and insert the parsed request into the scope
+- `ResponseMiddleware`_      -- Parse responses and convert them into ASGI messages
+- `RouterMiddleware`_        -- Route HTTP requests
+- `LifespanMiddleware`_      -- Process a lifespan cycle
+- `StaticFilesMiddleware`_   -- Serve static files from URL prefixes
+- `asgi_tools.tests.TestClient <https://klen.github.io/asgi-tools/api.html#testclient>`_ -- A test client with websockets support to test asgi applications
+- `App`_                     -- A simple foundation for ASGI apps
 
 .. _contents:
 
@@ -119,3 +118,11 @@ Licensed under a `MIT license`_.
 .. _klen: https://github.com/klen
 .. _MIT license: http://opensource.org/licenses/MIT
 
+.. _Request: https://klen.github.io/asgi-tools/api.html#request
+.. _Response: https://klen.github.io/asgi-tools/api.html#responses
+.. _ResponseWebSocket: https://klen.github.io/asgi-tools/api.html#responsewebsocket
+.. _RequestMiddleware: https://klen.github.io/asgi-tools/api.html#requestmiddleware
+.. _ResponseMiddleware: https://klen.github.io/asgi-tools/api.html#responsemiddleware
+.. _LifespanMiddleware: https://klen.github.io/asgi-tools/api.html#lifespanmiddleware
+.. _StaticFilesMiddleware: https://klen.github.io/asgi-tools/api.html#staticfilesmiddleware
+.. _App: https://klen.github.io/asgi-tools/api.html#application
