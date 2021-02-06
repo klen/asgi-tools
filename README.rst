@@ -26,9 +26,9 @@
 
 .. _documentation:
 
-----------
+**Documentation is here**: https://klen.github.io/asgi-tools
 
-Documentation is here: https://klen.github.io/asgi-tools
+----------
 
 .. _features:
 
