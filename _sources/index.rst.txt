@@ -23,6 +23,24 @@ The Features:
 .. _Asyncio: https://docs.python.org/3/library/asyncio.html
 .. _Trio: https://trio.readthedocs.io/en/stable/index.html
 
+.. _badges:
+
+.. image:: https://github.com/klen/asgi-tools/workflows/tests/badge.svg
+    :target: https://github.com/klen/asgi-tools/actions
+    :alt: Tests Status
+
+.. image:: https://github.com/klen/asgi-tools/workflows/docs/badge.svg
+    :target: https://klen.github.io/asgi-tools
+    :alt: Documentation Status
+
+.. image:: https://img.shields.io/pypi/v/asgi-tools
+    :target: https://pypi.org/project/asgi-tools/
+    :alt: PYPI Version
+
+.. image:: https://img.shields.io/pypi/pyversions/asgi-tools
+    :target: https://pypi.org/project/asgi-tools/
+    :alt: Python Versions
+
 Welcome to the documentation. Get started with :doc:`installation` and then get
 an overview with the :doc:`usage`. The rest of the docs describe each component
 of :mod:`~asgi_tools` in detail, with a full reference in the :doc:`api`
