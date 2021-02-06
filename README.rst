@@ -125,4 +125,5 @@ Licensed under a `MIT license`_.
 .. _ResponseMiddleware: https://klen.github.io/asgi-tools/api.html#responsemiddleware
 .. _LifespanMiddleware: https://klen.github.io/asgi-tools/api.html#lifespanmiddleware
 .. _StaticFilesMiddleware: https://klen.github.io/asgi-tools/api.html#staticfilesmiddleware
+.. _RouterMiddleware: https://klen.github.io/asgi-tools/api.html#routermiddleware
 .. _App: https://klen.github.io/asgi-tools/api.html#application
