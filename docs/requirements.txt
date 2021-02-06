@@ -1,1 +1,1 @@
-asgi-tools
+git+https://github.com/klen/asgi-tools@develop
