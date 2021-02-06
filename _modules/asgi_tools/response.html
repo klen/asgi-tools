@@ -1,0 +1,797 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>asgi_tools.response &mdash; asgi-tools  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> asgi-tools
+          
+
+          
+            
+            <img src="../../_static/asgi-tools.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">asgi-tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>asgi_tools.response</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for asgi_tools.response</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;ASGI responses.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">typing</span> <span class="k">as</span> <span class="nn">t</span>
+<span class="kn">from</span> <span class="nn">email.utils</span> <span class="kn">import</span> <span class="n">formatdate</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">md5</span>
+<span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">cookies</span><span class="p">,</span> <span class="n">HTTPStatus</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">dumps</span>
+<span class="kn">from</span> <span class="nn">mimetypes</span> <span class="kn">import</span> <span class="n">guess_type</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote_plus</span>
+
+<span class="kn">from</span> <span class="nn">multidict</span> <span class="kn">import</span> <span class="n">CIMultiDict</span>
+<span class="kn">from</span> <span class="nn">sniffio</span> <span class="kn">import</span> <span class="n">current_async_library</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">DEFAULT_CHARSET</span><span class="p">,</span> <span class="n">ASGIError</span><span class="p">,</span> <span class="n">ASGIConnectionClosed</span>
+<span class="kn">from</span> <span class="nn">._compat</span> <span class="kn">import</span> <span class="n">aiofile</span><span class="p">,</span> <span class="n">trio</span><span class="p">,</span> <span class="n">wait_for_first</span>
+<span class="kn">from</span> <span class="nn">._types</span> <span class="kn">import</span> <span class="n">Message</span><span class="p">,</span> <span class="n">ResponseContent</span><span class="p">,</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Send</span>
+<span class="kn">from</span> <span class="nn">.request</span> <span class="kn">import</span> <span class="n">Request</span>
+
+
+<div class="viewcode-block" id="Response"><a class="viewcode-back" href="../../api.html#asgi_tools.Response">[docs]</a><span class="k">class</span> <span class="nc">Response</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A base class to make ASGI_ responses.</span>
+
+<span class="sd">    :param content: A response&#39;s body</span>
+<span class="sd">    :type content: str | bytes</span>
+<span class="sd">    :param status_code: An HTTP status code</span>
+<span class="sd">    :type status_code: int</span>
+<span class="sd">    :param headers: A dictionary of HTTP headers</span>
+<span class="sd">    :type headers: dict[str, str]</span>
+<span class="sd">    :param content_type: A string with the content-type</span>
+<span class="sd">    :type content_type: str</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import Response</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            response = Response(&#39;Hello, world!&#39;, content_type=&#39;text/plain&#39;)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">headers</span><span class="p">:</span> <span class="n">CIMultiDict</span>
+    <span class="n">cookies</span><span class="p">:</span> <span class="n">cookies</span><span class="o">.</span><span class="n">SimpleCookie</span>
+    <span class="sd">&quot;&quot;&quot; Set/Update cookies</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import Response</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            response = Response(&#39;OK&#39;)</span>
+<span class="sd">            response.cookies[&quot;rocky&quot;] = &quot;road&quot;</span>
+<span class="sd">            response.cookies[&quot;rocky&quot;][&quot;path&quot;] = &quot;/cookie&quot;</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">    * `response.cookies[name] = value` ``str`` -- set a cookie&#39;s value</span>
+<span class="sd">    * `response.cookies[name][&#39;path&#39;] = value` ``str`` -- set a cookie&#39;s path</span>
+<span class="sd">    * `response.cookies[name][&#39;expires&#39;] = value` ``int`` -- set a cookie&#39;s expire</span>
+<span class="sd">    * `response.cookies[name][&#39;domain&#39;] = value` ``str`` -- set a cookie&#39;s domain</span>
+<span class="sd">    * `response.cookies[name][&#39;max-age&#39;] = value` ``int`` -- set a cookie&#39;s max-age</span>
+<span class="sd">    * `response.cookies[name][&#39;secure&#39;] = value` ``bool``-- is the cookie should only be sent if request is SSL</span>
+<span class="sd">    * `response.cookies[name][&#39;httponly&#39;] = value` ``bool`` -- is the cookie should be available through HTTP request only (not from JS)</span>
+<span class="sd">    * `response.cookies[name][&#39;samesite&#39;] = value` ``str`` -- set a cookie&#39;s strategy (&#39;lax&#39;|&#39;strict&#39;|&#39;none&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">charset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_CHARSET</span>
+
+    <span class="c1">#  __slots__ = &#39;content&#39;, &#39;status_code&#39;, &#39;headers&#39;, &#39;cookies&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">ResponseContent</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">OK</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Setup the response.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">content</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span> <span class="n">CIMultiDict</span> <span class="o">=</span> <span class="n">CIMultiDict</span><span class="p">(</span><span class="n">headers</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="p">:</span> <span class="n">cookies</span><span class="o">.</span><span class="n">SimpleCookie</span> <span class="o">=</span> <span class="n">cookies</span><span class="o">.</span><span class="n">SimpleCookie</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">content_type</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">content_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;text/&#39;</span><span class="p">):</span>
+                <span class="n">content_type</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">content_type</span><span class="si">}</span><span class="s2">; charset=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;content-type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">content_type</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Stringify the response.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Stringify the response.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="si">}</span><span class="s2"> &#39;</span><span class="si">{</span> <span class="bp">self</span> <span class="si">}</span><span class="s2">&#39;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__aiter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Iterate self through ASGI messages.&quot;&quot;&quot;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;content-length&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">)))</span>
+
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg_start</span><span class="p">()</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg_body</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Response.__call__"><a class="viewcode-back" href="../../api.html#asgi_tools.Response.__call__">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Any</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Any</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Behave as an ASGI application.&quot;&quot;&quot;</span>
+        <span class="k">async</span> <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">body</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Stream the response&#39;s body.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span>
+
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">msg_start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Message</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get ASGI response start message.&quot;&quot;&quot;</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;latin-1&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;latin-1&#39;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">cookie</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="sa">b</span><span class="s2">&quot;set-cookie&quot;</span><span class="p">,</span> <span class="n">cookie</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="n">header</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;latin-1&#39;</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.start&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span>
+            <span class="s2">&quot;headers&quot;</span><span class="p">:</span> <span class="n">headers</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">msg_body</span><span class="p">(</span><span class="n">body</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">more_body</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Message</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get ASGI response body message.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">body</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="n">more_body</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="ResponseText"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseText">[docs]</a><span class="k">class</span> <span class="nc">ResponseText</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A helper to return plain text responses (text/plain).</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import ResponseText</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            response = ResponseText(&#39;Hello, world!&#39;)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Setup the response.&quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;content_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;text/plain&#39;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResponseHTML"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseHTML">[docs]</a><span class="k">class</span> <span class="nc">ResponseHTML</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A helper to return HTML responses (text/html).</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import ResponseHTML</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            response = ResponseHTML(&#39;&lt;h1&gt;Hello, world!&lt;/h1&gt;&#39;)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Setup the response.&quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;content_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;text/html&#39;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResponseJSON"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseJSON">[docs]</a><span class="k">class</span> <span class="nc">ResponseJSON</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A helper to return JSON responses (application/json).</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import ResponseJSON</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            response = ResponseJSON({&#39;hello&#39;: &#39;world&#39;})</span>
+<span class="sd">            await response(scope, receive, send)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Setup the response.&quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;content_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;application/json&#39;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">body</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Jsonify the content.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">allow_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResponseRedirect"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseRedirect">[docs]</a><span class="k">class</span> <span class="nc">ResponseRedirect</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A helper to return HTTP redirects. Uses a 307 status code by default.</span>
+
+<span class="sd">    :param url: A string with the new location</span>
+<span class="sd">    :type url: str</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import ResponseRedirect</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            response = ResponseRedirect(&#39;/login&#39;)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">    If you are using :py:class:`asgi_tools.App` or :py:class:`asgi_tools.ResponseMiddleware` you</span>
+<span class="sd">    are able to raise the :py:class:`ResponseRedirect` as an exception.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import ResponseRedirect, Request, ResponseMiddleware</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            request = Request(scope, receive)</span>
+<span class="sd">            if not request.headers.get(&#39;authorization):</span>
+<span class="sd">                raise ResponseRedirect(&#39;/login&#39;)</span>
+
+<span class="sd">            return &#39;OK&#39;</span>
+
+<span class="sd">        app = ResponseMiddleware(app)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">TEMPORARY_REDIRECT</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set status code and prepare location.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">300</span> <span class="o">&lt;=</span> <span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">400</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ASGIError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid status_code (</span><span class="si">{</span><span class="n">status_code</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">ResponseRedirect</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">quote_plus</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">url</span><span class="p">),</span> <span class="n">safe</span><span class="o">=</span><span class="s2">&quot;:/%#?&amp;=@[]!$&amp;&#39;()*+,;&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">ResponseErrorMeta</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate Response Errors by HTTP names.&quot;&quot;&quot;</span>
+
+    <span class="c1"># XXX: From python 3.9 -&gt; partial[&#39;ResponseError]</span>
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Generate Response Errors by HTTP names.&quot;&quot;&quot;</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ResponseError"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseError">[docs]</a><span class="k">class</span> <span class="nc">ResponseError</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">ResponseErrorMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A helper to return HTTP errors. Uses a 500 status code by default.</span>
+
+<span class="sd">    :param message: A string with the error&#39;s message (HTTPStatus messages will be used by default)</span>
+<span class="sd">    :type message: str</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import ResponseError</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            response = ResponseError(&#39;Timeout&#39;, 502)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">    If you are using :py:class:`asgi_tools.App` or :py:class:`asgi_tools.ResponseMiddleware` you</span>
+<span class="sd">    are able to raise the :py:class:`ResponseError` as an exception.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import ResponseError, Request, ResponseMiddleware</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            request = Request(scope, receive)</span>
+<span class="sd">            if not request.method == &#39;POST&#39;:</span>
+<span class="sd">                raise ResponseError(&#39;Invalid request data&#39;, 400)</span>
+
+<span class="sd">            return &#39;OK&#39;</span>
+
+<span class="sd">        app = ResponseMiddleware(app)</span>
+
+<span class="sd">    You able to use :py:class:`http.HTTPStatus` properties with the `ResponseError` class</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        response = ResponseError.BAD_REQUEST(&#39;invalid data&#39;)</span>
+<span class="sd">        response = ResponseError.NOT_FOUND()</span>
+<span class="sd">        response = ResponseError.BAD_GATEWAY()</span>
+<span class="sd">        # and etc</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Typing annotations</span>
+    <span class="n">BAD_REQUEST</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                       <span class="c1"># 400</span>
+    <span class="n">UNAUTHORIZED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                      <span class="c1"># 401</span>
+    <span class="n">PAYMENT_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                  <span class="c1"># 402</span>
+    <span class="n">FORBIDDEN</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                         <span class="c1"># 403</span>
+    <span class="n">NOT_FOUND</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                         <span class="c1"># 404</span>
+    <span class="n">METHOD_NOT_ALLOWED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                <span class="c1"># 405</span>
+    <span class="n">NOT_ACCEPTABLE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                    <span class="c1"># 406</span>
+    <span class="n">PROXY_AUTHENTICATION_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>     <span class="c1"># 407</span>
+    <span class="n">REQUEST_TIMEOUT</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                   <span class="c1"># 408</span>
+    <span class="n">CONFLICT</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                          <span class="c1"># 409</span>
+    <span class="n">GONE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                              <span class="c1"># 410</span>
+    <span class="n">LENGTH_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                   <span class="c1"># 411</span>
+    <span class="n">PRECONDITION_FAILED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>               <span class="c1"># 412</span>
+    <span class="n">REQUEST_ENTITY_TOO_LARGE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>          <span class="c1"># 413</span>
+    <span class="n">REQUEST_URI_TOO_LONG</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>              <span class="c1"># 414</span>
+    <span class="n">UNSUPPORTED_MEDIA_TYPE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>            <span class="c1"># 415</span>
+    <span class="n">REQUESTED_RANGE_NOT_SATISFIABLE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>   <span class="c1"># 416</span>
+    <span class="n">EXPECTATION_FAILED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                <span class="c1"># 417</span>
+    <span class="c1"># XXX: From python 3.9</span>
+    <span class="c1"># IM_A_TEAPOT: t.Callable[..., &#39;ResponseError&#39;]                       # 418</span>
+    <span class="c1"># MISDIRECTED_REQUEST: t.Callable[..., &#39;ResponseError&#39;]               # 421</span>
+    <span class="n">UNPROCESSABLE_ENTITY</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>              <span class="c1"># 422</span>
+    <span class="n">LOCKED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                            <span class="c1"># 423</span>
+    <span class="n">FAILED_DEPENDENCY</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                 <span class="c1"># 424</span>
+    <span class="n">TOO_EARLY</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                         <span class="c1"># 425</span>
+    <span class="n">UPGRADE_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                  <span class="c1"># 426</span>
+    <span class="n">PRECONDITION_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>             <span class="c1"># 428</span>
+    <span class="n">TOO_MANY_REQUESTS</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                 <span class="c1"># 429</span>
+    <span class="n">REQUEST_HEADER_FIELDS_TOO_LARGE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>   <span class="c1"># 431</span>
+    <span class="c1"># XXX: From python 3.9</span>
+    <span class="c1"># UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., &#39;ResponseError&#39;]     # 451</span>
+
+    <span class="n">INTERNAL_SERVER_ERROR</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>             <span class="c1"># 500</span>
+    <span class="n">NOT_IMPLEMENTED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                   <span class="c1"># 501</span>
+    <span class="n">BAD_GATEWAY</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                       <span class="c1"># 502</span>
+    <span class="n">SERVICE_UNAVAILABLE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>               <span class="c1"># 503</span>
+    <span class="n">GATEWAY_TIMEOUT</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                   <span class="c1"># 504</span>
+    <span class="n">HTTP_VERSION_NOT_SUPPORTED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>        <span class="c1"># 505</span>
+    <span class="n">VARIANT_ALSO_NEGOTIATES</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>           <span class="c1"># 506</span>
+    <span class="n">INSUFFICIENT_STORAGE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>              <span class="c1"># 507</span>
+    <span class="n">LOOP_DETECTED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                     <span class="c1"># 508</span>
+    <span class="n">NOT_EXTENDED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>                      <span class="c1"># 510</span>
+    <span class="n">NETWORK_AUTHENTICATION_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;ResponseError&#39;</span><span class="p">]</span>   <span class="c1"># 511</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">ResponseContent</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check error status.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">400</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ASGIError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid status_code (</span><span class="si">{</span><span class="n">status_code</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">)</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">message</span> <span class="ow">or</span> <span class="n">HTTPStatus</span><span class="p">(</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">description</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ResponseError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">message</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResponseStream"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseStream">[docs]</a><span class="k">class</span> <span class="nc">ResponseStream</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A helper to stream a response&#39;s body.</span>
+
+<span class="sd">    :param content: An async generator to stream the response&#39;s body</span>
+<span class="sd">    :type content: AsyncGenerator</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import ResponseStream</span>
+<span class="sd">        from asgi_tools.utils import aio_sleep  # for compatability with different async libs</span>
+
+<span class="sd">        async def stream_response():</span>
+<span class="sd">            for number in range(10):</span>
+<span class="sd">                await aio_sleep(1)</span>
+<span class="sd">                yield str(number)</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            generator = stream_response()</span>
+<span class="sd">            response = ResponseStream(generator, content_type=&#39;plain/text&#39;)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">[</span><span class="n">ResponseContent</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Ensure that the content is awaitable.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ResponseStream</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">[</span><span class="n">ResponseContent</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">content</span>  <span class="c1"># type: ignore</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__aiter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">[</span><span class="n">Message</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Iterate through the response.&quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg_start</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+            <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+                    <span class="n">chunk</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg_body</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">more_body</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg_body</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">listen_for_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Listen for the client has been disconnected.&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">receive</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">message</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;http.disconnect&#39;</span><span class="p">:</span>
+                <span class="k">break</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">stream_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stream response content.&quot;&quot;&quot;</span>
+        <span class="k">async</span> <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Any</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Any</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Behave as an ASGI application.&quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="n">wait_for_first</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">listen_for_disconnect</span><span class="p">(</span><span class="n">receive</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stream_response</span><span class="p">(</span><span class="n">send</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResponseFile"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseFile">[docs]</a><span class="k">class</span> <span class="nc">ResponseFile</span><span class="p">(</span><span class="n">ResponseStream</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A helper to stream files as a response body.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import ResponseFile</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            response = ResponseFile(&#39;/storage/my_best_selfie.jpeg&#39;)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">,</span>
+                 <span class="n">headers_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Store filepath to self.&quot;&quot;&quot;</span>
+        <span class="n">filepath</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">stat</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ASGIError</span><span class="p">(</span><span class="o">*</span><span class="n">exc</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">stream_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">headers_only</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ResponseFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers_only</span> <span class="o">=</span> <span class="n">headers_only</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+            <span class="s1">&#39;content-disposition&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;attachment; filename=&quot;</span><span class="si">{</span><span class="n">filepath</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;content-type&#39;</span><span class="p">,</span> <span class="n">guess_type</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filepath</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;text/plain&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;content-length&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_size</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;last-modified&#39;</span><span class="p">,</span> <span class="n">formatdate</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">,</span> <span class="n">usegmt</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">etag</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;etag&#39;</span><span class="p">,</span> <span class="n">md5</span><span class="p">(</span><span class="n">etag</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="ResponseWebSocket"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseWebSocket">[docs]</a><span class="k">class</span> <span class="nc">ResponseWebSocket</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A helper to work with websockets.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import ResponseWebsocket</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            ws = ResponseWebSocket(scope, receive, send)</span>
+<span class="sd">            await ws.accept()</span>
+<span class="sd">            msg = await ws.receive()</span>
+<span class="sd">            assert msg == &#39;ping&#39;</span>
+<span class="sd">            await ws.send(&#39;pong&#39;)</span>
+<span class="sd">            await ws.close()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">class</span> <span class="nc">STATES</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Represent websocket states.&quot;&quot;&quot;</span>
+
+        <span class="n">connecting</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">connected</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">disconnected</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the websocket response.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">Request</span><span class="p">):</span>
+            <span class="n">receive</span><span class="p">,</span> <span class="n">send</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">_receive</span><span class="p">,</span> <span class="n">scope</span><span class="o">.</span><span class="n">_send</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">ResponseWebSocket</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">receive</span> <span class="ow">and</span> <span class="n">send</span><span class="p">,</span> <span class="s1">&#39;Invalid initialization&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">:</span> <span class="n">Receive</span> <span class="o">=</span> <span class="n">receive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">:</span> <span class="n">Send</span> <span class="o">=</span> <span class="n">send</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">connecting</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">connecting</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__aiter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">[</span><span class="n">Message</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Close websocket if the response has been returned.&quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;websocket.close&#39;</span><span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">connected</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Check that is the websocket connected.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">connected</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">connected</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_connect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Wait for connect message.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">connecting</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">()</span>
+            <span class="k">assert</span> <span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;websocket.connect&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">connected</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">connected</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">accept</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Accept a websocket connection.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">connecting</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">()</span>
+
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;websocket.accept&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">connected</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Sent by the application to tell the server to close the connection.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">connected</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;websocket.close&#39;</span><span class="p">,</span> <span class="s1">&#39;code&#39;</span><span class="p">:</span> <span class="n">code</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">disconnected</span>
+
+    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;websocket.send&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Send the given message to a client.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">disconnected</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ASGIConnectionClosed</span><span class="p">(</span><span class="s1">&#39;Cannot send once the connection has been disconnected.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;text&#39;</span> <span class="ow">or</span> <span class="s1">&#39;bytes&#39;</span><span class="p">):</span> <span class="n">msg</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">Message</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Receive messages from a client.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">disconnected</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ASGIConnectionClosed</span><span class="p">(</span><span class="s1">&#39;Cannot receive once a connection has been disconnected.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">connecting</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">()</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">)</span>
+
+        <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;websocket.disconnect&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">disconnected</span>
+
+        <span class="k">return</span> <span class="n">raw</span> <span class="ow">and</span> <span class="n">msg</span> <span class="ow">or</span> <span class="n">parse_websocket_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">charset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">parse_response</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Any</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Parse the given object and convert it into a asgi_tools.Response.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">Response</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">response</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="n">status</span><span class="p">,</span> <span class="o">*</span><span class="n">contents</span> <span class="o">=</span> <span class="n">response</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="s1">&#39;Invalid Response Status&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">headers</span><span class="p">,</span> <span class="o">*</span><span class="n">contents</span> <span class="o">=</span> <span class="n">contents</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">parse_response</span><span class="p">(</span><span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">contents</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status</span>
+        <span class="k">return</span> <span class="n">response</span>
+
+    <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">ResponseJSON</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ResponseText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">parse_websocket_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">charset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">Message</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Prepare websocket message.&quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bytes&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">charset</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">msg</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">stream_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>  <span class="c1"># noqa</span>
+    <span class="sd">&quot;&quot;&quot;Stream the given file.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">current_async_library</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;trio&#39;</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="k">await</span> <span class="n">trio</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">chunk</span> <span class="o">=</span> <span class="k">await</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">chunk</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="k">yield</span> <span class="n">chunk</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">aiofile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ASGIError</span><span class="p">(</span><span class="s1">&#39;`aiofile` is required to return files with asyncio&#39;</span><span class="p">)</span>
+
+        <span class="k">async</span> <span class="k">with</span> <span class="n">aiofile</span><span class="o">.</span><span class="n">AIOFile</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">aiofile</span><span class="o">.</span><span class="n">Reader</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">chunk</span>
+
+<span class="c1"># pylama: ignore=E501</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Kirill Klenov.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -189,26 +189,327 @@
 <p>This part of the documentation covers all the interfaces of ASGI-Tools.</p>
 <div class="section" id="request">
 <h2>Request<a class="headerlink" href="#request" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="asgi_tools.Request">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">Request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scope</span></em>, <em class="sig-param"><span class="n">receive</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">send</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.Request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent a HTTP Request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope</strong> – HTTP ASGI Scope</p></li>
+<li><p><strong>receive</strong> – an asynchronous callable which lets the application
+receive event messages from the client</p></li>
+</ul>
+</dd>
+</dl>
+<p>The class gives you an nicer interface to incoming HTTP request.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">Response</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="si">}</span><span class="s2"> </span><span class="si">{</span> <span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">path</span> <span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Requests are based on a given scope and represents a mapping interface.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;scheme&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;scheme&#39;</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span>
+
+<span class="c1"># and etc</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt id="asgi_tools.Request.method">
+<code class="sig-name descname">method</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></em><a class="headerlink" href="#asgi_tools.Request.method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Contains the request’s HTTP method</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.Request.url">
+<em class="property">property </em><code class="sig-name descname">url</code><a class="headerlink" href="#asgi_tools.Request.url" title="Permalink to this definition">¶</a></dt>
+<dd><p>A lazy property that parses the current URL and returns <a class="reference external" href="https://yarl.readthedocs.io/en/stable/api.html#yarl.URL" title="(in yarl v1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">yarl.URL</span></code></a> object.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;... the full http URL ..&#39;</span>
+<span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">scheme</span>
+<span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">host</span>
+<span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">query</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">query_string</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>See <a class="reference external" href="https://yarl.readthedocs.io/en/stable/api.html#module-yarl" title="(in yarl v1.6)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">yarl</span></code></a> documentation for futher reference.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.Request.headers">
+<em class="property">property </em><code class="sig-name descname">headers</code><a class="headerlink" href="#asgi_tools.Request.headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>A lazy property that parses the current scope’s headers, decodes them as strings and
+returns case-insensitive multi-dict <a class="reference external" href="https://multidict.readthedocs.io/en/stable/multidict.html#multidict.CIMultiDict" title="(in multidict v5.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">multidict.CIMultiDict</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;content-type&#39;</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;authorization&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>See <a class="reference external" href="https://multidict.readthedocs.io/en/stable/multidict.html#module-multidict" title="(in multidict v5.1)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">multidict</span></code></a> documentation for futher reference.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.Request.cookies">
+<em class="property">property </em><code class="sig-name descname">cookies</code><a class="headerlink" href="#asgi_tools.Request.cookies" title="Permalink to this definition">¶</a></dt>
+<dd><p>A lazy property that parses the current scope’s cookies and returns a dictionary.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
+<span class="n">ses</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;session&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.Request.charset">
+<em class="property">property </em><code class="sig-name descname">charset</code><a class="headerlink" href="#asgi_tools.Request.charset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an encoding charset for the current scope.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.Request.content_type">
+<em class="property">property </em><code class="sig-name descname">content_type</code><a class="headerlink" href="#asgi_tools.Request.content_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a content type for the current scope.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.Request.stream">
+<code class="sig-name descname">stream</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.Request.stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stream the request’s body.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">Request</span><span class="p">,</span> <span class="n">Response</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">)</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span>
+    <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">stream</span><span class="p">():</span>
+        <span class="n">body</span> <span class="o">+=</span> <span class="n">chunk</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">content_type</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>AsyncGenerator</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.Request.body">
+<em class="property">async </em><code class="sig-name descname">body</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.body"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.Request.body" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read and return the request’s body as bytes.</p>
+<p><cite>body = await request.body()</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.9)">bytes</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.Request.text">
+<em class="property">async </em><code class="sig-name descname">text</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.Request.text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read and return the request’s body as a string.</p>
+<p><cite>text = await request.text()</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.Request.form">
+<em class="property">async </em><code class="sig-name descname">form</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.form"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.Request.form" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read and return the request’s multipart formdata as a multidict.</p>
+<p><cite>formdata = await request.form()</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>multidict._multidict.MultiDict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.Request.data">
+<code class="sig-name descname">data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.Request.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>The method checks <cite>request.content_type</cite> and parse the request’s body automatically.</p>
+<p><cite>data = await request.data()</cite></p>
+<p>Returns JSON for <cite>application/json</cite>, formdata for forms and text otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Awaitable[Union[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a>, Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>, Any], List[Any], multidict._multidict.MultiDict]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="responses">
 <h2>Responses<a class="headerlink" href="#responses" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="asgi_tools.Response">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">Response</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">content</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">status_code</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">headers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">content_type</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#Response"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.Response" title="Permalink to this definition">¶</a></dt>
+<dd><p>A base class to make <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> responses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>content</strong> (<em>str | bytes</em>) – A response’s body</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – An HTTP status code</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – A dictionary of HTTP headers</p></li>
+<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A string with the content-type</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">Response</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="s1">&#39;Hello, world!&#39;</span><span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="s1">&#39;text/plain&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt id="asgi_tools.Response.cookies">
+<code class="sig-name descname">cookies</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/http.cookies.html#http.cookies.SimpleCookie" title="(in Python v3.9)">http.cookies.SimpleCookie</a></em><a class="headerlink" href="#asgi_tools.Response.cookies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set/Update cookies</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">Response</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">)</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">cookies</span><span class="p">[</span><span class="s2">&quot;rocky&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;road&quot;</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">cookies</span><span class="p">[</span><span class="s2">&quot;rocky&quot;</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/cookie&quot;</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><cite>response.cookies[name] = value</cite> <code class="docutils literal notranslate"><span class="pre">str</span></code> – set a cookie’s value</p></li>
+<li><p><cite>response.cookies[name][‘path’] = value</cite> <code class="docutils literal notranslate"><span class="pre">str</span></code> – set a cookie’s path</p></li>
+<li><p><cite>response.cookies[name][‘expires’] = value</cite> <code class="docutils literal notranslate"><span class="pre">int</span></code> – set a cookie’s expire</p></li>
+<li><p><cite>response.cookies[name][‘domain’] = value</cite> <code class="docutils literal notranslate"><span class="pre">str</span></code> – set a cookie’s domain</p></li>
+<li><p><cite>response.cookies[name][‘max-age’] = value</cite> <code class="docutils literal notranslate"><span class="pre">int</span></code> – set a cookie’s max-age</p></li>
+<li><p><cite>response.cookies[name][‘secure’] = value</cite> <code class="docutils literal notranslate"><span class="pre">bool</span></code>– is the cookie should only be sent if request is SSL</p></li>
+<li><p><cite>response.cookies[name][‘httponly’] = value</cite> <code class="docutils literal notranslate"><span class="pre">bool</span></code> – is the cookie should be available through HTTP request only (not from JS)</p></li>
+<li><p><cite>response.cookies[name][‘samesite’] = value</cite> <code class="docutils literal notranslate"><span class="pre">str</span></code> – set a cookie’s strategy (‘lax’|’strict’|’none’)</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.Response.__call__">
+<em class="property">async </em><code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scope</span></em>, <em class="sig-param"><span class="n">receive</span></em>, <em class="sig-param"><span class="n">send</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#Response.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.Response.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Behave as an ASGI application.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>receive</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>send</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <div class="section" id="responsetext">
 <h3>ResponseText<a class="headerlink" href="#responsetext" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="asgi_tools.ResponseText">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">ResponseText</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.ResponseText" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper to return plain text responses (text/plain).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseText</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseText</span><span class="p">(</span><span class="s1">&#39;Hello, world!&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="responsehtml">
 <h3>ResponseHTML<a class="headerlink" href="#responsehtml" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="asgi_tools.ResponseHTML">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">ResponseHTML</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseHTML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.ResponseHTML" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper to return HTML responses (text/html).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseHTML</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="s1">&#39;&lt;h1&gt;Hello, world!&lt;/h1&gt;&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="responsejson">
 <h3>ResponseJSON<a class="headerlink" href="#responsejson" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="asgi_tools.ResponseJSON">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">ResponseJSON</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseJSON"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.ResponseJSON" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper to return JSON responses (application/json).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseJSON</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseJSON</span><span class="p">({</span><span class="s1">&#39;hello&#39;</span><span class="p">:</span> <span class="s1">&#39;world&#39;</span><span class="p">})</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="responseredirect">
 <h3>ResponseRedirect<a class="headerlink" href="#responseredirect" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="asgi_tools.ResponseRedirect">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">ResponseRedirect</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">status_code</span><span class="o">=</span><span class="default_value">307</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseRedirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.ResponseRedirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper to return HTTP redirects. Uses a 307 status code by default.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A string with the new location</p>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseRedirect</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseRedirect</span><span class="p">(</span><span class="s1">&#39;/login&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you are using <a class="reference internal" href="#asgi_tools.App" title="asgi_tools.App"><code class="xref py py-class docutils literal notranslate"><span class="pre">asgi_tools.App</span></code></a> or <a class="reference internal" href="#asgi_tools.ResponseMiddleware" title="asgi_tools.ResponseMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">asgi_tools.ResponseMiddleware</span></code></a> you
+are able to raise the <a class="reference internal" href="#asgi_tools.ResponseRedirect" title="asgi_tools.ResponseRedirect"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseRedirect</span></code></a> as an exception.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseRedirect</span><span class="p">,</span> <span class="n">Request</span><span class="p">,</span> <span class="n">ResponseMiddleware</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;authorization):</span>
+        <span class="k">raise</span> <span class="n">ResponseRedirect</span><span class="p">(</span><span class="s1">&#39;/login&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="s1">&#39;OK&#39;</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">ResponseMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="responseerror">
 <h3>ResponseError<a class="headerlink" href="#responseerror" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt id="asgi_tools.ResponseError">
-<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">ResponseError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">status_code</span><span class="o">=</span><span class="default_value">500</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#asgi_tools.ResponseError" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">ResponseError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">status_code</span><span class="o">=</span><span class="default_value">500</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.ResponseError" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to return HTTP errors. Uses a 500 status code by default.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -222,7 +523,7 @@
     <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>If you are using <code class="xref py py-class docutils literal notranslate"><span class="pre">asgi_tools.App</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">asgi_tools.ResponseMiddleware</span></code> you
+<p>If you are using <a class="reference internal" href="#asgi_tools.App" title="asgi_tools.App"><code class="xref py py-class docutils literal notranslate"><span class="pre">asgi_tools.App</span></code></a> or <a class="reference internal" href="#asgi_tools.ResponseMiddleware" title="asgi_tools.ResponseMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">asgi_tools.ResponseMiddleware</span></code></a> you
 are able to raise the <a class="reference internal" href="#asgi_tools.ResponseError" title="asgi_tools.ResponseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseError</span></code></a> as an exception.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseError</span><span class="p">,</span> <span class="n">Request</span><span class="p">,</span> <span class="n">ResponseMiddleware</span>
 
@@ -248,37 +549,443 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 </div>
 <div class="section" id="responsestream">
 <h3>ResponseStream<a class="headerlink" href="#responsestream" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="asgi_tools.ResponseStream">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">ResponseStream</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">content</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.ResponseStream" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper to stream a response’s body.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>content</strong> (<em>AsyncGenerator</em>) – An async generator to stream the response’s body</p>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseStream</span>
+<span class="kn">from</span> <span class="nn">asgi_tools.utils</span> <span class="kn">import</span> <span class="n">aio_sleep</span>  <span class="c1"># for compatability with different async libs</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">stream_response</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+        <span class="k">await</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="nb">str</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">generator</span> <span class="o">=</span> <span class="n">stream_response</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseStream</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="s1">&#39;plain/text&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="responsefile">
 <h3>ResponseFile<a class="headerlink" href="#responsefile" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="asgi_tools.ResponseFile">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">ResponseFile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="n">chunk_size</span><span class="o">=</span><span class="default_value">32768</span></em>, <em class="sig-param"><span class="n">headers_only</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.ResponseFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper to stream files as a response body.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseFile</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseFile</span><span class="p">(</span><span class="s1">&#39;/storage/my_best_selfie.jpeg&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="responsewebsocket">
 <h3>ResponseWebSocket<a class="headerlink" href="#responsewebsocket" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="asgi_tools.ResponseWebSocket">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">ResponseWebSocket</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scope</span></em>, <em class="sig-param"><span class="n">receive</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">send</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper to work with websockets.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseWebsocket</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">ws</span> <span class="o">=</span> <span class="n">ResponseWebSocket</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">receive</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">msg</span> <span class="o">==</span> <span class="s1">&#39;ping&#39;</span>
+    <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s1">&#39;pong&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 </div>
 <div class="section" id="middlewares">
 <h2>Middlewares<a class="headerlink" href="#middlewares" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="requestmiddleware">
 <h3>RequestMiddleware<a class="headerlink" href="#requestmiddleware" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="asgi_tools.RequestMiddleware">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">RequestMiddleware</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#RequestMiddleware"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.RequestMiddleware" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatically create <a class="reference internal" href="#asgi_tools.Request" title="asgi_tools.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">asgi_tools.Request</span></code></a> from the scope and pass it to <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> apps.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">RequestMiddleware</span><span class="p">,</span> <span class="n">Response</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="si">}</span><span class="s2"> </span><span class="si">{</span> <span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">path</span> <span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">RequestMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="responsemiddleware">
 <h3>ResponseMiddleware<a class="headerlink" href="#responsemiddleware" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="asgi_tools.ResponseMiddleware">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">ResponseMiddleware</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#ResponseMiddleware"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.ResponseMiddleware" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatically convert <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> apps results into responses <a class="reference internal" href="#asgi_tools.Response" title="asgi_tools.Response"><code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code></a> and
+send them to server as <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> messages.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseMiddleware</span><span class="p">,</span> <span class="n">ResponseText</span><span class="p">,</span> <span class="n">ResponseRedirect</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="c1"># ResponseMiddleware catches ResponseError, ResponseRedirect and convert the exceptions</span>
+    <span class="c1"># into HTTP response</span>
+    <span class="k">if</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;/user&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ResponseRedirect</span><span class="p">(</span><span class="s1">&#39;/login&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Return ResponseHTML</span>
+    <span class="k">if</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;GET&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;b&gt;HTML is here&lt;/b&gt;&#39;</span>
+
+    <span class="c1"># Return ResponseJSON</span>
+    <span class="k">if</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;json&#39;</span><span class="p">:</span> <span class="s1">&#39;here&#39;</span><span class="p">}</span>
+
+    <span class="c1"># Return any response explicitly</span>
+    <span class="k">if</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;PUT&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ResponseText</span><span class="p">(</span><span class="s1">&#39;response is here&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Short form to responses: (status_code, body) or (status_code, body, headers)</span>
+    <span class="k">return</span> <span class="mi">405</span><span class="p">,</span> <span class="s1">&#39;Unknown method&#39;</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">ResponseMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The conversion rules:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#asgi_tools.Response" title="asgi_tools.Response"><code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code></a> results will be left as is</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dict</span></code>, <code class="docutils literal notranslate"><span class="pre">list</span></code>, <code class="docutils literal notranslate"><span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">bool</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code> results will be converted into <a class="reference internal" href="#asgi_tools.ResponseJSON" title="asgi_tools.ResponseJSON"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseJSON</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">bytes</span></code> results will be converted into <a class="reference internal" href="#asgi_tools.ResponseHTML" title="asgi_tools.ResponseHTML"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseHTML</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tuple[int,</span> <span class="pre">Any,</span> <span class="pre">dict]</span></code> will be converted into a <a class="reference internal" href="#asgi_tools.Response" title="asgi_tools.Response"><code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code></a> with <code class="docutils literal notranslate"><span class="pre">int</span></code> status code, <code class="docutils literal notranslate"><span class="pre">dict</span></code> will be used as headers, <code class="docutils literal notranslate"><span class="pre">Any</span></code> will be used to define the response’s type</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseMiddleware</span>
+
+<span class="c1"># The result will be converted into HTML 404 response with the &#39;Not Found&#39; body</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="k">return</span> <span class="mi">404</span><span class="p">,</span> <span class="s1">&#39;Not Found&#39;</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">ResponseMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You are able to raise <a class="reference internal" href="#asgi_tools.ResponseError" title="asgi_tools.ResponseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseError</span></code></a> from yours <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> apps and it will be catched and returned as a response</p>
+</dd></dl>
+
 </div>
 <div class="section" id="lifespanmiddleware">
 <h3>LifespanMiddleware<a class="headerlink" href="#lifespanmiddleware" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="asgi_tools.LifespanMiddleware">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">LifespanMiddleware</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">on_startup</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">on_shutdown</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#LifespanMiddleware"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.LifespanMiddleware" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manage <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> Lifespan events.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>on_startup</strong> – the list of callables to run when the app is starting</p></li>
+<li><p><strong>on_shutdown</strong> – the list of callables to run when the app is finishing</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">LifespanMiddleware</span><span class="p">,</span> <span class="n">Response</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">lifespan</span> <span class="o">=</span> <span class="n">LifespanMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+<span class="nd">@lifespan</span><span class="o">.</span><span class="n">on_startup</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">start</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;The app is starting&#39;</span><span class="p">)</span>
+
+<span class="nd">@lifespan</span><span class="o">.</span><span class="n">on_shutdown</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">start</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;The app is finishing&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="asgi_tools.LifespanMiddleware.on_startup">
+<code class="sig-name descname">on_startup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#LifespanMiddleware.on_startup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.LifespanMiddleware.on_startup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a function to startup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fn</strong> (<em>Callable</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.LifespanMiddleware.on_shutdown">
+<code class="sig-name descname">on_shutdown</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#LifespanMiddleware.on_shutdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.LifespanMiddleware.on_shutdown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a function to shutdown.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fn</strong> (<em>Callable</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="routermiddleware">
 <h3>RouterMiddleware<a class="headerlink" href="#routermiddleware" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="asgi_tools.RouterMiddleware">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">RouterMiddleware</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">router</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#RouterMiddleware"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.RouterMiddleware" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manage routing.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">RouterMiddleware</span><span class="p">,</span> <span class="n">ResponseHTML</span><span class="p">,</span> <span class="n">ResponseError</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">default_app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">NOT_FOUND</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">router</span> <span class="o">=</span> <span class="n">RouterMiddleware</span><span class="p">(</span><span class="n">default_app</span><span class="p">)</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/status&#39;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="s1">&#39;STATUS OK&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+<span class="c1"># Bind methods</span>
+<span class="c1"># ------------</span>
+<span class="nd">@router</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/only-post&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">only_post</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="s1">&#39;POST OK&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+<span class="c1"># Regexp paths</span>
+<span class="c1"># ------------</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;/\d+/?&#39;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">num</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Number </span><span class="si">{</span> <span class="n">num</span> <span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+<span class="c1"># Dynamic paths</span>
+<span class="c1"># -------------</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/hello/</span><span class="si">{name}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path_params&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Hello </span><span class="si">{</span> <span class="n">name</span><span class="o">.</span><span class="n">title</span><span class="p">()</span> <span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+<span class="c1"># Set regexp for params</span>
+<span class="nd">@router</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;/multiply/{first:\d+}/{second:\d+}&#39;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">multiply</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">first</span><span class="p">,</span> <span class="n">second</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path_params&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">first</span> <span class="o">*</span> <span class="n">second</span><span class="p">))</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Path parameters are made available in the scope, as the <cite>scope[‘path_params’]</cite> dictionary.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="staticfilesmiddleware">
 <h3>StaticFilesMiddleware<a class="headerlink" href="#staticfilesmiddleware" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="asgi_tools.StaticFilesMiddleware">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">StaticFilesMiddleware</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">url_prefix</span><span class="o">=</span><span class="default_value">'/static'</span></em>, <em class="sig-param"><span class="n">folders</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#StaticFilesMiddleware"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.StaticFilesMiddleware" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serve static files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>&quot;/static&quot;</em>) – an URL prefix for static files</p></li>
+<li><p><strong>folders</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Paths to folders with static files</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">StaticFilesMiddleware</span><span class="p">,</span> <span class="n">ResponseHTML</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="s1">&#39;OK)</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">StaticFilesMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">folders</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;static&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 </div>
 <div class="section" id="application">
 <h2>Application<a class="headerlink" href="#application" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="asgi_tools.App">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">App</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">static_url_prefix</span><span class="o">=</span><span class="default_value">'/static'</span></em>, <em class="sig-param"><span class="n">static_folders</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trim_last_slash</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper to build ASGI Applications.</p>
+<p>Features:</p>
+<ul class="simple">
+<li><p>Routing</p></li>
+<li><p>ASGI-Tools <a class="reference internal" href="#asgi_tools.Request" title="asgi_tools.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>, <a class="reference internal" href="#asgi_tools.Response" title="asgi_tools.Response"><code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code></a></p></li>
+<li><p>Exception management</p></li>
+<li><p>Static files</p></li>
+<li><p>Lifespan events</p></li>
+<li><p>Simplest middlewares</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>debug</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>False</em>) – Enable debug mode (more logging, raise unhandled exceptions)</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.9)"><em>logging.Logger</em></a>) – Custom logger for the application</p></li>
+<li><p><strong>static_url_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>&quot;/static&quot;</em>) – A prefix for static files</p></li>
+<li><p><strong>static_folders</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – A list of folders to look static files</p></li>
+<li><p><strong>trim_last_slash</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>False</em>) – Consider “/path” and “/path/” as the same</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="asgi_tools.App.middleware">
+<code class="sig-name descname">middleware</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">md</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.middleware"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.middleware" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a middleware.</p>
+<p>The <a class="reference internal" href="#asgi_tools.App.middleware" title="asgi_tools.App.middleware"><code class="xref py py-meth docutils literal notranslate"><span class="pre">App.middleware()</span></code></a> supports two types of middlewares, see below:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span><span class="p">,</span> <span class="n">Request</span><span class="p">,</span> <span class="n">ResponseError</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
+
+<span class="c1"># Register a &quot;classic&quot; middleware, you able to use any ASGI middleware</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">middleware</span>
+<span class="k">def</span> <span class="nf">classic_middleware</span><span class="p">(</span><span class="n">app</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">handler</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;authorization&#39;</span><span class="p">]:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">UNAUTHORIZED</span><span class="p">()</span>
+            <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">handler</span>
+
+<span class="c1"># You also are able to register the middleware as: `app.middleware(classic_middleware)`</span>
+
+<span class="c1"># Register a &quot;simplier&quot; middleware</span>
+<span class="c1"># The middlewares is guaranted to get a response from app and should return a response</span>
+<span class="c1"># also</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">middleware</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">simple_middleware</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">app</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;x-agent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;SimpleX&#39;</span>
+    <span class="k">return</span> <span class="n">response</span>
+</pre></div>
+</div>
+<div class="admonition-middleware-exceptions admonition">
+<p class="admonition-title">Middleware Exceptions</p>
+<p>Any exception raised from an middleware wouldn’t be catched by the app</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>md</strong> (<em>F</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>F</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.App.route">
+<code class="sig-name descname">route</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.route"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.route" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a route.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.App.on_startup">
+<code class="sig-name descname">on_startup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_startup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.on_startup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a startup handler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fn</strong> (<em>Callable</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.App.on_shutdown">
+<code class="sig-name descname">on_shutdown</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_shutdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.on_shutdown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a shutdown handler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fn</strong> (<em>Callable</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="testclient">
 <h2>TestClient<a class="headerlink" href="#testclient" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="asgi_tools.tests.ASGITestClient">
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.tests.</code><code class="sig-name descname">ASGITestClient</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span></em>, <em class="sig-param"><span class="n">base_url</span><span class="o">=</span><span class="default_value">'http://localhost'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="asgi_tools.tests.ASGITestClient.request">
+<em class="property">async </em><code class="sig-name descname">request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'GET'</span></em>, <em class="sig-param"><span class="n">query</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">headers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">b''</span></em>, <em class="sig-param"><span class="n">json</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cookies</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">files</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">follow_redirect</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient.request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a http request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
+<li><p><strong>query</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Dict</em><em>]</em>) – </p></li>
+<li><p><strong>headers</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>data</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.9)"><em>bytes</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Dict</em><em>]</em>) – </p></li>
+<li><p><strong>json</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><em>None</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>List</em><em>[</em><em>Any</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>cookies</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>]</em>) – </p></li>
+<li><p><strong>files</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>]</em>) – </p></li>
+<li><p><strong>follow_redirect</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>asgi_tools.tests.TestResponse</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.tests.ASGITestClient.websocket">
+<code class="sig-name descname">websocket</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">query</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">headers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cookies</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient.websocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient.websocket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to a websocket.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
+<li><p><strong>query</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Dict</em><em>]</em>) – </p></li>
+<li><p><strong>headers</strong> (<em>Dict</em>) – </p></li>
+<li><p><strong>cookies</strong> (<em>Dict</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 

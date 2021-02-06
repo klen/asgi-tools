@@ -1,0 +1,569 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>asgi_tools.middleware &mdash; asgi-tools  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> asgi-tools
+          
+
+          
+            
+            <img src="../../_static/asgi-tools.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">asgi-tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>asgi_tools.middleware</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for asgi_tools.middleware</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;ASGI-Tools Middlewares.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span> <span class="nn">typing</span> <span class="k">as</span> <span class="nn">t</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span> <span class="nn">http_router</span> <span class="kn">import</span> <span class="n">Router</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">ASGIError</span>
+<span class="kn">from</span> <span class="nn">._types</span> <span class="kn">import</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Send</span>
+<span class="kn">from</span> <span class="nn">.request</span> <span class="kn">import</span> <span class="n">Request</span>
+<span class="kn">from</span> <span class="nn">.response</span> <span class="kn">import</span> <span class="n">ResponseHTML</span><span class="p">,</span> <span class="n">parse_response</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">,</span> <span class="n">ResponseFile</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">ResponseRedirect</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">to_awaitable</span>
+
+
+<span class="n">ASGIApp</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">Scope</span><span class="p">,</span> <span class="n">Request</span><span class="p">],</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Send</span><span class="p">],</span> <span class="n">t</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">BaseMiddeware</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for ASGI-Tools middlewares.&quot;&quot;&quot;</span>
+
+    <span class="n">scopes</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Set</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Sequence</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;http&#39;</span><span class="p">,</span> <span class="s1">&#39;websocket&#39;</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="n">ASGIApp</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save ASGI App.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle ASGI call.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scopes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">__process__</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Do the middleware&#39;s logic.&quot;&quot;&quot;</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Setup the middleware without an initialization.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">bind</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="n">ASGIApp</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Rebind the middleware to an ASGI application if it has been inited already.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="n">app</span> <span class="ow">or</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="s2">&quot;Not Found&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<div class="viewcode-block" id="ResponseMiddleware"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseMiddleware">[docs]</a><span class="k">class</span> <span class="nc">ResponseMiddleware</span><span class="p">(</span><span class="n">BaseMiddeware</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Automatically convert ASGI_ apps results into responses :class:`~asgi_tools.Response` and</span>
+<span class="sd">    send them to server as ASGI_ messages.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import ResponseMiddleware, ResponseText, ResponseRedirect</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            # ResponseMiddleware catches ResponseError, ResponseRedirect and convert the exceptions</span>
+<span class="sd">            # into HTTP response</span>
+<span class="sd">            if scope[&#39;path&#39;] == &#39;/user&#39;:</span>
+<span class="sd">                raise ResponseRedirect(&#39;/login&#39;)</span>
+
+<span class="sd">            # Return ResponseHTML</span>
+<span class="sd">            if scope[&#39;method&#39;] == &#39;GET&#39;:</span>
+<span class="sd">                return &#39;&lt;b&gt;HTML is here&lt;/b&gt;&#39;</span>
+
+<span class="sd">            # Return ResponseJSON</span>
+<span class="sd">            if scope[&#39;method&#39;] == &#39;POST&#39;:</span>
+<span class="sd">                return {&#39;json&#39;: &#39;here&#39;}</span>
+
+<span class="sd">            # Return any response explicitly</span>
+<span class="sd">            if scope[&#39;method&#39;] == &#39;PUT&#39;:</span>
+<span class="sd">                return ResponseText(&#39;response is here&#39;)</span>
+
+<span class="sd">            # Short form to responses: (status_code, body) or (status_code, body, headers)</span>
+<span class="sd">            return 405, &#39;Unknown method&#39;</span>
+
+<span class="sd">        app = ResponseMiddleware(app)</span>
+
+<span class="sd">    The conversion rules:</span>
+
+<span class="sd">    * :class:`Response` results will be left as is</span>
+<span class="sd">    * ``dict``, ``list``, ``int``, ``bool``, ``None`` results will be converted into :class:`ResponseJSON`</span>
+<span class="sd">    * ``str``, ``bytes`` results will be converted into :class:`ResponseHTML`</span>
+<span class="sd">    * ``tuple[int, Any, dict]`` will be converted into a :class:`Response` with ``int`` status code, ``dict`` will be used as headers, ``Any`` will be used to define the response&#39;s type</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import ResponseMiddleware</span>
+
+<span class="sd">        # The result will be converted into HTML 404 response with the &#39;Not Found&#39; body</span>
+<span class="sd">        async def app(request, receive, send):</span>
+<span class="sd">            return 404, &#39;Not Found&#39;</span>
+
+<span class="sd">        app = ResponseMiddleware(app)</span>
+
+<span class="sd">    You are able to raise :class:`ResponseError` from yours ASGI_ apps and it will be catched and returned as a response</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle ASGI call.&quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">__process__</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">Response</span><span class="p">):</span>
+            <span class="k">async</span> <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse responses from callbacks.&quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;websocket&#39;</span><span class="p">:</span>
+                <span class="k">return</span>
+
+            <span class="c1"># Prepare a response</span>
+            <span class="k">return</span> <span class="n">parse_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="p">(</span><span class="n">ResponseError</span><span class="p">,</span> <span class="n">ResponseRedirect</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">exc</span></div>
+
+
+<div class="viewcode-block" id="RequestMiddleware"><a class="viewcode-back" href="../../api.html#asgi_tools.RequestMiddleware">[docs]</a><span class="k">class</span> <span class="nc">RequestMiddleware</span><span class="p">(</span><span class="n">BaseMiddeware</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Automatically create :class:`asgi_tools.Request` from the scope and pass it to ASGI_ apps.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import RequestMiddleware, Response</span>
+
+<span class="sd">        async def app(request, receive, send):</span>
+<span class="sd">            content = f&quot;{ request.method } { request.url.path }&quot;</span>
+<span class="sd">            response = Response(content)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">        app = RequestMiddleware(app)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Replace scope with request object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">),</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LifespanMiddleware"><a class="viewcode-back" href="../../api.html#asgi_tools.LifespanMiddleware">[docs]</a><span class="k">class</span> <span class="nc">LifespanMiddleware</span><span class="p">(</span><span class="n">BaseMiddeware</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Manage ASGI_ Lifespan events.</span>
+
+<span class="sd">    :param on_startup: the list of callables to run when the app is starting</span>
+<span class="sd">    :param on_shutdown: the list of callables to run when the app is finishing</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import LifespanMiddleware, Response</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            response = Response(&#39;OK&#39;)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">        app = lifespan = LifespanMiddleware(app)</span>
+
+<span class="sd">        @lifespan.on_startup</span>
+<span class="sd">        async def start():</span>
+<span class="sd">            print(&#39;The app is starting&#39;)</span>
+
+<span class="sd">        @lifespan.on_shutdown</span>
+<span class="sd">        async def start():</span>
+<span class="sd">            print(&#39;The app is finishing&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">scopes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;lifespan&#39;</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="n">ASGIApp</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">on_startup</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">on_shutdown</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Prepare the middleware.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">LifespanMiddleware</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_startup</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shutdown</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__register__</span><span class="p">(</span><span class="n">on_startup</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_startup</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__register__</span><span class="p">(</span><span class="n">on_shutdown</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shutdown</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Manage lifespan cycle.&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">receive</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">message</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.startup&#39;</span><span class="p">:</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">__startup__</span><span class="p">()</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan.startup.complete&#39;</span><span class="p">})</span>
+
+            <span class="k">elif</span> <span class="n">message</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.shutdown&#39;</span><span class="p">:</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shutdown__</span><span class="p">()</span>
+                <span class="k">return</span> <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan.shutdown.complete&#39;</span><span class="p">})</span>
+
+    <span class="k">def</span> <span class="nf">__register__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handlers</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">],</span> <span class="kc">None</span><span class="p">],</span>
+                     <span class="n">container</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Register lifespan handlers.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">handlers</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">handlers</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span><span class="n">handlers</span><span class="p">]</span>
+
+        <span class="n">container</span> <span class="o">+=</span> <span class="p">[</span><span class="n">to_awaitable</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">handlers</span><span class="p">]</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">__startup__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Run startup callbacks.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_startup</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">fn</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">__shutdown__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Run shutdown callbacks.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shutdown</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">fn</span><span class="p">()</span>
+
+<div class="viewcode-block" id="LifespanMiddleware.on_startup"><a class="viewcode-back" href="../../api.html#asgi_tools.LifespanMiddleware.on_startup">[docs]</a>    <span class="k">def</span> <span class="nf">on_startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add a function to startup.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__register__</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_startup</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LifespanMiddleware.on_shutdown"><a class="viewcode-back" href="../../api.html#asgi_tools.LifespanMiddleware.on_shutdown">[docs]</a>    <span class="k">def</span> <span class="nf">on_shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add a function to shutdown.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__register__</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shutdown</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="RouterMiddleware"><a class="viewcode-back" href="../../api.html#asgi_tools.RouterMiddleware">[docs]</a><span class="k">class</span> <span class="nc">RouterMiddleware</span><span class="p">(</span><span class="n">BaseMiddeware</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Manage routing.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import RouterMiddleware, ResponseHTML, ResponseError</span>
+
+<span class="sd">        async def default_app(scope, receive, send):</span>
+<span class="sd">            response = ResponseError.NOT_FOUND()</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">        app = router = RouterMiddleware(default_app)</span>
+
+<span class="sd">        @router.route(&#39;/status&#39;)</span>
+<span class="sd">        async def status(scope, receive, send):</span>
+<span class="sd">            response = ResponseHTML(&#39;STATUS OK&#39;)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">        # Bind methods</span>
+<span class="sd">        # ------------</span>
+<span class="sd">        @router.route(&#39;/only-post&#39;, methods=[&#39;POST&#39;])</span>
+<span class="sd">        async def only_post(scope, receive, send):</span>
+<span class="sd">            response = ResponseHTML(&#39;POST OK&#39;)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">        # Regexp paths</span>
+<span class="sd">        # ------------</span>
+
+<span class="sd">        @router.route(r&#39;/\d+/?&#39;)</span>
+<span class="sd">        async def num(scope, receive, send):</span>
+<span class="sd">            num = int(scope[&#39;path&#39;].strip(&#39;/&#39;))</span>
+<span class="sd">            response = ResponseHTML(f&#39;Number { num }&#39;)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">        # Dynamic paths</span>
+<span class="sd">        # -------------</span>
+
+<span class="sd">        @router.route(&#39;/hello/{name}&#39;)</span>
+<span class="sd">        async def hello(scope, receive, send):</span>
+<span class="sd">            name = scope[&#39;path_params&#39;][&#39;name&#39;]</span>
+<span class="sd">            response = ResponseHTML(f&#39;Hello { name.title() }&#39;)</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">        # Set regexp for params</span>
+<span class="sd">        @router.route(r&#39;/multiply/{first:\d+}/{second:\d+}&#39;)</span>
+<span class="sd">        async def multiply(scope, receive, send):</span>
+<span class="sd">            first, second = map(int, scope[&#39;path_params&#39;].values())</span>
+<span class="sd">            response = ResponseHTML(str(first * second))</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">    Path parameters are made available in the scope, as the `scope[&#39;path_params&#39;]` dictionary.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="n">ASGIApp</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">router</span><span class="p">:</span> <span class="n">Router</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialize HTTP router. &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">RouterMiddleware</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">router</span> <span class="ow">or</span> <span class="n">Router</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get an app and process.&quot;&quot;&quot;</span>
+        <span class="n">app</span><span class="p">,</span> <span class="n">path_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dispatch__</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">app</span><span class="p">):</span>
+            <span class="n">app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span>
+
+        <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path_params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">path_params</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__dispatch__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Any</span><span class="p">],</span> <span class="n">t</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Mapping</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Lookup for a callback.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;root_path&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">],</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">callback</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">path_params</span>
+
+        <span class="k">except</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">RouterError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">,</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">route</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register a route.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="StaticFilesMiddleware"><a class="viewcode-back" href="../../api.html#asgi_tools.StaticFilesMiddleware">[docs]</a><span class="k">class</span> <span class="nc">StaticFilesMiddleware</span><span class="p">(</span><span class="n">BaseMiddeware</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Serve static files.</span>
+
+<span class="sd">    :param url_prefix:  an URL prefix for static files</span>
+<span class="sd">    :type url_prefix: str, &quot;/static&quot;</span>
+<span class="sd">    :param folders: Paths to folders with static files</span>
+<span class="sd">    :type folders: list[str]</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import StaticFilesMiddleware, ResponseHTML</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            response = ResponseHTML(&#39;OK)</span>
+
+<span class="sd">        app = StaticFilesMiddleware(app, folders=[&#39;static&#39;])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="n">ASGIApp</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">url_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;/static&#39;</span><span class="p">,</span>
+                 <span class="n">folders</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the middleware. &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">StaticFilesMiddleware</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">url_prefix</span> <span class="o">=</span> <span class="n">url_prefix</span>
+        <span class="n">folders</span> <span class="o">=</span> <span class="n">folders</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">folders</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">folders</span> <span class="o">=</span> <span class="p">[</span><span class="n">folders</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folders</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span> <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">folders</span><span class="p">]</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Serve static files for self url prefix.&quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">folders</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url_prefix</span><span class="p">):</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url_prefix</span><span class="p">):]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">folders</span><span class="p">:</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="n">folder</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">Response</span><span class="p">]</span> <span class="o">=</span> <span class="n">ResponseFile</span><span class="p">(</span>
+                    <span class="n">filepath</span><span class="p">,</span> <span class="n">headers_only</span><span class="o">=</span><span class="n">scope</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;HEAD&#39;</span><span class="p">)</span>
+                <span class="k">break</span>
+
+            <span class="k">except</span> <span class="n">ASGIError</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">response</span> <span class="ow">or</span> <span class="n">ResponseError</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span>
+
+        <span class="k">async</span> <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+<span class="c1"># pylama: ignore=E501</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Kirill Klenov.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
