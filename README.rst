@@ -12,6 +12,10 @@
     :target: https://github.com/klen/asgi-tools/actions
     :alt: Tests Status
 
+.. image:: https://github.com/klen/asgi-tools/workflows/docs/badge.svg
+    :target: https://klen.github.io/asgi-tools
+    :alt: Documentation Status
+
 .. image:: https://img.shields.io/pypi/v/asgi-tools
     :target: https://pypi.org/project/asgi-tools/
     :alt: PYPI Version
@@ -19,6 +23,10 @@
 .. image:: https://img.shields.io/pypi/pyversions/asgi-tools
     :target: https://pypi.org/project/asgi-tools/
     :alt: Python Versions
+
+.. _documentation:
+
+Documentation is here: https://klen.github.io/asgi-tools
 
 .. _features:
 
@@ -55,103 +63,6 @@ Installation
 **asgi-tools** should be installed using pip: ::
 
     pip install asgi-tools
-
-
-Usage
-=====
-
-`asgi_tools.Request`, `asgi_tools.Response`
---------------------------------------------
-
-Parse HTTP Request data from a scope and return it as JSON response:
-
-.. code-block:: python
-
-    import json
-    from asgi_tools import Request, Response
-
-    async def app(scope, receive, send):
-        if scope['type'] != 'http':
-            return
-
-        # Parse scope
-        request = Request(scope, receive, send)
-        request_data = {
-
-            # Get full URL
-            "url": str(request.url),
-
-            "charset": request.charset,
-
-            # Get headers
-            "headers": {**request.headers},
-
-            # Get query params
-            "query": dict(request.url.query),
-
-            # Get cookies
-            "cookies": dict(request.cookies),
-
-        }
-
-        # Create a response (ResponseHTML, ResponseText, ResponseJSON, ResponseStream, ResponseFile, ResponseRedirect also available)
-        response = Response(json.dumps(request_data), content_type="application/json")
-
-        # Send ASGI messages
-        return await response(scope, receive, send)
-
-
-Response/Request Middlewares
------------------------------
-
-Automatically convert a scope into a ``asgi_tools.Request``
-
-.. code-block:: python
-
-    from asgi_tools import RequestMiddleware, ResponseHTML
-
-    async def app(request, receive, send):
-        # We will get a parsed request here
-        data = await request.json()
-        response = ResponseHTML(data['name'])
-        return await response(request, receive, send)
-
-    app = RequestMiddleware(app)
-
-
-Automatically parse an result from asgi apps and convert it into a ``asgi_tools.Response``
-
-.. code-block:: python
-
-    from asgi_tools import ResponseMiddleware
-
-    async def app(request, receive, send):
-        return "Hello World!"
-
-    app = ResponseMiddleware(app)
-
-
-Router Middleware
-------------------
-
-Route HTTP requests
-
-.. code-block:: python
-
-    from http_router import Router
-    from asgi_tools import RouterMiddleware, RequestMiddleware, ResponseMiddleware
-
-    router = Router()
-
-    @router.route('/page1')
-    async def page1(request, receive, send):
-        return 'page1'
-
-    @router.route('/page2')
-    async def page2(request, receive, send):
-        return 'page2'
-
-    # TODO
 
 
 .. _bugtracker:
