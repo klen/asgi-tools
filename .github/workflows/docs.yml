@@ -16,3 +16,4 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         create_readme: true
         install_extensions: false
+        source_dir: docs
