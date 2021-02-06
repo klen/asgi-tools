@@ -23,11 +23,11 @@
     :target: https://pypi.org/project/asgi-tools/
     :alt: Python Versions
 
+----------
+
 .. _documentation:
 
 **Documentation is here**: https://klen.github.io/asgi-tools
-
-----------
 
 .. _features:
 
