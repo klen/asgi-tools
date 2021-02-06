@@ -5,7 +5,7 @@ Python Version
 --------------
 
 We recommend using the latest version of Python. **ASGI-Tools** supports Python
-3.6 and newer.
+3.7 and newer.
 
 
 Dependencies
