@@ -4,29 +4,20 @@ import asyncio
 import inspect
 import sys
 import typing as t
+from contextlib import asynccontextmanager
 
 from sniffio import current_async_library
 
 
 # Python 3.8+
 if sys.version_info >= (3, 8):
-    from contextlib import asynccontextmanager
     from functools import cached_property  # noqa
     from typing import TypedDict  # noqa
 
     create_task = asyncio.create_task
 
 # Python 3.7
-elif sys.version_info >= (3, 7):
-    from contextlib import asynccontextmanager
-    from cached_property import cached_property  # noqa
-    from typing_extensions import TypedDict  # noqa
-
-    create_task = asyncio.ensure_future
-
-# Python 3.6
 else:
-    from async_generator import asynccontextmanager  # type: ignore # noqa
     from cached_property import cached_property  # noqa
     from typing_extensions import TypedDict  # noqa
 

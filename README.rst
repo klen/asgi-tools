@@ -54,7 +54,7 @@
 Requirements
 =============
 
-- python >= 3.6
+- python >= 3.7
 
 .. _installation:
 
