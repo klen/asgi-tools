@@ -245,7 +245,7 @@
 
 <span class="sd">    The conversion rules:</span>
 
-<span class="sd">    * :class:`Response` results will be left as is</span>
+<span class="sd">    * :class:`Response` objects will be directly returned from the view</span>
 <span class="sd">    * ``dict``, ``list``, ``int``, ``bool``, ``None`` results will be converted into :class:`ResponseJSON`</span>
 <span class="sd">    * ``str``, ``bytes`` results will be converted into :class:`ResponseHTML`</span>
 <span class="sd">    * ``tuple[int, Any, dict]`` will be converted into a :class:`Response` with ``int`` status code, ``dict`` will be used as headers, ``Any`` will be used to define the response&#39;s type</span>
@@ -400,7 +400,7 @@
 
 <span class="sd">        app = router = RouterMiddleware(default_app)</span>
 
-<span class="sd">        @router.route(&#39;/status&#39;)</span>
+<span class="sd">        @router.route(&#39;/status&#39;, &#39;/stat&#39;)</span>
 <span class="sd">        async def status(scope, receive, send):</span>
 <span class="sd">            response = ResponseHTML(&#39;STATUS OK&#39;)</span>
 <span class="sd">            await response(scope, receive, send)</span>
@@ -437,7 +437,7 @@
 <span class="sd">            response = ResponseHTML(str(first * second))</span>
 <span class="sd">            await response(scope, receive, send)</span>
 
-<span class="sd">    Path parameters are made available in the scope, as the `scope[&#39;path_params&#39;]` dictionary.</span>
+<span class="sd">    Path parameters are made available in the request/scope, as the ``path_params`` dictionary.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 

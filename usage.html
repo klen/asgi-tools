@@ -338,7 +338,7 @@ class; to abort a request early with an error code, use the
 the index to a page they cannot access (401 means access denied) but it
 shows how that works.</p>
 <p>By default only description is shown for each error code.  If you want to
-customize the error page, you can use the <code class="xref py py-meth docutils literal notranslate"><span class="pre">on_error()</span></code>
+customize the error page, you can use the <a class="reference internal" href="api.html#asgi_tools.App.on_error" title="asgi_tools.App.on_error"><code class="xref py py-meth docutils literal notranslate"><span class="pre">on_error()</span></code></a>
 decorator:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">on_error</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">page_not_found</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>

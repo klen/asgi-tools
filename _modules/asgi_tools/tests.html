@@ -169,7 +169,7 @@
 <span class="kn">from</span> <span class="nn">yarl</span> <span class="kn">import</span> <span class="n">URL</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">ASGIConnectionClosed</span>
-<span class="kn">from</span> <span class="nn">._compat</span> <span class="kn">import</span> <span class="n">aio_sleep</span><span class="p">,</span> <span class="n">aio_spawn</span><span class="p">,</span> <span class="n">asynccontextmanager</span>
+<span class="kn">from</span> <span class="nn">._compat</span> <span class="kn">import</span> <span class="n">aio_sleep</span><span class="p">,</span> <span class="n">aio_spawn</span><span class="p">,</span> <span class="n">asynccontextmanager</span><span class="p">,</span> <span class="n">wait_for_first</span>
 <span class="kn">from</span> <span class="nn">._types</span> <span class="kn">import</span> <span class="n">JSONType</span><span class="p">,</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Send</span><span class="p">,</span> <span class="n">Message</span>
 <span class="kn">from</span> <span class="nn">.middleware</span> <span class="kn">import</span> <span class="n">ASGIApp</span>
 <span class="kn">from</span> <span class="nn">.response</span> <span class="kn">import</span> <span class="n">Response</span><span class="p">,</span> <span class="n">ResponseWebSocket</span><span class="p">,</span> <span class="n">parse_websocket_msg</span>
@@ -236,6 +236,9 @@
             <span class="k">raise</span> <span class="n">ASGIConnectionClosed</span>
 
         <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;websocket.&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid websocket message: </span><span class="si">%r</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;websocket.accept&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">connected</span>
             <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">)</span>
@@ -248,6 +251,18 @@
 
 
 <div class="viewcode-block" id="ASGITestClient"><a class="viewcode-back" href="../../api.html#asgi_tools.tests.ASGITestClient">[docs]</a><span class="k">class</span> <span class="nc">ASGITestClient</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;The test client allows you to make requests against an ASGI application.</span>
+
+<span class="sd">    Features:</span>
+
+<span class="sd">    * cookies</span>
+<span class="sd">    * multipart/form-data</span>
+<span class="sd">    * follow redirects</span>
+<span class="sd">    * response streams</span>
+<span class="sd">    * request streams</span>
+<span class="sd">    * websocket support</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="n">ASGIApp</span><span class="p">,</span> <span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;http://localhost&#39;</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="n">app</span>
@@ -258,13 +273,29 @@
     <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
 
-    <span class="c1"># TODO: Request/Response Streams</span>
 <div class="viewcode-block" id="ASGITestClient.request"><a class="viewcode-back" href="../../api.html#asgi_tools.tests.ASGITestClient.request">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">request</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
             <span class="n">headers</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
             <span class="n">json</span><span class="p">:</span> <span class="n">JSONType</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cookies</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">follow_redirect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TestResponse</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Make a http request.&quot;&quot;&quot;</span>
+            <span class="n">follow_redirect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TestResponse</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Make a HTTP request.</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from asgi_tools import App, ASGITestClient</span>
+
+<span class="sd">            app = Application()</span>
+
+<span class="sd">            @app.route(&#39;/&#39;)</span>
+<span class="sd">            async def index(request):</span>
+<span class="sd">                return &#39;OK&#39;</span>
+
+<span class="sd">            async def test_app():</span>
+<span class="sd">                client = ASGITestClient(app)</span>
+<span class="sd">                response = await client.get(&#39;/&#39;)</span>
+<span class="sd">                assert response.status_code == 200</span>
+<span class="sd">                assert await response.text() == &#39;OK&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">res</span> <span class="o">=</span> <span class="n">TestResponse</span><span class="p">()</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
@@ -296,7 +327,10 @@
             <span class="n">path</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">cookies</span><span class="o">=</span><span class="n">cookies</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;http&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive_from_client</span><span class="p">,</span> <span class="n">send_to_client</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">wait_for_first</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive_from_client</span><span class="p">,</span> <span class="n">send_to_client</span><span class="p">),</span>
+            <span class="n">raise_timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span>
+        <span class="p">)</span>
         <span class="k">await</span> <span class="n">send_to_client</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;http.response.body&#39;</span><span class="p">,</span> <span class="s1">&#39;more_body&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
         <span class="k">await</span> <span class="n">res</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive_from_app</span><span class="p">,</span> <span class="n">send_to_app</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -307,10 +341,32 @@
 
         <span class="k">return</span> <span class="n">res</span></div>
 
+    <span class="c1"># TODO: Timeouts for websockets</span>
 <div class="viewcode-block" id="ASGITestClient.websocket"><a class="viewcode-back" href="../../api.html#asgi_tools.tests.ASGITestClient.websocket">[docs]</a>    <span class="nd">@asynccontextmanager</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">websocket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                         <span class="n">headers</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cookies</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Connect to a websocket.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Connect to a websocket.</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from asgi_tools import App, ASGITestClient, ResponseWebSocket</span>
+
+<span class="sd">            app = Application()</span>
+
+<span class="sd">            @app.route(&#39;/websocket&#39;)</span>
+<span class="sd">            async def websocket(request):</span>
+<span class="sd">                async with ResponseWebSocket(request) as ws:</span>
+<span class="sd">                    msg = await ws.receive()</span>
+<span class="sd">                    assert msg == &#39;ping&#39;</span>
+<span class="sd">                    await ws.send(&#39;pong&#39;)</span>
+
+<span class="sd">            async def test_app():</span>
+<span class="sd">                client = ASGITestClient(app)</span>
+<span class="sd">                await ws.send(&#39;ping&#39;)</span>
+<span class="sd">                msg = await ws.receive()</span>
+<span class="sd">                assert msg == &#39;pong&#39;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">receive_from_client</span><span class="p">,</span> <span class="n">send_to_app</span> <span class="o">=</span> <span class="n">simple_stream</span><span class="p">()</span>
         <span class="n">receive_from_app</span><span class="p">,</span> <span class="n">send_to_client</span> <span class="o">=</span> <span class="n">simple_stream</span><span class="p">()</span>
 
@@ -393,6 +449,11 @@
         <span class="k">return</span> <span class="n">queue</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">receive</span><span class="p">,</span> <span class="n">to_awaitable</span><span class="p">(</span><span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">)</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">raise_timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">):</span>
+    <span class="k">await</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TimeoutError</span><span class="p">(</span><span class="s1">&#39;Timeout occured&#39;</span><span class="p">)</span>
 
 <span class="c1"># pylama:ignore=D</span>
 </pre></div>

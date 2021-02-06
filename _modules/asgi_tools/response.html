@@ -607,12 +607,10 @@
 <span class="sd">        from asgi_tools import ResponseWebsocket</span>
 
 <span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            ws = ResponseWebSocket(scope, receive, send)</span>
-<span class="sd">            await ws.accept()</span>
-<span class="sd">            msg = await ws.receive()</span>
-<span class="sd">            assert msg == &#39;ping&#39;</span>
-<span class="sd">            await ws.send(&#39;pong&#39;)</span>
-<span class="sd">            await ws.close()</span>
+<span class="sd">            async with ResponseWebSocket(scope, receive, send) as ws:</span>
+<span class="sd">                msg = await ws.receive()</span>
+<span class="sd">                assert msg == &#39;ping&#39;</span>
+<span class="sd">                await ws.send(&#39;pong&#39;)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -638,6 +636,15 @@
     <span class="k">async</span> <span class="k">def</span> <span class="fm">__aiter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">[</span><span class="n">Message</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Close websocket if the response has been returned.&quot;&quot;&quot;</span>
         <span class="k">yield</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;websocket.close&#39;</span><span class="p">}</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__aenter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Use it as async context manager.&quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__aexit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Use it as async context manager.&quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">connected</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
