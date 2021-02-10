@@ -118,24 +118,7 @@ class ASGITestClient:
             headers: t.Dict[str, str] = None, data: t.Union[bytes, str, t.Dict] = b'',
             json: JSONType = None, cookies: t.Dict = None, files: t.Dict = None,
             follow_redirect: bool = True, timeout: float = 0.3) -> TestResponse:
-        """Make a HTTP request.
-
-        .. code-block:: python
-
-            from asgi_tools import App, ASGITestClient
-
-            app = Application()
-
-            @app.route('/')
-            async def index(request):
-                return 'OK'
-
-            async def test_app():
-                client = ASGITestClient(app)
-                response = await client.get('/')
-                assert response.status_code == 200
-                assert await response.text() == 'OK'
-        """
+        """Make a HTTP request."""
 
         res = TestResponse()
         headers = headers or dict(self.headers)
@@ -185,28 +168,7 @@ class ASGITestClient:
     @asynccontextmanager
     async def websocket(self, path: str, query: t.Union[str, t.Dict] = None,
                         headers: t.Dict = None, cookies: t.Dict = None):
-        """Connect to a websocket.
-
-        .. code-block:: python
-
-            from asgi_tools import App, ASGITestClient, ResponseWebSocket
-
-            app = Application()
-
-            @app.route('/websocket')
-            async def websocket(request):
-                async with ResponseWebSocket(request) as ws:
-                    msg = await ws.receive()
-                    assert msg == 'ping'
-                    await ws.send('pong')
-
-            async def test_app():
-                client = ASGITestClient(app)
-                await ws.send('ping')
-                msg = await ws.receive()
-                assert msg == 'pong'
-
-        """
+        """Connect to a websocket."""
         receive_from_client, send_to_app = simple_stream()
         receive_from_app, send_to_client = simple_stream()
 

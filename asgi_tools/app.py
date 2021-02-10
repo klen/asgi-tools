@@ -185,44 +185,7 @@ class App:
         return exc if isinstance(exc, Response) else ...
 
     def middleware(self, md: F) -> F:
-        """Register a middleware.
-
-        The :meth:`App.middleware` supports two types of middlewares, see below:
-
-        .. code-block:: python
-
-            from asgi_tools import App, Request, ResponseError
-
-            app = App()
-
-            # Register a "classic" middleware, you able to use any ASGI middleware
-            @app.middleware
-            def classic_middleware(app):
-                async def handler(scope, receive, send):
-                    if not Request(scope).headers['authorization']:
-                        response = ResponseError.UNAUTHORIZED()
-                        await response(scope, receive, send)
-                    else:
-                        await app(scope, receive, send)
-
-                return handler
-
-            # You also are able to register the middleware as: `app.middleware(classic_middleware)`
-
-            # Register a "simplier" middleware
-            # The middlewares is guaranted to get a response from app and should return a response
-            # also
-            @app.middleware
-            async def simple_middleware(app, request, receive, send):
-                response = await app(request, receive, send)
-                response.headers['x-agent'] = 'SimpleX'
-                return response
-
-        .. admonition:: Middleware Exceptions
-
-            Any exception raised from an middleware wouldn't be catched by the app
-
-        """
+        """Register a middleware."""
         # Register as a simple middleware
         if iscoroutinefunction(md):
             self.__internal__.bind(partial(md, self.__internal__.app))

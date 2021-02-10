@@ -300,13 +300,95 @@ Application
 -----------
 
 .. autoclass:: App
-   :members: middleware, on_startup, on_shutdown, on_error, route
+
+   .. automethod:: route
+
+   .. automethod:: on_startup
+
+   .. automethod:: on_shutdown
+
+   .. automethod:: on_error
+
+   .. automethod:: middleware
+
+        The :meth:`App.middleware` supports two types of middlewares, see below:
+
+        .. code-block:: python
+
+            from asgi_tools import App, Request, ResponseError
+
+            app = App()
+
+            # Register a "classic" middleware, you able to use any ASGI middleware
+            @app.middleware
+            def classic_middleware(app):
+                async def handler(scope, receive, send):
+                    if not Request(scope).headers['authorization']:
+                        response = ResponseError.UNAUTHORIZED()
+                        await response(scope, receive, send)
+                    else:
+                        await app(scope, receive, send)
+
+                return handler
+
+            # You also are able to register the middleware as: `app.middleware(classic_middleware)`
+
+            # Register a "simplier" middleware
+            # The middlewares is guaranted to get a response from app and should return a response
+            # also
+            @app.middleware
+            async def simple_middleware(app, request, receive, send):
+                response = await app(request, receive, send)
+                response.headers['x-agent'] = 'SimpleX'
+                return response
+
+        .. admonition:: Middleware Exceptions
+
+            Any exception raised from an middleware wouldn't be catched by the app
 
 TestClient
 -----------
 
 .. autoclass:: asgi_tools.tests.ASGITestClient
-   :members: request, websocket
+
+   .. automethod:: request
+
+        .. code-block:: python
+
+            from asgi_tools import App, ASGITestClient
+
+            app = Application()
+
+            @app.route('/')
+            async def index(request):
+                return 'OK'
+
+            async def test_app():
+                client = ASGITestClient(app)
+                response = await client.get('/')
+                assert response.status_code == 200
+                assert await response.text() == 'OK'
+
+   .. automethod:: websocket
+
+        .. code-block:: python
+
+            from asgi_tools import App, ASGITestClient, ResponseWebSocket
+
+            app = Application()
+
+            @app.route('/websocket')
+            async def websocket(request):
+                async with ResponseWebSocket(request) as ws:
+                    msg = await ws.receive()
+                    assert msg == 'ping'
+                    await ws.send('pong')
+
+            async def test_app():
+                client = ASGITestClient(app)
+                await ws.send('ping')
+                msg = await ws.receive()
+                assert msg == 'pong'
 
 
 .. Links
