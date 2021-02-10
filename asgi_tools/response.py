@@ -12,7 +12,6 @@ from mimetypes import guess_type
 from pathlib import Path
 from urllib.parse import quote_plus
 
-from multidict import CIMultiDict
 from sniffio import current_async_library
 
 from . import DEFAULT_CHARSET, ASGIError, ASGIConnectionClosed
@@ -34,7 +33,7 @@ class Response:
     :type content_type: str
     """
 
-    headers: CIMultiDict  #: Multidict of response's headers
+    headers: dict  #: A dictionary of response's headers
     cookies: cookies.SimpleCookie
     """ Set/Update cookies
 
