@@ -345,44 +345,7 @@
         <span class="k">return</span> <span class="n">exc</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="n">Response</span><span class="p">)</span> <span class="k">else</span> <span class="o">...</span>
 
 <div class="viewcode-block" id="App.middleware"><a class="viewcode-back" href="../../api.html#asgi_tools.App.middleware">[docs]</a>    <span class="k">def</span> <span class="nf">middleware</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">md</span><span class="p">:</span> <span class="n">F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">F</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Register a middleware.</span>
-
-<span class="sd">        The :meth:`App.middleware` supports two types of middlewares, see below:</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from asgi_tools import App, Request, ResponseError</span>
-
-<span class="sd">            app = App()</span>
-
-<span class="sd">            # Register a &quot;classic&quot; middleware, you able to use any ASGI middleware</span>
-<span class="sd">            @app.middleware</span>
-<span class="sd">            def classic_middleware(app):</span>
-<span class="sd">                async def handler(scope, receive, send):</span>
-<span class="sd">                    if not Request(scope).headers[&#39;authorization&#39;]:</span>
-<span class="sd">                        response = ResponseError.UNAUTHORIZED()</span>
-<span class="sd">                        await response(scope, receive, send)</span>
-<span class="sd">                    else:</span>
-<span class="sd">                        await app(scope, receive, send)</span>
-
-<span class="sd">                return handler</span>
-
-<span class="sd">            # You also are able to register the middleware as: `app.middleware(classic_middleware)`</span>
-
-<span class="sd">            # Register a &quot;simplier&quot; middleware</span>
-<span class="sd">            # The middlewares is guaranted to get a response from app and should return a response</span>
-<span class="sd">            # also</span>
-<span class="sd">            @app.middleware</span>
-<span class="sd">            async def simple_middleware(app, request, receive, send):</span>
-<span class="sd">                response = await app(request, receive, send)</span>
-<span class="sd">                response.headers[&#39;x-agent&#39;] = &#39;SimpleX&#39;</span>
-<span class="sd">                return response</span>
-
-<span class="sd">        .. admonition:: Middleware Exceptions</span>
-
-<span class="sd">            Any exception raised from an middleware wouldn&#39;t be catched by the app</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Register a middleware.&quot;&quot;&quot;</span>
         <span class="c1"># Register as a simple middleware</span>
         <span class="k">if</span> <span class="n">iscoroutinefunction</span><span class="p">(</span><span class="n">md</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__internal__</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">md</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal__</span><span class="o">.</span><span class="n">app</span><span class="p">))</span>

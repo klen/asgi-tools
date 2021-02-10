@@ -278,24 +278,7 @@
             <span class="n">headers</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
             <span class="n">json</span><span class="p">:</span> <span class="n">JSONType</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cookies</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">follow_redirect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TestResponse</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Make a HTTP request.</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from asgi_tools import App, ASGITestClient</span>
-
-<span class="sd">            app = Application()</span>
-
-<span class="sd">            @app.route(&#39;/&#39;)</span>
-<span class="sd">            async def index(request):</span>
-<span class="sd">                return &#39;OK&#39;</span>
-
-<span class="sd">            async def test_app():</span>
-<span class="sd">                client = ASGITestClient(app)</span>
-<span class="sd">                response = await client.get(&#39;/&#39;)</span>
-<span class="sd">                assert response.status_code == 200</span>
-<span class="sd">                assert await response.text() == &#39;OK&#39;</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Make a HTTP request.&quot;&quot;&quot;</span>
 
         <span class="n">res</span> <span class="o">=</span> <span class="n">TestResponse</span><span class="p">()</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
@@ -345,28 +328,7 @@
 <div class="viewcode-block" id="ASGITestClient.websocket"><a class="viewcode-back" href="../../api.html#asgi_tools.tests.ASGITestClient.websocket">[docs]</a>    <span class="nd">@asynccontextmanager</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">websocket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                         <span class="n">headers</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cookies</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Connect to a websocket.</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from asgi_tools import App, ASGITestClient, ResponseWebSocket</span>
-
-<span class="sd">            app = Application()</span>
-
-<span class="sd">            @app.route(&#39;/websocket&#39;)</span>
-<span class="sd">            async def websocket(request):</span>
-<span class="sd">                async with ResponseWebSocket(request) as ws:</span>
-<span class="sd">                    msg = await ws.receive()</span>
-<span class="sd">                    assert msg == &#39;ping&#39;</span>
-<span class="sd">                    await ws.send(&#39;pong&#39;)</span>
-
-<span class="sd">            async def test_app():</span>
-<span class="sd">                client = ASGITestClient(app)</span>
-<span class="sd">                await ws.send(&#39;ping&#39;)</span>
-<span class="sd">                msg = await ws.receive()</span>
-<span class="sd">                assert msg == &#39;pong&#39;</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Connect to a websocket.&quot;&quot;&quot;</span>
         <span class="n">receive_from_client</span><span class="p">,</span> <span class="n">send_to_app</span> <span class="o">=</span> <span class="n">simple_stream</span><span class="p">()</span>
         <span class="n">receive_from_app</span><span class="p">,</span> <span class="n">send_to_client</span> <span class="o">=</span> <span class="n">simple_stream</span><span class="p">()</span>
 

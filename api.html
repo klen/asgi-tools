@@ -862,6 +862,50 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </dd>
 </dl>
 <dl class="py method">
+<dt id="asgi_tools.App.route">
+<code class="sig-name descname">route</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.route"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.route" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a route.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.App.on_startup">
+<code class="sig-name descname">on_startup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_startup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.on_startup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a startup handler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fn</strong> (<em>Callable</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.App.on_shutdown">
+<code class="sig-name descname">on_shutdown</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_shutdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.on_shutdown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a shutdown handler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fn</strong> (<em>Callable</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.App.on_error">
+<code class="sig-name descname">on_error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">etype</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.on_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register an exception handler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>etype</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>Type</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#BaseException" title="(in Python v3.9)"><em>BaseException</em></a><em>]</em><em>]</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="asgi_tools.App.middleware">
 <code class="sig-name descname">middleware</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">md</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.middleware"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.middleware" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a middleware.</p>
@@ -904,50 +948,6 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>F</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="asgi_tools.App.route">
-<code class="sig-name descname">route</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.route"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.route" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register a route.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Callable</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="asgi_tools.App.on_startup">
-<code class="sig-name descname">on_startup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_startup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.on_startup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register a startup handler.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>fn</strong> (<em>Callable</em>) – </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="asgi_tools.App.on_shutdown">
-<code class="sig-name descname">on_shutdown</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_shutdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.on_shutdown" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register a shutdown handler.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>fn</strong> (<em>Callable</em>) – </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="asgi_tools.App.on_error">
-<code class="sig-name descname">on_error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">etype</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.App.on_error" title="Permalink to this definition">¶</a></dt>
-<dd><p>Register an exception handler.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>etype</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>Type</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#BaseException" title="(in Python v3.9)"><em>BaseException</em></a><em>]</em><em>]</em>) – </p>
 </dd>
 </dl>
 </dd></dl>
