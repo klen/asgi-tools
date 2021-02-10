@@ -159,7 +159,8 @@ class App:
             self, request: Request, receive: Receive, send: Send) -> t.Optional[Response]:
         """Find and call a callback, parse a response, handle exceptions."""
         try:
-            match = self.router(request.url.path, request.get('method') or 'GET')
+            path = f"{ request.get('root_path', '') }{ request['path'] }"
+            match = self.router(path, request.get('method', 'GET'))
             request['path_params'] = {} if match.path_params is None else match.path_params
             response = await match.callback(request)  # type: ignore
             if response is None and request['type'] == 'websocket':
