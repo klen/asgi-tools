@@ -70,18 +70,6 @@ async def test_client(app, client):
     json = await res.json()
     assert json['cookies'] == {'var': '42'}
 
-    from asgi_tools import ResponseRedirect
-
-    # Follow Redirect
-    # ---------------
-    @app.route('/redirect')
-    async def redirect(request):
-        raise ResponseRedirect('/')
-
-    res = await client.put('/redirect', follow_redirect=False)
-    assert res.status_code == 307
-    assert res.headers['location'] == '/'
-
     # Custom methods
     # --------------
     @app.route('/caldav', methods='PROPFIND')
@@ -92,16 +80,18 @@ async def test_client(app, client):
     assert res.status_code == 200
     assert await res.text() == 'PROPFIND'
 
-    # Work with cookies
-    # -----------------
+
+async def test_cookies(app, client):
+    from asgi_tools import ResponseRedirect
+
     @app.route('/set-cookie')
     async def set_cookie(request):
-        res = ResponseRedirect('/test')
+        res = ResponseRedirect('/')
         res.cookies['c1'] = 'c1'
         res.cookies['c2'] = 'c2'
         return res
 
-    res = await client.get('/set-cookie')
+    res = await client.get('/set-cookie', cookies={'var': '42'})
     assert res.status_code == 200
     assert {n: v.value for n, v in client.cookies.items()} == {'var': '42', 'c1': 'c1', 'c2': 'c2'}
 
@@ -111,6 +101,24 @@ async def test_client(app, client):
 
     res = await client.get('/get-cookie')
     assert await res.json() == {'var': '42', 'c1': 'c1', 'c2': 'c2'}
+
+
+async def test_redirects(app, client):
+    from asgi_tools import ResponseRedirect
+
+    # Follow Redirect
+    # ---------------
+    @app.route('/redirect')
+    async def redirect(request):
+        raise ResponseRedirect('/')
+
+    res = await client.get('/redirect')
+    assert res.status_code == 200
+    assert await res.text() == 'OK'
+
+    res = await client.get('/redirect', follow_redirect=False)
+    assert res.status_code == 307
+    assert res.headers['location'] == '/'
 
 
 async def test_streams(app, client):

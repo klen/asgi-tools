@@ -32,30 +32,11 @@ class Response:
     :type headers: dict[str, str]
     :param content_type: A string with the content-type
     :type content_type: str
-
-    .. code-block:: python
-
-        from asgi_tools import Response
-
-        async def app(scope, receive, send):
-            response = Response('Hello, world!', content_type='text/plain')
-            await response(scope, receive, send)
-
     """
 
-    headers: CIMultiDict
+    headers: CIMultiDict  #: Multidict of response's headers
     cookies: cookies.SimpleCookie
     """ Set/Update cookies
-
-    .. code-block:: python
-
-        from asgi_tools import Response
-
-        async def app(scope, receive, send):
-            response = Response('OK')
-            response.cookies["rocky"] = "road"
-            response.cookies["rocky"]["path"] = "/cookie"
-            await response(scope, receive, send)
 
     * `response.cookies[name] = value` ``str`` -- set a cookie's value
     * `response.cookies[name]['path'] = value` ``str`` -- set a cookie's path
@@ -141,16 +122,7 @@ class Response:
 
 
 class ResponseText(Response):
-    """A helper to return plain text responses (text/plain).
-
-    .. code-block:: python
-
-        from asgi_tools import ResponseText
-
-        async def app(scope, receive, send):
-            response = ResponseText('Hello, world!')
-            await response(scope, receive, send)
-    """
+    """A helper to return plain text responses (text/plain)."""
 
     def __init__(self, *args, **kwargs) -> None:
         """Setup the response."""
@@ -159,16 +131,7 @@ class ResponseText(Response):
 
 
 class ResponseHTML(Response):
-    """A helper to return HTML responses (text/html).
-
-    .. code-block:: python
-
-        from asgi_tools import ResponseHTML
-
-        async def app(scope, receive, send):
-            response = ResponseHTML('<h1>Hello, world!</h1>')
-            await response(scope, receive, send)
-    """
+    """A helper to return HTML responses (text/html)."""
 
     def __init__(self, *args, **kwargs) -> None:
         """Setup the response."""
@@ -177,16 +140,7 @@ class ResponseHTML(Response):
 
 
 class ResponseJSON(Response):
-    """A helper to return JSON responses (application/json).
-
-    .. code-block:: python
-
-        from asgi_tools import ResponseJSON
-
-        async def app(scope, receive, send):
-            response = ResponseJSON({'hello': 'world'})
-            await response(scope, receive, send)
-    """
+    """A helper to return JSON responses (application/json)."""
 
     def __init__(self, *args, **kwargs) -> None:
         """Setup the response."""
@@ -203,31 +157,6 @@ class ResponseRedirect(Response, BaseException):
 
     :param url: A string with the new location
     :type url: str
-
-    .. code-block:: python
-
-        from asgi_tools import ResponseRedirect
-
-        async def app(scope, receive, send):
-            response = ResponseRedirect('/login')
-            await response(scope, receive, send)
-
-    If you are using :py:class:`asgi_tools.App` or :py:class:`asgi_tools.ResponseMiddleware` you
-    are able to raise the :py:class:`ResponseRedirect` as an exception.
-
-    .. code-block:: python
-
-        from asgi_tools import ResponseRedirect, Request, ResponseMiddleware
-
-        async def app(scope, receive, send):
-            request = Request(scope, receive)
-            if not request.headers.get('authorization):
-                raise ResponseRedirect('/login')
-
-            return 'OK'
-
-        app = ResponseMiddleware(app)
-
     """
 
     def __init__(self, url: str,
@@ -255,30 +184,6 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
 
     :param message: A string with the error's message (HTTPStatus messages will be used by default)
     :type message: str
-
-    .. code-block:: python
-
-        from asgi_tools import ResponseError
-
-        async def app(scope, receive, send):
-            response = ResponseError('Timeout', 502)
-            await response(scope, receive, send)
-
-    If you are using :py:class:`asgi_tools.App` or :py:class:`asgi_tools.ResponseMiddleware` you
-    are able to raise the :py:class:`ResponseError` as an exception.
-
-    .. code-block:: python
-
-        from asgi_tools import ResponseError, Request, ResponseMiddleware
-
-        async def app(scope, receive, send):
-            request = Request(scope, receive)
-            if not request.method == 'POST':
-                raise ResponseError('Invalid request data', 400)
-
-            return 'OK'
-
-        app = ResponseMiddleware(app)
 
     You able to use :py:class:`http.HTTPStatus` properties with the `ResponseError` class
 
@@ -350,22 +255,6 @@ class ResponseStream(Response):
 
     :param content: An async generator to stream the response's body
     :type content: AsyncGenerator
-
-    .. code-block:: python
-
-        from asgi_tools import ResponseStream
-        from asgi_tools.utils import aio_sleep  # for compatability with different async libs
-
-        async def stream_response():
-            for number in range(10):
-                await aio_sleep(1)
-                yield str(number)
-
-        async def app(scope, receive, send):
-            generator = stream_response()
-            response = ResponseStream(generator, content_type='plain/text')
-            await response(scope, receive, send)
-
     """
 
     def __init__(self, content: t.AsyncGenerator[ResponseContent, None] = None, **kwargs) -> None:
@@ -406,17 +295,7 @@ class ResponseStream(Response):
 
 
 class ResponseFile(ResponseStream):
-    """A helper to stream files as a response body.
-
-    .. code-block:: python
-
-        from asgi_tools import ResponseFile
-
-        async def app(scope, receive, send):
-            response = ResponseFile('/storage/my_best_selfie.jpeg')
-            await response(scope, receive, send)
-
-    """
+    """A helper to stream files as a response body."""
 
     def __init__(self, filename: t.Union[str, Path], chunk_size: int = 32 * 1024,
                  headers_only: bool = False, **kwargs) -> None:
@@ -440,19 +319,7 @@ class ResponseFile(ResponseStream):
 
 
 class ResponseWebSocket(Response):
-    """A helper to work with websockets.
-
-    .. code-block:: python
-
-        from asgi_tools import ResponseWebsocket
-
-        async def app(scope, receive, send):
-            async with ResponseWebSocket(scope, receive, send) as ws:
-                msg = await ws.receive()
-                assert msg == 'ping'
-                await ws.send('pong')
-
-    """
+    """A helper to work with websockets."""
 
     class STATES(Enum):
         """Represent websocket states."""

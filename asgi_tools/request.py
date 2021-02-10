@@ -49,30 +49,6 @@ class Request(dict):
     :param receive: an asynchronous callable which lets the application
                     receive event messages from the client
 
-    The class gives you an nicer interface to incoming HTTP request.
-
-    .. code-block:: python
-
-        from asgi_tools import Request, Response
-
-        async def app(scope, receive, send):
-            request = Request(scope, receive)
-            content = f"{ request.method } { request.url.path }"
-            response = Response(content)
-            await response(scope, receive, send)
-
-    Requests are based on a given scope and represents a mapping interface.
-
-    .. code-block:: python
-
-        request = Request(scope)
-        assert request['version'] == scope['version']
-        assert request['method'] == scope['method']
-        assert request['scheme'] == scope['scheme']
-        assert request['path'] == scope['path']
-
-        # and etc
-
     """
 
     method: str  #: Contains the request's HTTP method
@@ -101,7 +77,7 @@ class Request(dict):
             assert request.url.query is not None
             assert request.url.query_string is not None
 
-        See :py:mod:`yarl` documentation for futher reference.
+        See :py:mod:`yarl` documentation for further reference.
 
         """
         host, port = self.get('server') or (None, None)
@@ -166,22 +142,7 @@ class Request(dict):
         return self.media['content_type']
 
     async def stream(self) -> t.AsyncGenerator:
-        """Stream the request's body.
-
-        .. code-block:: python
-
-            from asgi_tools import Request, Response
-
-            async def app(scope, receive, send):
-                request = Request(scope, receive)
-                body = b''
-                async for chunk in request.stream():
-                    body += chunk
-
-                response = Response(body, content_type=request.content_type)
-                await response(scope, receive, send)
-
-        """
+        """Stream the request's body."""
         if not self._receive:
             raise RuntimeError('Request doesnt have a receive coroutine')
 
