@@ -230,8 +230,7 @@
     <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Send ASGI messages.&quot;&quot;&quot;</span>
         <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
-        <span class="k">async</span> <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
-            <span class="k">await</span> <span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="App"><a class="viewcode-back" href="../../api.html#asgi_tools.App">[docs]</a><span class="k">class</span> <span class="nc">App</span><span class="p">:</span>
