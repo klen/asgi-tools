@@ -108,8 +108,7 @@ class ResponseMiddleware(BaseMiddeware):
         """Handle ASGI call."""
         response = await self.__process__(scope, receive, send)
         if isinstance(response, Response):
-            async for msg in response:
-                await send(msg)
+            await response(scope, receive, send)
 
     async def __process__(self, scope: Scope, receive: Receive, send: Send):
         """Parse responses from callbacks."""
@@ -356,8 +355,6 @@ class StaticFilesMiddleware(BaseMiddeware):
                 response = None
 
         response = response or ResponseError(status_code=404)
-
-        async for msg in response:
-            await send(msg)
+        await response(scope, receive, send)
 
 # pylama: ignore=E501

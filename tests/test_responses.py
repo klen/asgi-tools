@@ -11,8 +11,9 @@ async def test_response():
     response.cookies['session']['path'] = '/'
     response.cookies['lang'] = 'en'
     assert response.status_code == 200
-    assert await response.body() == b"Content"
-    messages = [m async for m in response]
+    assert response.content == b"Content"
+
+    messages = await read_response(response)
     assert messages
     assert messages[0] == {
         'headers': [
@@ -24,7 +25,7 @@ async def test_response():
         'status': 200,
         'type': 'http.response.start'
     }
-    assert messages[1] == {'body': b'Content', 'type': 'http.response.body', 'more_body': False}
+    assert messages[1] == {'body': b'Content', 'type': 'http.response.body'}
 
 
 async def test_parse_response():
@@ -33,17 +34,16 @@ async def test_parse_response():
     response = parse_response({'test': 'passed'})
     assert response.status_code == 200
     assert response.headers['content-type'] == 'application/json'
-    _, body = [m async for m in response]
-    assert body == {
-        'body': b'{"test": "passed"}', 'type': 'http.response.body', 'more_body': False}
+    _, body = await read_response(response)
+    assert body == {'body': b'{"test": "passed"}', 'type': 'http.response.body'}
 
     response = parse_response((500, 'SERVER ERROR'))
     assert response.status_code == 500
-    assert response.content == 'SERVER ERROR'
+    assert response.content == b'SERVER ERROR'
 
     response = parse_response((302, {'location': 'https://google.com'}, 'go away'))
     assert response.status_code == 302
-    assert response.content == 'go away'
+    assert response.content == b'go away'
     assert response.headers['location'] == 'https://google.com'
 
     with pytest.raises(AssertionError):
@@ -56,7 +56,7 @@ async def test_html_response():
     response = ResponseHTML("Content")
     assert response.status_code == 200
     assert response.headers['content-type'] == 'text/html; charset=utf-8'
-    assert await response.body() == b"Content"
+    assert response.content == b"Content"
 
 
 async def test_text_response():
@@ -65,7 +65,7 @@ async def test_text_response():
     response = ResponseText("Content")
     assert response.status_code == 200
     assert response.headers['content-type'] == 'text/plain; charset=utf-8'
-    assert await response.body() == b"Content"
+    assert response.content == b"Content"
 
 
 async def test_json_response():
@@ -74,7 +74,7 @@ async def test_json_response():
     response = ResponseJSON([1, 2, 3])
     assert response.status_code == 200
     assert response.headers['content-type'] == 'application/json'
-    assert await response.body() == b"[1, 2, 3]"
+    assert response.content == b"[1, 2, 3]"
 
 
 async def test_redirect_response():
@@ -83,22 +83,22 @@ async def test_redirect_response():
     response = ResponseRedirect('/logout')
     assert response.status_code == 307
     assert response.headers['location'] == '/logout'
-    assert await response.body() == b""
+    assert response.content == b""
 
 
 async def test_error_response():
     from asgi_tools import ResponseError
 
     response = ResponseError(status_code=503)
-    assert response.content == "The server cannot process the request due to a high load"
+    assert response.content == b"The server cannot process the request due to a high load"
 
     response = ResponseError.NOT_FOUND()
     assert response.status_code == 404
-    assert response.content == "Nothing matches the given URI"
+    assert response.content == b"Nothing matches the given URI"
 
     response = ResponseError.INTERNAL_SERVER_ERROR('custom message')
     assert response.status_code == 500
-    assert response.content == "custom message"
+    assert response.content == b"custom message"
 
 
 # TODO: Exceptions
@@ -112,13 +112,10 @@ async def test_stream_response(anyio_backend, Client):
             yield idx
 
     response = ResponseStream(filler())
-    messages = []
-    async for msg in response:
-        messages.append(msg)
-
+    messages = await read_response(response)
     assert len(messages) == 12
     assert messages[-2] == {'body': b'9', 'more_body': True, 'type': 'http.response.body'}
-    assert messages[-1] == {'body': b'', 'more_body': False, 'type': 'http.response.body'}
+    assert messages[-1] == {'body': b'', 'type': 'http.response.body'}
 
     def app(scope, receive, send):
         response = ResponseStream(filler())
@@ -140,19 +137,12 @@ async def test_file_response(anyio_backend):
     assert response.headers['etag']
     assert response.headers['content-disposition'] == 'attachment; filename="test_responses.py"'
 
-    messages = []
-    async for msg in response:
-        messages.append(msg)
-
+    messages = await read_response(response)
     assert len(messages) >= 3
     assert b"ASGI Tools Responses Tests" in messages[1]['body']
 
     response = ResponseFile(__file__, headers_only=True)
-
-    messages = []
-    async for msg in response:
-        messages.append(msg)
-
+    messages = await read_response(response)
     assert len(messages) == 2
 
     with pytest.raises(ASGIError):
@@ -189,3 +179,13 @@ async def test_websocket_response(anyio_backend, Client):
         assert msg == 'pong'
         with pytest.raises(ASGIConnectionClosed):
             await ws.receive()
+
+
+async def read_response(response):
+    from functools import partial
+    from asgi_tools._compat import aio_sleep
+    from asgi_tools.utils import to_awaitable
+
+    messages = []
+    await response(None, partial(aio_sleep, 10), to_awaitable(messages.append))
+    return messages

@@ -58,7 +58,7 @@ class Response:
         """Setup the response."""
         self.content = content
         self.status_code = status_code
-        self.headers: CIMultiDict = CIMultiDict(headers or {})
+        self.headers = headers or {}
         self.cookies: cookies.SimpleCookie = cookies.SimpleCookie()
         if content_type:
             if content_type.startswith('text/'):
@@ -74,31 +74,32 @@ class Response:
         """Stringify the response."""
         return f"<{ self.__class__.__name__ } '{ self }'"
 
-    async def __aiter__(self) -> t.AsyncGenerator:
-        """Iterate self through ASGI messages."""
-        body = await self.body()
-        self.headers.setdefault('content-length', str(len(body)))
-
-        yield self.msg_start()
-        yield self.msg_body(body)
-
     async def __call__(self, scope: t.Any, receive: t.Any, send: Send) -> None:
         """Behave as an ASGI application."""
-        async for message in self:
-            await send(message)
+        self.headers.setdefault('content-length', str(len(self.__content__)))
 
-    async def body(self) -> bytes:
-        """Stream the response's body."""
-        if self.content is None:
-            return b""
+        await send(self.msg_start())
+        await send({"type": "http.response.body", "body": self.__content__})
 
-        if isinstance(self.content, str):
-            return self.content.encode(self.charset)
+    @property
+    def content(self):
+        """Get self content."""
+        return self.__content__
 
-        if isinstance(self.content, bytes):
-            return self.content
+    @content.setter
+    def content(self, content: ResponseContent):
+        # py38 return :=
+        if isinstance(content, str):
+            self.__content__ = content.encode(self.charset)
 
-        return str(self.content).encode(self.charset)
+        elif content is None:
+            self.__content__ = b""
+
+        elif isinstance(content, bytes):
+            self.__content__ = content
+
+        else:
+            self.__content__ = str(content).encode(self.charset)
 
     def msg_start(self) -> Message:
         """Get ASGI response start message."""
@@ -114,11 +115,6 @@ class Response:
             "status": self.status_code,
             "headers": headers,
         }
-
-    @staticmethod
-    def msg_body(body: bytes = b'', *, more_body: bool = False) -> Message:
-        """Get ASGI response body message."""
-        return {"type": "http.response.body", "body": body, "more_body": more_body}
 
 
 class ResponseText(Response):
@@ -147,9 +143,10 @@ class ResponseJSON(Response):
         kwargs['content_type'] = 'application/json'
         super().__init__(*args, **kwargs)
 
-    async def body(self) -> bytes:
+    @Response.content.setter  # type: ignore
+    def content(self, content: ResponseContent):
         """Jsonify the content."""
-        return dumps(self.content, ensure_ascii=False, allow_nan=False).encode(self.charset)
+        self.__content__ = dumps(content, ensure_ascii=False, allow_nan=False).encode(self.charset)
 
 
 class ResponseRedirect(Response, BaseException):
@@ -257,22 +254,10 @@ class ResponseStream(Response):
     :type content: AsyncGenerator
     """
 
-    def __init__(self, content: t.AsyncGenerator[ResponseContent, None] = None, **kwargs) -> None:
-        """Ensure that the content is awaitable."""
-        super(ResponseStream, self).__init__(**kwargs)
-        self.content: t.AsyncGenerator[ResponseContent, None] = content  # type: ignore
-
-    async def __aiter__(self) -> t.AsyncGenerator[Message, None]:
-        """Iterate through the response."""
-        yield self.msg_start()
-
-        if self.content:
-            async for chunk in self.content:
-                if not isinstance(chunk, bytes):
-                    chunk = str(chunk).encode(self.charset)
-                yield self.msg_body(chunk, more_body=True)
-
-        yield self.msg_body()
+    @Response.content.setter  # type: ignore
+    def content(self, content: t.AsyncGenerator[ResponseContent, None] = None):
+        """Store self content as is."""
+        self.__content__ = content  # type: ignore
 
     async def listen_for_disconnect(self, receive: Receive):
         """Listen for the client has been disconnected."""
@@ -283,8 +268,14 @@ class ResponseStream(Response):
 
     async def stream_response(self, send: Send):
         """Stream response content."""
-        async for message in self:
-            await send(message)
+        await send(self.msg_start())
+        if self.content:
+            async for chunk in self.content:
+                if not isinstance(chunk, bytes):
+                    chunk = str(chunk).encode(self.charset)
+                await send({"type": "http.response.body", "body": chunk, "more_body": True})
+
+        await send({"type": "http.response.body", "body": b""})
 
     async def __call__(self, scope: t.Any, receive: t.Any, send: Send) -> None:
         """Behave as an ASGI application."""
@@ -307,7 +298,7 @@ class ResponseFile(ResponseStream):
             raise ASGIError(*exc.args)
 
         stream = stream_file(filepath, chunk_size) if not headers_only else None
-        super(ResponseFile, self).__init__(stream, **kwargs)
+        super(ResponseFile, self).__init__(stream, **kwargs)  # type: ignore
         self.headers_only = headers_only
         self.headers.setdefault(
             'content-disposition', f'attachment; filename="{filepath.name}"')
@@ -340,9 +331,9 @@ class ResponseWebSocket(Response):
         self.state = self.STATES.connecting
         self.partner_state = self.STATES.connecting
 
-    async def __aiter__(self) -> t.AsyncGenerator[Message, None]:
+    async def __call__(self, scope: t.Any, receive: t.Any, send: Send):
         """Close websocket if the response has been returned."""
-        yield {'type': 'websocket.close'}
+        await send({'type': 'websocket.close'})
 
     async def __aenter__(self):
         """Use it as async context manager."""

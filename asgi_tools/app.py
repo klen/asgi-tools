@@ -70,8 +70,7 @@ class AppInternalMiddleware(BaseMiddeware):
     async def __process__(self, scope: Scope, receive: Receive, send: Send):
         """Send ASGI messages."""
         response = await self.app(scope, receive, send)
-        async for msg in response:
-            await send(msg)
+        await response(scope, receive, send)
 
 
 class App:
