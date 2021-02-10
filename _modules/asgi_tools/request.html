@@ -209,30 +209,6 @@
 <span class="sd">    :param receive: an asynchronous callable which lets the application</span>
 <span class="sd">                    receive event messages from the client</span>
 
-<span class="sd">    The class gives you an nicer interface to incoming HTTP request.</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import Request, Response</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            request = Request(scope, receive)</span>
-<span class="sd">            content = f&quot;{ request.method } { request.url.path }&quot;</span>
-<span class="sd">            response = Response(content)</span>
-<span class="sd">            await response(scope, receive, send)</span>
-
-<span class="sd">    Requests are based on a given scope and represents a mapping interface.</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        request = Request(scope)</span>
-<span class="sd">        assert request[&#39;version&#39;] == scope[&#39;version&#39;]</span>
-<span class="sd">        assert request[&#39;method&#39;] == scope[&#39;method&#39;]</span>
-<span class="sd">        assert request[&#39;scheme&#39;] == scope[&#39;scheme&#39;]</span>
-<span class="sd">        assert request[&#39;path&#39;] == scope[&#39;path&#39;]</span>
-
-<span class="sd">        # and etc</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">method</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1">#: Contains the request&#39;s HTTP method</span>
@@ -261,7 +237,7 @@
 <span class="sd">            assert request.url.query is not None</span>
 <span class="sd">            assert request.url.query_string is not None</span>
 
-<span class="sd">        See :py:mod:`yarl` documentation for futher reference.</span>
+<span class="sd">        See :py:mod:`yarl` documentation for further reference.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">host</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;server&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -326,22 +302,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">media</span><span class="p">[</span><span class="s1">&#39;content_type&#39;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Request.stream"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.stream">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">stream</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Stream the request&#39;s body.</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from asgi_tools import Request, Response</span>
-
-<span class="sd">            async def app(scope, receive, send):</span>
-<span class="sd">                request = Request(scope, receive)</span>
-<span class="sd">                body = b&#39;&#39;</span>
-<span class="sd">                async for chunk in request.stream():</span>
-<span class="sd">                    body += chunk</span>
-
-<span class="sd">                response = Response(body, content_type=request.content_type)</span>
-<span class="sd">                await response(scope, receive, send)</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Stream the request&#39;s body.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Request doesnt have a receive coroutine&#39;</span><span class="p">)</span>
 

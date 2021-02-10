@@ -192,30 +192,11 @@
 <span class="sd">    :type headers: dict[str, str]</span>
 <span class="sd">    :param content_type: A string with the content-type</span>
 <span class="sd">    :type content_type: str</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import Response</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            response = Response(&#39;Hello, world!&#39;, content_type=&#39;text/plain&#39;)</span>
-<span class="sd">            await response(scope, receive, send)</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">headers</span><span class="p">:</span> <span class="n">CIMultiDict</span>
+    <span class="n">headers</span><span class="p">:</span> <span class="n">CIMultiDict</span>  <span class="c1">#: Multidict of response&#39;s headers</span>
     <span class="n">cookies</span><span class="p">:</span> <span class="n">cookies</span><span class="o">.</span><span class="n">SimpleCookie</span>
     <span class="sd">&quot;&quot;&quot; Set/Update cookies</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import Response</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            response = Response(&#39;OK&#39;)</span>
-<span class="sd">            response.cookies[&quot;rocky&quot;] = &quot;road&quot;</span>
-<span class="sd">            response.cookies[&quot;rocky&quot;][&quot;path&quot;] = &quot;/cookie&quot;</span>
-<span class="sd">            await response(scope, receive, send)</span>
 
 <span class="sd">    * `response.cookies[name] = value` ``str`` -- set a cookie&#39;s value</span>
 <span class="sd">    * `response.cookies[name][&#39;path&#39;] = value` ``str`` -- set a cookie&#39;s path</span>
@@ -301,16 +282,7 @@
 
 
 <div class="viewcode-block" id="ResponseText"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseText">[docs]</a><span class="k">class</span> <span class="nc">ResponseText</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A helper to return plain text responses (text/plain).</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import ResponseText</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            response = ResponseText(&#39;Hello, world!&#39;)</span>
-<span class="sd">            await response(scope, receive, send)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;A helper to return plain text responses (text/plain).&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Setup the response.&quot;&quot;&quot;</span>
@@ -319,16 +291,7 @@
 
 
 <div class="viewcode-block" id="ResponseHTML"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseHTML">[docs]</a><span class="k">class</span> <span class="nc">ResponseHTML</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A helper to return HTML responses (text/html).</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import ResponseHTML</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            response = ResponseHTML(&#39;&lt;h1&gt;Hello, world!&lt;/h1&gt;&#39;)</span>
-<span class="sd">            await response(scope, receive, send)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;A helper to return HTML responses (text/html).&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Setup the response.&quot;&quot;&quot;</span>
@@ -337,16 +300,7 @@
 
 
 <div class="viewcode-block" id="ResponseJSON"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseJSON">[docs]</a><span class="k">class</span> <span class="nc">ResponseJSON</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A helper to return JSON responses (application/json).</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import ResponseJSON</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            response = ResponseJSON({&#39;hello&#39;: &#39;world&#39;})</span>
-<span class="sd">            await response(scope, receive, send)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;A helper to return JSON responses (application/json).&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Setup the response.&quot;&quot;&quot;</span>
@@ -363,31 +317,6 @@
 
 <span class="sd">    :param url: A string with the new location</span>
 <span class="sd">    :type url: str</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import ResponseRedirect</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            response = ResponseRedirect(&#39;/login&#39;)</span>
-<span class="sd">            await response(scope, receive, send)</span>
-
-<span class="sd">    If you are using :py:class:`asgi_tools.App` or :py:class:`asgi_tools.ResponseMiddleware` you</span>
-<span class="sd">    are able to raise the :py:class:`ResponseRedirect` as an exception.</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import ResponseRedirect, Request, ResponseMiddleware</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            request = Request(scope, receive)</span>
-<span class="sd">            if not request.headers.get(&#39;authorization):</span>
-<span class="sd">                raise ResponseRedirect(&#39;/login&#39;)</span>
-
-<span class="sd">            return &#39;OK&#39;</span>
-
-<span class="sd">        app = ResponseMiddleware(app)</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -415,30 +344,6 @@
 
 <span class="sd">    :param message: A string with the error&#39;s message (HTTPStatus messages will be used by default)</span>
 <span class="sd">    :type message: str</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import ResponseError</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            response = ResponseError(&#39;Timeout&#39;, 502)</span>
-<span class="sd">            await response(scope, receive, send)</span>
-
-<span class="sd">    If you are using :py:class:`asgi_tools.App` or :py:class:`asgi_tools.ResponseMiddleware` you</span>
-<span class="sd">    are able to raise the :py:class:`ResponseError` as an exception.</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import ResponseError, Request, ResponseMiddleware</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            request = Request(scope, receive)</span>
-<span class="sd">            if not request.method == &#39;POST&#39;:</span>
-<span class="sd">                raise ResponseError(&#39;Invalid request data&#39;, 400)</span>
-
-<span class="sd">            return &#39;OK&#39;</span>
-
-<span class="sd">        app = ResponseMiddleware(app)</span>
 
 <span class="sd">    You able to use :py:class:`http.HTTPStatus` properties with the `ResponseError` class</span>
 
@@ -510,22 +415,6 @@
 
 <span class="sd">    :param content: An async generator to stream the response&#39;s body</span>
 <span class="sd">    :type content: AsyncGenerator</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import ResponseStream</span>
-<span class="sd">        from asgi_tools.utils import aio_sleep  # for compatability with different async libs</span>
-
-<span class="sd">        async def stream_response():</span>
-<span class="sd">            for number in range(10):</span>
-<span class="sd">                await aio_sleep(1)</span>
-<span class="sd">                yield str(number)</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            generator = stream_response()</span>
-<span class="sd">            response = ResponseStream(generator, content_type=&#39;plain/text&#39;)</span>
-<span class="sd">            await response(scope, receive, send)</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">[</span><span class="n">ResponseContent</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -566,17 +455,7 @@
 
 
 <div class="viewcode-block" id="ResponseFile"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseFile">[docs]</a><span class="k">class</span> <span class="nc">ResponseFile</span><span class="p">(</span><span class="n">ResponseStream</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A helper to stream files as a response body.</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import ResponseFile</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            response = ResponseFile(&#39;/storage/my_best_selfie.jpeg&#39;)</span>
-<span class="sd">            await response(scope, receive, send)</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;A helper to stream files as a response body.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">,</span>
                  <span class="n">headers_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -600,19 +479,7 @@
 
 
 <div class="viewcode-block" id="ResponseWebSocket"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseWebSocket">[docs]</a><span class="k">class</span> <span class="nc">ResponseWebSocket</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A helper to work with websockets.</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        from asgi_tools import ResponseWebsocket</span>
-
-<span class="sd">        async def app(scope, receive, send):</span>
-<span class="sd">            async with ResponseWebSocket(scope, receive, send) as ws:</span>
-<span class="sd">                msg = await ws.receive()</span>
-<span class="sd">                assert msg == &#39;ping&#39;</span>
-<span class="sd">                await ws.send(&#39;pong&#39;)</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;A helper to work with websockets.&quot;&quot;&quot;</span>
 
     <span class="k">class</span> <span class="nc">STATES</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Represent websocket states.&quot;&quot;&quot;</span>

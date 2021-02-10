@@ -228,9 +228,9 @@ receive event messages from the client</p></li>
 <dd><p>Contains the request’s HTTP method</p>
 </dd></dl>
 
-<dl class="py method">
+<dl class="py attribute">
 <dt id="asgi_tools.Request.url">
-<em class="property">property </em><code class="sig-name descname">url</code><a class="headerlink" href="#asgi_tools.Request.url" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">url</code><a class="headerlink" href="#asgi_tools.Request.url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A lazy property that parses the current URL and returns <a class="reference external" href="https://yarl.readthedocs.io/en/stable/api.html#yarl.URL" title="(in yarl v1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">yarl.URL</span></code></a> object.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
 <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;... the full http URL ..&#39;</span>
@@ -240,12 +240,12 @@ receive event messages from the client</p></li>
 <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">query_string</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 </pre></div>
 </div>
-<p>See <a class="reference external" href="https://yarl.readthedocs.io/en/stable/api.html#module-yarl" title="(in yarl v1.6)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">yarl</span></code></a> documentation for futher reference.</p>
+<p>See <a class="reference external" href="https://yarl.readthedocs.io/en/stable/api.html#module-yarl" title="(in yarl v1.6)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">yarl</span></code></a> documentation for further reference.</p>
 </dd></dl>
 
-<dl class="py method">
+<dl class="py attribute">
 <dt id="asgi_tools.Request.headers">
-<em class="property">property </em><code class="sig-name descname">headers</code><a class="headerlink" href="#asgi_tools.Request.headers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">headers</code><a class="headerlink" href="#asgi_tools.Request.headers" title="Permalink to this definition">¶</a></dt>
 <dd><p>A lazy property that parses the current scope’s headers, decodes them as strings and
 returns case-insensitive multi-dict <a class="reference external" href="https://multidict.readthedocs.io/en/stable/multidict.html#multidict.CIMultiDict" title="(in multidict v5.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">multidict.CIMultiDict</span></code></a>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
@@ -257,9 +257,9 @@ returns case-insensitive multi-dict <a class="reference external" href="https://
 <p>See <a class="reference external" href="https://multidict.readthedocs.io/en/stable/multidict.html#module-multidict" title="(in multidict v5.1)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">multidict</span></code></a> documentation for futher reference.</p>
 </dd></dl>
 
-<dl class="py method">
+<dl class="py attribute">
 <dt id="asgi_tools.Request.cookies">
-<em class="property">property </em><code class="sig-name descname">cookies</code><a class="headerlink" href="#asgi_tools.Request.cookies" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">cookies</code><a class="headerlink" href="#asgi_tools.Request.cookies" title="Permalink to this definition">¶</a></dt>
 <dd><p>A lazy property that parses the current scope’s cookies and returns a dictionary.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
 <span class="n">ses</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;session&#39;</span><span class="p">)</span>
@@ -267,15 +267,15 @@ returns case-insensitive multi-dict <a class="reference external" href="https://
 </div>
 </dd></dl>
 
-<dl class="py method">
+<dl class="py attribute">
 <dt id="asgi_tools.Request.charset">
-<em class="property">property </em><code class="sig-name descname">charset</code><a class="headerlink" href="#asgi_tools.Request.charset" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">charset</code><a class="headerlink" href="#asgi_tools.Request.charset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get an encoding charset for the current scope.</p>
 </dd></dl>
 
-<dl class="py method">
+<dl class="py attribute">
 <dt id="asgi_tools.Request.content_type">
-<em class="property">property </em><code class="sig-name descname">content_type</code><a class="headerlink" href="#asgi_tools.Request.content_type" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">content_type</code><a class="headerlink" href="#asgi_tools.Request.content_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a content type for the current scope.</p>
 </dd></dl>
 
@@ -370,6 +370,7 @@ returns case-insensitive multi-dict <a class="reference external" href="https://
 </ul>
 </dd>
 </dl>
+<p>A helper to make http responses.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">Response</span>
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
@@ -378,18 +379,15 @@ returns case-insensitive multi-dict <a class="reference external" href="https://
 </pre></div>
 </div>
 <dl class="py attribute">
+<dt id="asgi_tools.Response.headers">
+<code class="sig-name descname">headers</code><em class="property">: multidict._multidict.CIMultiDict</em><a class="headerlink" href="#asgi_tools.Response.headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multidict of response’s headers</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt id="asgi_tools.Response.cookies">
 <code class="sig-name descname">cookies</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/http.cookies.html#http.cookies.SimpleCookie" title="(in Python v3.9)">http.cookies.SimpleCookie</a></em><a class="headerlink" href="#asgi_tools.Response.cookies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set/Update cookies</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">Response</span>
-
-<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">)</span>
-    <span class="n">response</span><span class="o">.</span><span class="n">cookies</span><span class="p">[</span><span class="s2">&quot;rocky&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;road&quot;</span>
-    <span class="n">response</span><span class="o">.</span><span class="n">cookies</span><span class="p">[</span><span class="s2">&quot;rocky&quot;</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/cookie&quot;</span>
-    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
-</pre></div>
-</div>
 <ul class="simple">
 <li><p><cite>response.cookies[name] = value</cite> <code class="docutils literal notranslate"><span class="pre">str</span></code> – set a cookie’s value</p></li>
 <li><p><cite>response.cookies[name][‘path’] = value</cite> <code class="docutils literal notranslate"><span class="pre">str</span></code> – set a cookie’s path</p></li>
@@ -400,6 +398,15 @@ returns case-insensitive multi-dict <a class="reference external" href="https://
 <li><p><cite>response.cookies[name][‘httponly’] = value</cite> <code class="docutils literal notranslate"><span class="pre">bool</span></code> – is the cookie should be available through HTTP request only (not from JS)</p></li>
 <li><p><cite>response.cookies[name][‘samesite’] = value</cite> <code class="docutils literal notranslate"><span class="pre">str</span></code> – set a cookie’s strategy (‘lax’|’strict’|’none’)</p></li>
 </ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">Response</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">)</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">cookies</span><span class="p">[</span><span class="s2">&quot;rocky&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;road&quot;</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">cookies</span><span class="p">[</span><span class="s2">&quot;rocky&quot;</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/cookie&quot;</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
