@@ -1,16 +1,17 @@
 """ASGI responses."""
 
-import os
-import typing as t
 from email.utils import formatdate
 from enum import Enum
+from functools import partial
 from hashlib import md5
 from http import cookies, HTTPStatus
-from functools import partial
 from json import dumps
 from mimetypes import guess_type
+from multidict import CIMultiDict
 from pathlib import Path
 from urllib.parse import quote_plus
+import os
+import typing as t
 
 from sniffio import current_async_library
 
@@ -33,7 +34,7 @@ class Response:
     :type content_type: str
     """
 
-    headers: dict  #: A dictionary of response's headers
+    headers: CIMultiDict  #: Multidict of response's headers
     cookies: cookies.SimpleCookie
     """ Set/Update cookies
 
@@ -57,7 +58,7 @@ class Response:
         """Setup the response."""
         self.content = content
         self.status_code = status_code
-        self.headers = headers or {}
+        self.headers: CIMultiDict = CIMultiDict(headers or {})
         self.cookies: cookies.SimpleCookie = cookies.SimpleCookie()
         if content_type:
             if content_type.startswith('text/'):
