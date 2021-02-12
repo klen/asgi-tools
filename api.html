@@ -695,11 +695,12 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <h3>LifespanMiddleware<a class="headerlink" href="#lifespanmiddleware" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt id="asgi_tools.LifespanMiddleware">
-<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">LifespanMiddleware</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">on_startup</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">on_shutdown</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#LifespanMiddleware"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.LifespanMiddleware" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">asgi_tools.</code><code class="sig-name descname">LifespanMiddleware</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">app</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ignore_errors</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">on_startup</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">on_shutdown</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#LifespanMiddleware"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.LifespanMiddleware" title="Permalink to this definition">¶</a></dt>
 <dd><p>Manage <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> Lifespan events.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>ignore_errors</strong> – Ignore errors from startup/shutdown handlers</p></li>
 <li><p><strong>on_startup</strong> – the list of callables to run when the app is starting</p></li>
 <li><p><strong>on_shutdown</strong> – the list of callables to run when the app is finishing</p></li>
 </ul>
