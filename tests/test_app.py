@@ -248,3 +248,24 @@ async def test_websockets(app, client):
 
     res = await client.get('/')
     assert res.status_code == 200
+
+
+async def test_app_lifespan(app, client):
+
+    SIDE_EFFECTS = {}
+
+    @app.on_startup
+    def start():
+        SIDE_EFFECTS['started'] = True
+
+    @app.on_shutdown
+    def finish():
+        SIDE_EFFECTS['finished'] = True
+
+    async with client.lifespan():
+        assert SIDE_EFFECTS['started']
+        res = await client.get('/')
+        assert res.status_code == 200
+
+
+    assert SIDE_EFFECTS['finished']

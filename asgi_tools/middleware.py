@@ -226,11 +226,11 @@ class LifespanMiddleware(BaseMiddeware):
 
     def on_startup(self, fn: t.Callable) -> None:
         """Add a function to startup."""
-        self.__register__(fn, self._startup)
+        self.__register__(fn, self.__startup__)
 
     def on_shutdown(self, fn: t.Callable) -> None:
         """Add a function to shutdown."""
-        self.__register__(fn, self._shutdown)
+        self.__register__(fn, self.__shutdown__)
 
 
 class RouterMiddleware(BaseMiddeware):
