@@ -16,7 +16,7 @@ The Features:
 * ASGI Lifespan support (:class:`~asgi_tools.LifespanMiddleware`) with startup and shutdown events;
 * ASGI Routing support (:class:`~asgi_tools.RouterMiddleware`) to route your handlers by http urls;
 * Auto parsing for app responses (:class:`~asgi_tools.ResponseMiddleware`);
-* Test client (:class:`~asgi_tools.ASGITestClient`) to test ASGI_ applications;
+* Test client (:class:`~asgi_tools.tests.ASGITestClient`) to test ASGI_ applications;
 * And more
 
 .. _ASGI: https://asgi.readthedocs.io/en/latest/

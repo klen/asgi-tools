@@ -969,12 +969,14 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <li><p>response streams</p></li>
 <li><p>request streams</p></li>
 <li><p>websocket support</p></li>
+<li><p>lifespan management</p></li>
 </ul>
 <dl class="py method">
 <dt id="asgi_tools.tests.ASGITestClient.request">
 <em class="property">async </em><code class="sig-name descname">request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'GET'</span></em>, <em class="sig-param"><span class="n">query</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">headers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">b''</span></em>, <em class="sig-param"><span class="n">json</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cookies</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">files</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">follow_redirect</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">0.3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient.request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a HTTP request.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span><span class="p">,</span> <span class="n">ASGITestClient</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span>
+<span class="kn">from</span> <span class="nn">asgi_tools.tests</span> <span class="kn">import</span> <span class="n">ASGITestClient</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">Application</span><span class="p">()</span>
 
@@ -1014,7 +1016,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <dt id="asgi_tools.tests.ASGITestClient.websocket">
 <code class="sig-name descname">websocket</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">query</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">headers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cookies</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient.websocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient.websocket" title="Permalink to this definition">¶</a></dt>
 <dd><p>Connect to a websocket.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span><span class="p">,</span> <span class="n">ASGITestClient</span><span class="p">,</span> <span class="n">ResponseWebSocket</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span><span class="p">,</span> <span class="n">ResponseWebSocket</span>
+<span class="kn">from</span> <span class="nn">asgi_tools.tests</span> <span class="kn">import</span> <span class="n">ASGITestClient</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">Application</span><span class="p">()</span>
 
@@ -1040,6 +1043,51 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <li><p><strong>headers</strong> (<em>Dict</em>) – </p></li>
 <li><p><strong>cookies</strong> (<em>Dict</em>) – </p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="asgi_tools.tests.ASGITestClient.lifespan">
+<code class="sig-name descname">lifespan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">0.3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient.lifespan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient.lifespan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manage <a class="reference external" href="https://asgi.readthedocs.io/en/latest/specs/lifespan.html">Lifespan</a> protocol.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseHTML</span>
+<span class="kn">from</span> <span class="nn">asgi_tools.tests</span> <span class="kn">import</span> <span class="n">ASGITestClient</span>
+
+<span class="n">SIDE_EFFECTS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;started&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;finished&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="c1"># Process lifespan events</span>
+    <span class="k">if</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan&#39;</span><span class="p">:</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">receive</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.startup&#39;</span><span class="p">:</span>
+                <span class="n">SIDE_EFFECTS</span><span class="p">[</span><span class="s1">&#39;started&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan.startup.complete&#39;</span><span class="p">})</span>
+
+            <span class="k">elif</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.shutdown&#39;</span><span class="p">:</span>
+                <span class="n">SIDE_EFFECTS</span><span class="p">[</span><span class="s1">&#39;finished&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan.shutdown.complete&#39;</span><span class="p">})</span>
+                <span class="k">return</span>
+
+    <span class="c1"># Otherwise return HTML response</span>
+    <span class="k">await</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">)(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">with</span> <span class="n">client</span><span class="o">.</span><span class="n">lifespan</span><span class="p">():</span>
+    <span class="k">assert</span> <span class="n">SIDE_EFFECTS</span><span class="p">[</span><span class="s1">&#39;started&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">SIDE_EFFECTS</span><span class="p">[</span><span class="s1">&#39;finished&#39;</span><span class="p">]</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">res</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+
+<span class="k">assert</span> <span class="n">SIDE_EFFECTS</span><span class="p">[</span><span class="s1">&#39;started&#39;</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">SIDE_EFFECTS</span><span class="p">[</span><span class="s1">&#39;finished&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – </p>
 </dd>
 </dl>
 </dd></dl>
