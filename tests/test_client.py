@@ -177,7 +177,7 @@ async def test_timeouts(app, client):
     assert await res.text() == 'OK'
 
 
-async def test_lifespan(Client):
+async def test_lifespan_unsupported(Client):
     from asgi_tools import Response
 
     async def app(scope, receive, send):
@@ -189,6 +189,10 @@ async def test_lifespan(Client):
     async with client.lifespan():
         res = await client.get('/')
         assert res.status_code == 200
+
+
+async def test_lifespan(Client):
+    from asgi_tools import Response
 
     SIDE_EFFECTS = {'started': False, 'finished': False}
 
@@ -208,6 +212,10 @@ async def test_lifespan(Client):
         await Response('OK')(scope, receive, send)
 
     client = Client(app)
+
+    #  with pytest.raises(AssertionError):
+    #      async with client.lifespan():
+    #          raise AssertionError('test')
 
     async with client.lifespan():
         assert SIDE_EFFECTS['started']

@@ -5,16 +5,20 @@ from functools import partial
 from http import cookies
 from json import loads, dumps
 from urllib.parse import urlencode
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 
 from yarl import URL
 
 from . import ASGIConnectionClosed
-from ._compat import aio_sleep, aio_spawn, wait_for_first
+from ._compat import aio_sleep, aio_spawn, wait_for_first, cancel_task
 from ._types import JSONType, Scope, Receive, Send, Message
 from .middleware import ASGIApp
 from .response import Response, ResponseWebSocket, parse_websocket_msg
 from .utils import to_awaitable, parse_headers
+
+
+class ContextError(Exception):
+    pass
 
 
 class TestResponse(Response):
@@ -190,20 +194,24 @@ class ASGITestClient:
         receive_from_client, send_to_app = simple_stream()
         receive_from_app, send_to_client = simple_stream()
 
-        try:
-            async with aio_spawn(
-                    self.app, {'type': 'lifespan'}, receive_from_client, send_to_client):
-                await send_to_app({'type': 'lifespan.startup'})
+        async def safe_spawn():
+            with ignore_errors():
+                await self.app({'type': 'lifespan'}, receive_from_client, send_to_client)
+
+        async with aio_spawn(safe_spawn) as task:
+            await send_to_app({'type': 'lifespan.startup'})
+            with ignore_errors():
                 msg = await wait_for_first(receive_from_app(), raise_timeout(timeout))
+                if msg['type'] == 'lifespan.startup.failed':
+                    cancel_task(task)
                 assert msg['type'] == 'lifespan.startup.complete'
-                yield
-                await send_to_app({'type': 'lifespan.shutdown'})
+
+            yield
+
+            await send_to_app({'type': 'lifespan.shutdown'})
+            with ignore_errors():
                 msg = await wait_for_first(receive_from_app(), raise_timeout(timeout))
                 assert msg['type'] == 'lifespan.shutdown.complete'
-
-        except Exception:
-            # Skip further management
-            yield
 
     def build_scope(
             self, path: str, headers: t.Dict = None, query: t.Union[str, t.Dict] = None,
@@ -280,5 +288,13 @@ def simple_stream(maxlen=None):
 async def raise_timeout(timeout):
     await aio_sleep(timeout)
     raise TimeoutError('Timeout occured')
+
+
+@contextmanager
+def ignore_errors():
+    try:
+        yield
+    except Exception:
+        pass
 
 # pylama:ignore=D

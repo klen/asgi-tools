@@ -57,20 +57,37 @@ async def test_lifespan_middleware(Client):
     from asgi_tools import LifespanMiddleware
     from asgi_tools.utils import to_awaitable
 
-    events = {}
+    SIDE_EFFECTS = {}
+
+    async def fail():
+        raise Exception
+
+    async def start():
+        SIDE_EFFECTS['started'] = True
 
     app = LifespanMiddleware(
         lambda scope, receive, send: None,
-        on_startup=to_awaitable(lambda: events.setdefault('started', True)),
-        on_shutdown=lambda: events.setdefault('finished', True)
+        on_startup=[fail, start],
+        on_shutdown=lambda: SIDE_EFFECTS.setdefault('finished', True)
     )
-
     client = Client(app)
 
     async with client.lifespan():
-        assert events['started']
+        assert 'started' not in SIDE_EFFECTS
 
-    assert events['finished']
+    assert 'finished' not in SIDE_EFFECTS
+
+    app = LifespanMiddleware.setup(ignore_errors=True)(
+        lambda scope, receive, send: None,
+        on_startup=[fail, start],
+        on_shutdown=lambda: SIDE_EFFECTS.setdefault('finished', True)
+    )
+    client = Client(app)
+
+    async with client.lifespan():
+        assert SIDE_EFFECTS['started']
+
+    assert SIDE_EFFECTS['finished']
 
 
 async def test_router_middleware(Client):

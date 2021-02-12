@@ -32,8 +32,11 @@ except ImportError:
 
 try:
     import trio
+
+    Nursery = trio.Nursery
+
 except ImportError:
-    trio = None
+    trio = Nursery = None
 
 
 def aio_sleep(seconds: float = 0) -> t.Awaitable:
@@ -49,7 +52,8 @@ async def aio_spawn(fn: t.Callable[..., t.Awaitable], *args, **kwargs):
     """Spawn a given coroutine."""
     if trio and current_async_library() == 'trio':
         async with trio.open_nursery() as tasks:
-            yield tasks.start_soon(fn, *args, **kwargs)
+            tasks.start_soon(fn, *args, **kwargs)
+            yield tasks
 
     else:
         yield create_task(fn(*args, **kwargs))
@@ -73,6 +77,14 @@ async def wait_for_first(*aws: t.Awaitable) -> t.Any:
         result = await receive_channel.receive()
         n.cancel_scope.cancel()
         return result
+
+
+def cancel_task(task: t.Union[asyncio.Task, Nursery]):
+    """Cancel asyncio task / trio nursery."""
+    if isinstance(task, asyncio.Task):
+        return task.cancel()
+
+    task.cancel_scope.cancel()
 
 
 async def trio_jockey(coro: t.Awaitable, channel):

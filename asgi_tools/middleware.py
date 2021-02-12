@@ -149,6 +149,7 @@ class RequestMiddleware(BaseMiddeware):
 class LifespanMiddleware(BaseMiddeware):
     """Manage ASGI_ Lifespan events.
 
+    :param ignore_errors: Ignore errors from startup/shutdown handlers
     :param on_startup: the list of callables to run when the app is starting
     :param on_shutdown: the list of callables to run when the app is finishing
 
@@ -174,27 +175,26 @@ class LifespanMiddleware(BaseMiddeware):
 
     scopes = {'lifespan'}
 
-    def __init__(self, app: ASGIApp = None,
+    def __init__(self, app: ASGIApp = None, ignore_errors: bool = False,
                  on_startup: t.Union[t.Callable, t.List[t.Callable]] = None,
                  on_shutdown: t.Union[t.Callable, t.List[t.Callable]] = None) -> None:
         """Prepare the middleware."""
         super(LifespanMiddleware, self).__init__(app)
-        self._startup: t.List[t.Callable] = []
-        self._shutdown: t.List[t.Callable] = []
-        self.__register__(on_startup, self._startup)
-        self.__register__(on_shutdown, self._shutdown)
+        self.ignore_errors = ignore_errors
+        self.__startup__: t.List[t.Callable] = []
+        self.__shutdown__: t.List[t.Callable] = []
+        self.__register__(on_startup, self.__startup__)
+        self.__register__(on_shutdown, self.__shutdown__)
 
     async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Manage lifespan cycle."""
         while True:
             message = await receive()
             if message['type'] == 'lifespan.startup':
-                await self.__startup__()
-                await send({'type': 'lifespan.startup.complete'})
+                await self.run('startup', send)
 
             elif message['type'] == 'lifespan.shutdown':
-                await self.__shutdown__()
-                return await send({'type': 'lifespan.shutdown.complete'})
+                return await self.run('shutdown', send)
 
     def __register__(self, handlers: t.Union[t.Callable, t.List[t.Callable], None],
                      container: t.List[t.Callable]) -> None:
@@ -207,19 +207,22 @@ class LifespanMiddleware(BaseMiddeware):
 
         container += handlers
 
-    async def __startup__(self) -> None:
-        """Run startup callbacks."""
-        for fn in self._startup:
-            res = fn()
-            if inspect.isawaitable(res):
-                await res
+    async def run(self, event: str, send: Send = None):
+        """Run startup/shutdown handlers."""
+        assert event in {'startup', 'shutdown'}
+        handlers = getattr(self, f"__{event}__")
+        for handler in handlers:
+            try:
+                res = handler()
+                if inspect.isawaitable(res):
+                    await res
+            except Exception as exc:
+                if self.ignore_errors:
+                    continue
 
-    async def __shutdown__(self) -> None:
-        """Run shutdown callbacks."""
-        for fn in self._shutdown:
-            res = fn()
-            if inspect.isawaitable(res):
-                await res
+                return await send({'type': f'lifespan.{event}.failed', 'message': str(exc)})
+
+        return await send({'type': f'lifespan.{event}.complete'})
 
     def on_startup(self, fn: t.Callable) -> None:
         """Add a function to startup."""
