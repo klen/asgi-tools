@@ -3,6 +3,7 @@
 import abc
 import typing as t
 from functools import partial
+import inspect
 from pathlib import Path
 
 from http_router import Router
@@ -11,7 +12,6 @@ from . import ASGIError
 from ._types import Scope, Receive, Send
 from .request import Request
 from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, Response, ResponseRedirect
-from .utils import to_awaitable
 
 
 ASGIApp = t.Callable[[t.Union[Scope, Request], Receive, Send], t.Awaitable]
@@ -205,17 +205,21 @@ class LifespanMiddleware(BaseMiddeware):
         if not isinstance(handlers, list):
             handlers = [handlers]
 
-        container += [to_awaitable(fn) for fn in handlers]
+        container += handlers
 
     async def __startup__(self) -> None:
         """Run startup callbacks."""
         for fn in self._startup:
-            await fn()
+            res = fn()
+            if inspect.isawaitable(res):
+                await res
 
     async def __shutdown__(self) -> None:
         """Run shutdown callbacks."""
         for fn in self._shutdown:
-            await fn()
+            res = fn()
+            if inspect.isawaitable(res):
+                await res
 
     def on_startup(self, fn: t.Callable) -> None:
         """Add a function to startup."""

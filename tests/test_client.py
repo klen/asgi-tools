@@ -175,3 +175,45 @@ async def test_timeouts(app, client):
     res = await client.get('/sleep/0.1')
     assert res.status_code == 200
     assert await res.text() == 'OK'
+
+
+async def test_lifespan(Client):
+    from asgi_tools import Response
+
+    async def app(scope, receive, send):
+        assert scope['type'] == 'http'
+        await Response('OK')(scope, receive, send)
+
+    client = Client(app)
+
+    async with client.lifespan():
+        res = await client.get('/')
+        assert res.status_code == 200
+
+    SIDE_EFFECTS = {'started': False, 'finished': False}
+
+    async def app(scope, receive, send):
+        if scope['type'] == 'lifespan':
+            while True:
+                msg = await receive()
+                if msg['type'] == 'lifespan.startup':
+                    SIDE_EFFECTS['started'] = True
+                    await send({'type': 'lifespan.startup.complete'})
+
+                elif msg['type'] == 'lifespan.shutdown':
+                    SIDE_EFFECTS['finished'] = True
+                    await send({'type': 'lifespan.shutdown.complete'})
+                    return
+
+        await Response('OK')(scope, receive, send)
+
+    client = Client(app)
+
+    async with client.lifespan():
+        assert SIDE_EFFECTS['started']
+        assert not SIDE_EFFECTS['finished']
+        res = await client.get('/')
+        assert res.status_code == 200
+
+    assert SIDE_EFFECTS['started']
+    assert SIDE_EFFECTS['finished']

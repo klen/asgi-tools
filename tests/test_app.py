@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-from asgi_lifespan import LifespanManager
-
 
 async def test_app(Client):
     from asgi_tools.app import App, ResponseError
@@ -74,9 +72,9 @@ async def test_app_static(Client):
     from asgi_tools.app import App
 
     app = App(static_folders=[Path(__file__).parent])
+    client = Client(app)
 
-    async with LifespanManager(app):
-        client = Client(app)
+    async with client.lifespan():
 
         res = await client.get('/static/test_app.py')
         assert res.status_code == 200
@@ -115,7 +113,7 @@ async def test_app_handle_exception(Client):
     async def handler(exc):
         return 'Custom Server Error'
 
-    async with LifespanManager(app):
+    async with client.lifespan():
 
         res = await client.get('/500')
         assert res.status_code == 200

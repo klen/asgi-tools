@@ -3,7 +3,7 @@
 
 .. _description:
 
-**asgi-tools** -- Is a toolkit to build ASGI applications faster
+**asgi-tools** -- Is a really lightweight ASGI_ Toolkit to build ASGI applications faster.
 
 .. _badges:
 

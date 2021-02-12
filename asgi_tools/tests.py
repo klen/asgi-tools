@@ -5,11 +5,12 @@ from functools import partial
 from http import cookies
 from json import loads, dumps
 from urllib.parse import urlencode
+from contextlib import asynccontextmanager
 
 from yarl import URL
 
 from . import ASGIConnectionClosed
-from ._compat import aio_sleep, aio_spawn, asynccontextmanager, wait_for_first
+from ._compat import aio_sleep, aio_spawn, wait_for_first
 from ._types import JSONType, Scope, Receive, Send, Message
 from .middleware import ASGIApp
 from .response import Response, ResponseWebSocket, parse_websocket_msg
@@ -101,6 +102,7 @@ class ASGITestClient:
     * response streams
     * request streams
     * websocket support
+    * lifespan management
 
     """
 
@@ -175,11 +177,33 @@ class ASGITestClient:
         scope = self.build_scope(
             path, headers=headers, query=query, cookies=cookies, type='websocket'
         )
-        ws = TestWebSocketResponse(scope, receive_from_client, send_to_client)
-        async with aio_spawn(self.app, scope, receive_from_app, send_to_app):
+        ws = TestWebSocketResponse(scope, receive_from_app, send_to_app)
+        async with aio_spawn(self.app, scope, receive_from_client, send_to_client):
             await ws.connect()
             yield ws
             await ws.disconnect()
+
+    @asynccontextmanager
+    async def lifespan(self, timeout: float = 0.3):
+        """Manage `Lifespan <https://asgi.readthedocs.io/en/latest/specs/lifespan.html>`_ protocol.
+        """
+        receive_from_client, send_to_app = simple_stream()
+        receive_from_app, send_to_client = simple_stream()
+
+        try:
+            async with aio_spawn(
+                    self.app, {'type': 'lifespan'}, receive_from_client, send_to_client):
+                await send_to_app({'type': 'lifespan.startup'})
+                msg = await wait_for_first(receive_from_app(), raise_timeout(timeout))
+                assert msg['type'] == 'lifespan.startup.complete'
+                yield
+                await send_to_app({'type': 'lifespan.shutdown'})
+                msg = await wait_for_first(receive_from_app(), raise_timeout(timeout))
+                assert msg['type'] == 'lifespan.shutdown.complete'
+
+        except Exception:
+            # Skip further management
+            yield
 
     def build_scope(
             self, path: str, headers: t.Dict = None, query: t.Union[str, t.Dict] = None,

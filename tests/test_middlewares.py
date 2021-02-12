@@ -53,19 +53,21 @@ async def test_request_response_middlewares(Client):
     assert res.headers['content-length'] == str(len("Hello Jack Daniels from '/testurl'"))
 
 
-async def test_lifespan_middleware():
-    from asgi_lifespan import LifespanManager
+async def test_lifespan_middleware(Client):
     from asgi_tools import LifespanMiddleware
+    from asgi_tools.utils import to_awaitable
 
     events = {}
 
     app = LifespanMiddleware(
         lambda scope, receive, send: None,
-        on_startup=lambda: events.setdefault('started', True),
+        on_startup=to_awaitable(lambda: events.setdefault('started', True)),
         on_shutdown=lambda: events.setdefault('finished', True)
     )
 
-    async with LifespanManager(app):
+    client = Client(app)
+
+    async with client.lifespan():
         assert events['started']
 
     assert events['finished']
