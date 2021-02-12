@@ -386,11 +386,11 @@
 
 <div class="viewcode-block" id="LifespanMiddleware.on_startup"><a class="viewcode-back" href="../../api.html#asgi_tools.LifespanMiddleware.on_startup">[docs]</a>    <span class="k">def</span> <span class="nf">on_startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Add a function to startup.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__register__</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_startup</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__register__</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__startup__</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="LifespanMiddleware.on_shutdown"><a class="viewcode-back" href="../../api.html#asgi_tools.LifespanMiddleware.on_shutdown">[docs]</a>    <span class="k">def</span> <span class="nf">on_shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Add a function to shutdown.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__register__</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shutdown</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__register__</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shutdown__</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="RouterMiddleware"><a class="viewcode-back" href="../../api.html#asgi_tools.RouterMiddleware">[docs]</a><span class="k">class</span> <span class="nc">RouterMiddleware</span><span class="p">(</span><span class="n">BaseMiddeware</span><span class="p">):</span>
