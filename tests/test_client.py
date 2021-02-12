@@ -170,9 +170,9 @@ async def test_timeouts(app, client):
         return 'OK'
 
     with pytest.raises(TimeoutError):
-        await client.get('/sleep/10')
+        await client.get('/sleep/10', timeout=0.1)
 
-    res = await client.get('/sleep/0.1')
+    res = await client.get('/sleep/0.01')
     assert res.status_code == 200
     assert await res.text() == 'OK'
 

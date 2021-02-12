@@ -33,10 +33,8 @@ except ImportError:
 try:
     import trio
 
-    Nursery = trio.Nursery
-
 except ImportError:
-    trio = Nursery = None
+    trio = None
 
 
 def aio_sleep(seconds: float = 0) -> t.Awaitable:
@@ -79,7 +77,7 @@ async def wait_for_first(*aws: t.Awaitable) -> t.Any:
         return result
 
 
-def cancel_task(task: t.Union[asyncio.Task, Nursery]):
+def cancel_task(task: t.Union[asyncio.Task, t.Any]):
     """Cancel asyncio task / trio nursery."""
     if isinstance(task, asyncio.Task):
         return task.cancel()

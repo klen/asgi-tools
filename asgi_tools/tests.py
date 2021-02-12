@@ -123,7 +123,7 @@ class ASGITestClient:
             self, path: str, method: str = 'GET', query: t.Union[str, t.Dict] = '',
             headers: t.Dict[str, str] = None, data: t.Union[bytes, str, t.Dict] = b'',
             json: JSONType = None, cookies: t.Dict = None, files: t.Dict = None,
-            follow_redirect: bool = True, timeout: float = 0.3) -> TestResponse:
+            follow_redirect: bool = True, timeout: float = 3.0) -> TestResponse:
         """Make a HTTP request."""
 
         res = TestResponse()
@@ -188,7 +188,7 @@ class ASGITestClient:
             await ws.disconnect()
 
     @asynccontextmanager
-    async def lifespan(self, timeout: float = 0.3):
+    async def lifespan(self, timeout: float = 3e-2):
         """Manage `Lifespan <https://asgi.readthedocs.io/en/latest/specs/lifespan.html>`_ protocol.
         """
         receive_from_client, send_to_app = simple_stream()

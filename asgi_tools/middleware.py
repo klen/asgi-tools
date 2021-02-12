@@ -191,10 +191,12 @@ class LifespanMiddleware(BaseMiddeware):
         while True:
             message = await receive()
             if message['type'] == 'lifespan.startup':
-                await self.run('startup', send)
+                msg = await self.run('startup', send)
+                await send(msg)
 
             elif message['type'] == 'lifespan.shutdown':
-                return await self.run('shutdown', send)
+                msg = await self.run('shutdown', send)
+                return await send(msg)
 
     def __register__(self, handlers: t.Union[t.Callable, t.List[t.Callable], None],
                      container: t.List[t.Callable]) -> None:
@@ -220,9 +222,9 @@ class LifespanMiddleware(BaseMiddeware):
                 if self.ignore_errors:
                     continue
 
-                return await send({'type': f'lifespan.{event}.failed', 'message': str(exc)})
+                return {'type': f'lifespan.{event}.failed', 'message': str(exc)}
 
-        return await send({'type': f'lifespan.{event}.complete'})
+        return {'type': f'lifespan.{event}.complete'}
 
     def on_startup(self, fn: t.Callable) -> None:
         """Add a function to startup."""
