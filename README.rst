@@ -117,6 +117,7 @@ Licensed under a `MIT license`_.
 .. _Trio: https://trio.readthedocs.io/en/stable/index.html
 .. _klen: https://github.com/klen
 .. _MIT license: http://opensource.org/licenses/MIT
+.. _ASGI: https://asgi.readthedocs.io/en/latest/
 
 .. _Request: https://klen.github.io/asgi-tools/api.html#request
 .. _Response: https://klen.github.io/asgi-tools/api.html#responses
