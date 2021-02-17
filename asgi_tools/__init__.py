@@ -6,7 +6,7 @@ __license__ = "MIT"
 import logging
 
 
-asgi_logger = logging.getLogger('asgi-tools')
+asgi_logger: logging.Logger = logging.getLogger('asgi-tools')
 
 
 class ASGIError(Exception):
