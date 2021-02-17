@@ -3,6 +3,11 @@
 __version__ = "0.30.2"
 __license__ = "MIT"
 
+import logging
+
+
+asgi_logger = logging.getLogger('asgi-tools')
+
 
 class ASGIError(Exception):
     """Base class for ASGI-Tools Errors."""

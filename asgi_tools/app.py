@@ -7,7 +7,7 @@ from functools import partial
 
 from http_router import Router as HTTPRouter, TYPE_METHODS
 
-from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed
+from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed, asgi_logger
 from ._types import Scope, Receive, Send, F
 from .middleware import (
     BaseMiddeware,
@@ -107,7 +107,8 @@ class App:
         t.Callable[[BaseException], t.Awaitable]
     ]
 
-    def __init__(self, *, debug: bool = False, logger: logging.Logger = None,
+    def __init__(self, *, debug: bool = False,
+                 logger: logging.Logger = asgi_logger,
                  static_url_prefix: str = '/static',
                  static_folders: t.Union[str, t.List[str]] = None, trim_last_slash: bool = False):
         """Initialize router and lifespan middleware."""
@@ -123,10 +124,11 @@ class App:
         self.router = Router(trim_last_slash=trim_last_slash, validate_cb=is_awaitable)
 
         # Setup logging
-        self.logger = logger or logging.getLogger('asgi-tools')
+        self.logger = logger
 
         # Setup lifespan
-        self.lifespan = LifespanMiddleware(self.__internal__)
+        self.lifespan = LifespanMiddleware(
+            self.__internal__, ignore_errors=not debug, logger=self.logger)
 
         # Enable middleware for static files
         if static_folders and static_url_prefix:

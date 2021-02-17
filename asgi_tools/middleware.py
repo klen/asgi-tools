@@ -8,7 +8,7 @@ from pathlib import Path
 
 from http_router import Router
 
-from . import ASGIError
+from . import ASGIError, asgi_logger
 from ._types import Scope, Receive, Send
 from .request import Request
 from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, Response, ResponseRedirect
@@ -175,12 +175,13 @@ class LifespanMiddleware(BaseMiddeware):
 
     scopes = {'lifespan'}
 
-    def __init__(self, app: ASGIApp = None, ignore_errors: bool = False,
+    def __init__(self, app: ASGIApp = None, ignore_errors: bool = False, logger=asgi_logger,
                  on_startup: t.Union[t.Callable, t.List[t.Callable]] = None,
                  on_shutdown: t.Union[t.Callable, t.List[t.Callable]] = None) -> None:
         """Prepare the middleware."""
         super(LifespanMiddleware, self).__init__(app)
         self.ignore_errors = ignore_errors
+        self.logger = logger
         self.__startup__: t.List[t.Callable] = []
         self.__shutdown__: t.List[t.Callable] = []
         self.__register__(on_startup, self.__startup__)
@@ -221,6 +222,11 @@ class LifespanMiddleware(BaseMiddeware):
             except Exception as exc:
                 if self.ignore_errors:
                     continue
+
+                self.logger.exception(exc)
+                self.logger.error(
+                    f"{ event.title() } method '{ handler }' raises an exception. "
+                    "Lifespan process failed.")
 
                 return {'type': f'lifespan.{event}.failed', 'message': str(exc)}
 
