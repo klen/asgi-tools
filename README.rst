@@ -29,6 +29,14 @@
 
 **Documentation is here**: https://klen.github.io/asgi-tools
 
+ASGI-Tools is designed to be used as an ASGI Toolkit to quickly build really
+lightweight ASGI applications/middlewares/tools.
+
+For instance these middlewares were built with the library:
+
+* `ASGI-Sessions <https://github.com/klen/asgi-sessions>`_
+* `ASGI-Babel <https://github.com/klen/asgi-babel>`_.
+
 .. _features:
 
 **Features:**
@@ -68,7 +76,12 @@ Installation
 A Quick Example
 ===============
 
-Save this to ``app.py``:
+You can use any of ASGI-Tools components independently.
+
+Dispite this ASGI-Tools contains App_ helper to quickly build ASGI
+applications. For instance:
+
+Save this to ``app.py``.
 
 .. code-block:: python
 
