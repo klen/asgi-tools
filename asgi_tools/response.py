@@ -1,5 +1,7 @@
 """ASGI responses."""
 
+from __future__ import annotations
+
 from email.utils import formatdate
 from enum import Enum
 from functools import partial
@@ -50,17 +52,20 @@ class Response:
     """
     charset: str = DEFAULT_CHARSET
     content_type: t.Optional[str] = None
+    status_code: int = HTTPStatus.OK.value
 
     #  __slots__ = 'content', 'status_code', 'headers', 'cookies'
 
     def __init__(
-            self, content: ResponseContent = None, status_code: int = HTTPStatus.OK.value,
+            self, content: ResponseContent = None, status_code: int = None,
             headers: dict = None, content_type: str = None):
         """Setup the response."""
         self.content = content
-        self.status_code = status_code
         self.headers: CIMultiDict = CIMultiDict(headers or {})
         self.cookies: cookies.SimpleCookie = cookies.SimpleCookie()
+        if status_code is not None:
+            self.status_code = status_code
+
         if content_type is not None:
             self.content_type = content_type
 
@@ -151,14 +156,12 @@ class ResponseRedirect(Response, BaseException):
     :param url: A string with the new location
     :type url: str
     """
+    status_code: int = HTTPStatus.TEMPORARY_REDIRECT.value
 
-    def __init__(self, url: str,
-                 status_code: int = HTTPStatus.TEMPORARY_REDIRECT.value, **kwargs) -> None:
+    def __init__(self, url: str, status_code: int = None, **kwargs) -> None:
         """Set status code and prepare location."""
-        if not (300 <= status_code < 400):
-            raise ASGIError(f"Invalid status_code ({status_code}).")
-
         super(ResponseRedirect, self).__init__(status_code=status_code, **kwargs)
+        assert 300 <= self.status_code < 400, f"Invalid status code for redirection: {self.status_code}"  # noqa
         self.headers["location"] = quote_plus(str(url), safe=":/%#?&=@[]!$&'()*+,;")
 
 
@@ -166,7 +169,7 @@ class ResponseErrorMeta(type):
     """Generate Response Errors by HTTP names."""
 
     # XXX: From python 3.9 -> partial['ResponseError]
-    def __getattr__(cls, name: str) -> t.Callable[..., 'ResponseError']:
+    def __getattr__(cls, name: str) -> t.Callable[..., ResponseError]:
         """Generate Response Errors by HTTP names."""
         status = HTTPStatus[name]
         return partial(cls, status_code=status.value)
@@ -189,58 +192,58 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
 
     """
 
+    status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR.value
+
     # Typing annotations
-    BAD_REQUEST: t.Callable[..., 'ResponseError']                       # 400
-    UNAUTHORIZED: t.Callable[..., 'ResponseError']                      # 401
-    PAYMENT_REQUIRED: t.Callable[..., 'ResponseError']                  # 402
-    FORBIDDEN: t.Callable[..., 'ResponseError']                         # 403
-    NOT_FOUND: t.Callable[..., 'ResponseError']                         # 404
-    METHOD_NOT_ALLOWED: t.Callable[..., 'ResponseError']                # 405
-    NOT_ACCEPTABLE: t.Callable[..., 'ResponseError']                    # 406
-    PROXY_AUTHENTICATION_REQUIRED: t.Callable[..., 'ResponseError']     # 407
-    REQUEST_TIMEOUT: t.Callable[..., 'ResponseError']                   # 408
-    CONFLICT: t.Callable[..., 'ResponseError']                          # 409
-    GONE: t.Callable[..., 'ResponseError']                              # 410
-    LENGTH_REQUIRED: t.Callable[..., 'ResponseError']                   # 411
-    PRECONDITION_FAILED: t.Callable[..., 'ResponseError']               # 412
-    REQUEST_ENTITY_TOO_LARGE: t.Callable[..., 'ResponseError']          # 413
-    REQUEST_URI_TOO_LONG: t.Callable[..., 'ResponseError']              # 414
-    UNSUPPORTED_MEDIA_TYPE: t.Callable[..., 'ResponseError']            # 415
-    REQUESTED_RANGE_NOT_SATISFIABLE: t.Callable[..., 'ResponseError']   # 416
-    EXPECTATION_FAILED: t.Callable[..., 'ResponseError']                # 417
+    BAD_REQUEST: t.Callable[..., ResponseError]                       # 400
+    UNAUTHORIZED: t.Callable[..., ResponseError]                      # 401
+    PAYMENT_REQUIRED: t.Callable[..., ResponseError]                  # 402
+    FORBIDDEN: t.Callable[..., ResponseError]                         # 403
+    NOT_FOUND: t.Callable[..., ResponseError]                         # 404
+    METHOD_NOT_ALLOWED: t.Callable[..., ResponseError]                # 405
+    NOT_ACCEPTABLE: t.Callable[..., ResponseError]                    # 406
+    PROXY_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]     # 407
+    REQUEST_TIMEOUT: t.Callable[..., ResponseError]                   # 408
+    CONFLICT: t.Callable[..., ResponseError]                          # 409
+    GONE: t.Callable[..., ResponseError]                              # 410
+    LENGTH_REQUIRED: t.Callable[..., ResponseError]                   # 411
+    PRECONDITION_FAILED: t.Callable[..., ResponseError]               # 412
+    REQUEST_ENTITY_TOO_LARGE: t.Callable[..., ResponseError]          # 413
+    REQUEST_URI_TOO_LONG: t.Callable[..., ResponseError]              # 414
+    UNSUPPORTED_MEDIA_TYPE: t.Callable[..., ResponseError]            # 415
+    REQUESTED_RANGE_NOT_SATISFIABLE: t.Callable[..., ResponseError]   # 416
+    EXPECTATION_FAILED: t.Callable[..., ResponseError]                # 417
     # XXX: From python 3.9
-    # IM_A_TEAPOT: t.Callable[..., 'ResponseError']                       # 418
-    # MISDIRECTED_REQUEST: t.Callable[..., 'ResponseError']               # 421
-    UNPROCESSABLE_ENTITY: t.Callable[..., 'ResponseError']              # 422
-    LOCKED: t.Callable[..., 'ResponseError']                            # 423
-    FAILED_DEPENDENCY: t.Callable[..., 'ResponseError']                 # 424
-    TOO_EARLY: t.Callable[..., 'ResponseError']                         # 425
-    UPGRADE_REQUIRED: t.Callable[..., 'ResponseError']                  # 426
-    PRECONDITION_REQUIRED: t.Callable[..., 'ResponseError']             # 428
-    TOO_MANY_REQUESTS: t.Callable[..., 'ResponseError']                 # 429
-    REQUEST_HEADER_FIELDS_TOO_LARGE: t.Callable[..., 'ResponseError']   # 431
+    # IM_A_TEAPOT: t.Callable[..., ResponseError]                       # 418
+    # MISDIRECTED_REQUEST: t.Callable[..., ResponseError]               # 421
+    UNPROCESSABLE_ENTITY: t.Callable[..., ResponseError]              # 422
+    LOCKED: t.Callable[..., ResponseError]                            # 423
+    FAILED_DEPENDENCY: t.Callable[..., ResponseError]                 # 424
+    TOO_EARLY: t.Callable[..., ResponseError]                         # 425
+    UPGRADE_REQUIRED: t.Callable[..., ResponseError]                  # 426
+    PRECONDITION_REQUIRED: t.Callable[..., ResponseError]             # 428
+    TOO_MANY_REQUESTS: t.Callable[..., ResponseError]                 # 429
+    REQUEST_HEADER_FIELDS_TOO_LARGE: t.Callable[..., ResponseError]   # 431
     # XXX: From python 3.9
-    # UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., 'ResponseError']     # 451
+    # UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., ResponseError]     # 451
 
-    INTERNAL_SERVER_ERROR: t.Callable[..., 'ResponseError']             # 500
-    NOT_IMPLEMENTED: t.Callable[..., 'ResponseError']                   # 501
-    BAD_GATEWAY: t.Callable[..., 'ResponseError']                       # 502
-    SERVICE_UNAVAILABLE: t.Callable[..., 'ResponseError']               # 503
-    GATEWAY_TIMEOUT: t.Callable[..., 'ResponseError']                   # 504
-    HTTP_VERSION_NOT_SUPPORTED: t.Callable[..., 'ResponseError']        # 505
-    VARIANT_ALSO_NEGOTIATES: t.Callable[..., 'ResponseError']           # 506
-    INSUFFICIENT_STORAGE: t.Callable[..., 'ResponseError']              # 507
-    LOOP_DETECTED: t.Callable[..., 'ResponseError']                     # 508
-    NOT_EXTENDED: t.Callable[..., 'ResponseError']                      # 510
-    NETWORK_AUTHENTICATION_REQUIRED: t.Callable[..., 'ResponseError']   # 511
+    INTERNAL_SERVER_ERROR: t.Callable[..., ResponseError]             # 500
+    NOT_IMPLEMENTED: t.Callable[..., ResponseError]                   # 501
+    BAD_GATEWAY: t.Callable[..., ResponseError]                       # 502
+    SERVICE_UNAVAILABLE: t.Callable[..., ResponseError]               # 503
+    GATEWAY_TIMEOUT: t.Callable[..., ResponseError]                   # 504
+    HTTP_VERSION_NOT_SUPPORTED: t.Callable[..., ResponseError]        # 505
+    VARIANT_ALSO_NEGOTIATES: t.Callable[..., ResponseError]           # 506
+    INSUFFICIENT_STORAGE: t.Callable[..., ResponseError]              # 507
+    LOOP_DETECTED: t.Callable[..., ResponseError]                     # 508
+    NOT_EXTENDED: t.Callable[..., ResponseError]                      # 510
+    NETWORK_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]   # 511
 
-    def __init__(self, message: ResponseContent = None,
-                 status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR.value, **kwargs):
+    def __init__(self, message: ResponseContent = None, status_code: int = None, **kwargs):
         """Check error status."""
-        if status_code < 400:
-            raise ASGIError(f"Invalid status_code ({status_code}).")
-        message = message or HTTPStatus(status_code).description
         super(ResponseError, self).__init__(content=message, status_code=status_code, **kwargs)
+        assert self.status_code >= 400, f"Invalid status code for an error: {self.status_code}"
+        self.content = message or HTTPStatus(self.status_code).description
 
 
 class ResponseStream(Response):
