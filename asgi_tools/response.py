@@ -195,49 +195,50 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
     status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR.value
 
     # Typing annotations
-    BAD_REQUEST: t.Callable[..., ResponseError]                       # 400
-    UNAUTHORIZED: t.Callable[..., ResponseError]                      # 401
-    PAYMENT_REQUIRED: t.Callable[..., ResponseError]                  # 402
-    FORBIDDEN: t.Callable[..., ResponseError]                         # 403
-    NOT_FOUND: t.Callable[..., ResponseError]                         # 404
-    METHOD_NOT_ALLOWED: t.Callable[..., ResponseError]                # 405
-    NOT_ACCEPTABLE: t.Callable[..., ResponseError]                    # 406
-    PROXY_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]     # 407
-    REQUEST_TIMEOUT: t.Callable[..., ResponseError]                   # 408
-    CONFLICT: t.Callable[..., ResponseError]                          # 409
-    GONE: t.Callable[..., ResponseError]                              # 410
-    LENGTH_REQUIRED: t.Callable[..., ResponseError]                   # 411
-    PRECONDITION_FAILED: t.Callable[..., ResponseError]               # 412
-    REQUEST_ENTITY_TOO_LARGE: t.Callable[..., ResponseError]          # 413
-    REQUEST_URI_TOO_LONG: t.Callable[..., ResponseError]              # 414
-    UNSUPPORTED_MEDIA_TYPE: t.Callable[..., ResponseError]            # 415
-    REQUESTED_RANGE_NOT_SATISFIABLE: t.Callable[..., ResponseError]   # 416
-    EXPECTATION_FAILED: t.Callable[..., ResponseError]                # 417
-    # XXX: From python 3.9
-    # IM_A_TEAPOT: t.Callable[..., ResponseError]                       # 418
-    # MISDIRECTED_REQUEST: t.Callable[..., ResponseError]               # 421
-    UNPROCESSABLE_ENTITY: t.Callable[..., ResponseError]              # 422
-    LOCKED: t.Callable[..., ResponseError]                            # 423
-    FAILED_DEPENDENCY: t.Callable[..., ResponseError]                 # 424
-    TOO_EARLY: t.Callable[..., ResponseError]                         # 425
-    UPGRADE_REQUIRED: t.Callable[..., ResponseError]                  # 426
-    PRECONDITION_REQUIRED: t.Callable[..., ResponseError]             # 428
-    TOO_MANY_REQUESTS: t.Callable[..., ResponseError]                 # 429
-    REQUEST_HEADER_FIELDS_TOO_LARGE: t.Callable[..., ResponseError]   # 431
-    # XXX: From python 3.9
-    # UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., ResponseError]     # 451
+    if t.TYPE_CHECKING:
+        BAD_REQUEST: t.Callable[..., ResponseError]                       # 400
+        UNAUTHORIZED: t.Callable[..., ResponseError]                      # 401
+        PAYMENT_REQUIRED: t.Callable[..., ResponseError]                  # 402
+        FORBIDDEN: t.Callable[..., ResponseError]                         # 403
+        NOT_FOUND: t.Callable[..., ResponseError]                         # 404
+        METHOD_NOT_ALLOWED: t.Callable[..., ResponseError]                # 405
+        NOT_ACCEPTABLE: t.Callable[..., ResponseError]                    # 406
+        PROXY_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]     # 407
+        REQUEST_TIMEOUT: t.Callable[..., ResponseError]                   # 408
+        CONFLICT: t.Callable[..., ResponseError]                          # 409
+        GONE: t.Callable[..., ResponseError]                              # 410
+        LENGTH_REQUIRED: t.Callable[..., ResponseError]                   # 411
+        PRECONDITION_FAILED: t.Callable[..., ResponseError]               # 412
+        REQUEST_ENTITY_TOO_LARGE: t.Callable[..., ResponseError]          # 413
+        REQUEST_URI_TOO_LONG: t.Callable[..., ResponseError]              # 414
+        UNSUPPORTED_MEDIA_TYPE: t.Callable[..., ResponseError]            # 415
+        REQUESTED_RANGE_NOT_SATISFIABLE: t.Callable[..., ResponseError]   # 416
+        EXPECTATION_FAILED: t.Callable[..., ResponseError]                # 417
+        # XXX: From python 3.9
+        # IM_A_TEAPOT: t.Callable[..., ResponseError]                       # 418
+        # MISDIRECTED_REQUEST: t.Callable[..., ResponseError]               # 421
+        UNPROCESSABLE_ENTITY: t.Callable[..., ResponseError]              # 422
+        LOCKED: t.Callable[..., ResponseError]                            # 423
+        FAILED_DEPENDENCY: t.Callable[..., ResponseError]                 # 424
+        TOO_EARLY: t.Callable[..., ResponseError]                         # 425
+        UPGRADE_REQUIRED: t.Callable[..., ResponseError]                  # 426
+        PRECONDITION_REQUIRED: t.Callable[..., ResponseError]             # 428
+        TOO_MANY_REQUESTS: t.Callable[..., ResponseError]                 # 429
+        REQUEST_HEADER_FIELDS_TOO_LARGE: t.Callable[..., ResponseError]   # 431
+        # XXX: From python 3.9
+        # UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., ResponseError]     # 451
 
-    INTERNAL_SERVER_ERROR: t.Callable[..., ResponseError]             # 500
-    NOT_IMPLEMENTED: t.Callable[..., ResponseError]                   # 501
-    BAD_GATEWAY: t.Callable[..., ResponseError]                       # 502
-    SERVICE_UNAVAILABLE: t.Callable[..., ResponseError]               # 503
-    GATEWAY_TIMEOUT: t.Callable[..., ResponseError]                   # 504
-    HTTP_VERSION_NOT_SUPPORTED: t.Callable[..., ResponseError]        # 505
-    VARIANT_ALSO_NEGOTIATES: t.Callable[..., ResponseError]           # 506
-    INSUFFICIENT_STORAGE: t.Callable[..., ResponseError]              # 507
-    LOOP_DETECTED: t.Callable[..., ResponseError]                     # 508
-    NOT_EXTENDED: t.Callable[..., ResponseError]                      # 510
-    NETWORK_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]   # 511
+        INTERNAL_SERVER_ERROR: t.Callable[..., ResponseError]             # 500
+        NOT_IMPLEMENTED: t.Callable[..., ResponseError]                   # 501
+        BAD_GATEWAY: t.Callable[..., ResponseError]                       # 502
+        SERVICE_UNAVAILABLE: t.Callable[..., ResponseError]               # 503
+        GATEWAY_TIMEOUT: t.Callable[..., ResponseError]                   # 504
+        HTTP_VERSION_NOT_SUPPORTED: t.Callable[..., ResponseError]        # 505
+        VARIANT_ALSO_NEGOTIATES: t.Callable[..., ResponseError]           # 506
+        INSUFFICIENT_STORAGE: t.Callable[..., ResponseError]              # 507
+        LOOP_DETECTED: t.Callable[..., ResponseError]                     # 508
+        NOT_EXTENDED: t.Callable[..., ResponseError]                      # 510
+        NETWORK_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]   # 511
 
     def __init__(self, message: ResponseContent = None, status_code: int = None, **kwargs):
         """Check error status."""
