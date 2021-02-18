@@ -782,8 +782,9 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 
 <span class="c1"># Regexp paths</span>
 <span class="c1"># ------------</span>
+<span class="kn">import</span> <span class="nn">re</span>
 
-<span class="nd">@router</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;/\d+/?&#39;</span><span class="p">)</span>
+<span class="nd">@router</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;/\d+/?&#39;</span><span class="p">))</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">num</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
     <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Number </span><span class="si">{</span> <span class="n">num</span> <span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -792,7 +793,7 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <span class="c1"># Dynamic paths</span>
 <span class="c1"># -------------</span>
 
-<span class="nd">@router</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/hello/</span><span class="si">{name}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="nd">@router</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/hello/&lt;name&gt;&#39;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path_params&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Hello </span><span class="si">{</span> <span class="n">name</span><span class="o">.</span><span class="n">title</span><span class="p">()</span> <span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>

@@ -165,7 +165,8 @@
 <span class="kn">import</span> <span class="nn">typing</span> <span class="k">as</span> <span class="nn">t</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 
-<span class="kn">from</span> <span class="nn">http_router</span> <span class="kn">import</span> <span class="n">Router</span> <span class="k">as</span> <span class="n">HTTPRouter</span><span class="p">,</span> <span class="n">TYPE_METHODS</span>
+<span class="kn">from</span> <span class="nn">http_router</span> <span class="kn">import</span> <span class="n">Router</span> <span class="k">as</span> <span class="n">HTTPRouter</span>
+<span class="kn">from</span> <span class="nn">http_router._types</span> <span class="kn">import</span> <span class="n">TYPE_METHODS</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">ASGIError</span><span class="p">,</span> <span class="n">ASGINotFound</span><span class="p">,</span> <span class="n">ASGIMethodNotAllowed</span><span class="p">,</span> <span class="n">ASGIConnectionClosed</span><span class="p">,</span> <span class="n">asgi_logger</span>
 <span class="kn">from</span> <span class="nn">._types</span> <span class="kn">import</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Send</span><span class="p">,</span> <span class="n">F</span>
@@ -179,7 +180,6 @@
 <span class="kn">from</span> <span class="nn">.request</span> <span class="kn">import</span> <span class="n">Request</span>
 <span class="kn">from</span> <span class="nn">.response</span> <span class="kn">import</span> <span class="n">ResponseError</span><span class="p">,</span> <span class="n">Response</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">to_awaitable</span><span class="p">,</span> <span class="n">iscoroutinefunction</span><span class="p">,</span> <span class="n">is_awaitable</span>
-
 
 
 <span class="n">HTTP_METHODS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;HEAD&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;DELETE&#39;</span><span class="p">,</span> <span class="s1">&#39;CONNECT&#39;</span><span class="p">,</span> <span class="s1">&#39;OPTIONS&#39;</span><span class="p">,</span> <span class="s1">&#39;TRACE&#39;</span><span class="p">,</span> <span class="s1">&#39;PATCH&#39;</span><span class="p">}</span>
@@ -282,7 +282,7 @@
         <span class="p">}</span>
 
         <span class="c1"># Setup routing</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="p">(</span><span class="n">trim_last_slash</span><span class="o">=</span><span class="n">trim_last_slash</span><span class="p">,</span> <span class="n">validate_cb</span><span class="o">=</span><span class="n">is_awaitable</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="p">(</span><span class="n">trim_last_slash</span><span class="o">=</span><span class="n">trim_last_slash</span><span class="p">,</span> <span class="n">validator</span><span class="o">=</span><span class="n">is_awaitable</span><span class="p">)</span>
 
         <span class="c1"># Setup logging</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
@@ -324,7 +324,7 @@
             <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span> <span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;root_path&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="si">}{</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="si">}</span><span class="s2">&quot;</span>
             <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;method&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">))</span>
             <span class="n">request</span><span class="p">[</span><span class="s1">&#39;path_params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">path_params</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">match</span><span class="o">.</span><span class="n">path_params</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">match</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">match</span><span class="o">.</span><span class="n">target</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
             <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;websocket&#39;</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">None</span>
 

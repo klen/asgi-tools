@@ -428,8 +428,9 @@
 
 <span class="sd">        # Regexp paths</span>
 <span class="sd">        # ------------</span>
+<span class="sd">        import re</span>
 
-<span class="sd">        @router.route(r&#39;/\d+/?&#39;)</span>
+<span class="sd">        @router.route(re.compile(r&#39;/\d+/?&#39;))</span>
 <span class="sd">        async def num(scope, receive, send):</span>
 <span class="sd">            num = int(scope[&#39;path&#39;].strip(&#39;/&#39;))</span>
 <span class="sd">            response = ResponseHTML(f&#39;Number { num }&#39;)</span>
@@ -438,7 +439,7 @@
 <span class="sd">        # Dynamic paths</span>
 <span class="sd">        # -------------</span>
 
-<span class="sd">        @router.route(&#39;/hello/{name}&#39;)</span>
+<span class="sd">        @router.route(&#39;/hello/&lt;name&gt;&#39;)</span>
 <span class="sd">        async def hello(scope, receive, send):</span>
 <span class="sd">            name = scope[&#39;path_params&#39;][&#39;name&#39;]</span>
 <span class="sd">            response = ResponseHTML(f&#39;Hello { name.title() }&#39;)</span>
@@ -473,7 +474,7 @@
         <span class="sd">&quot;&quot;&quot;Lookup for a callback.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;root_path&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">],</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">])</span>
-            <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">callback</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">path_params</span>
+            <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">path_params</span>
 
         <span class="k">except</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">RouterError</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">,</span> <span class="p">{}</span>
