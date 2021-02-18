@@ -268,8 +268,9 @@ class RouterMiddleware(BaseMiddeware):
 
         # Regexp paths
         # ------------
+        import re
 
-        @router.route(r'/\d+/?')
+        @router.route(re.compile(r'/\d+/?'))
         async def num(scope, receive, send):
             num = int(scope['path'].strip('/'))
             response = ResponseHTML(f'Number { num }')
@@ -278,7 +279,7 @@ class RouterMiddleware(BaseMiddeware):
         # Dynamic paths
         # -------------
 
-        @router.route('/hello/{name}')
+        @router.route('/hello/<name>')
         async def hello(scope, receive, send):
             name = scope['path_params']['name']
             response = ResponseHTML(f'Hello { name.title() }')
@@ -313,7 +314,7 @@ class RouterMiddleware(BaseMiddeware):
         """Lookup for a callback."""
         try:
             match = self.router(scope.get("root_path", "") + scope["path"], scope['method'])
-            return match.callback, match.path_params
+            return match.target, match.path_params
 
         except self.router.RouterError:
             return self.app, {}

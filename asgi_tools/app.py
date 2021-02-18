@@ -5,7 +5,8 @@ import logging
 import typing as t
 from functools import partial
 
-from http_router import Router as HTTPRouter, TYPE_METHODS
+from http_router import Router as HTTPRouter
+from http_router._types import TYPE_METHODS
 
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed, asgi_logger
 from ._types import Scope, Receive, Send, F
@@ -19,7 +20,6 @@ from .middleware import (
 from .request import Request
 from .response import ResponseError, Response
 from .utils import to_awaitable, iscoroutinefunction, is_awaitable
-
 
 
 HTTP_METHODS = {'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'}
@@ -122,7 +122,7 @@ class App:
         }
 
         # Setup routing
-        self.router = Router(trim_last_slash=trim_last_slash, validate_cb=is_awaitable)
+        self.router = Router(trim_last_slash=trim_last_slash, validator=is_awaitable)
 
         # Setup logging
         self.logger = logger
@@ -164,7 +164,7 @@ class App:
             path = f"{ request.get('root_path', '') }{ request['path'] }"
             match = self.router(path, request.get('method', 'GET'))
             request['path_params'] = {} if match.path_params is None else match.path_params
-            response = await match.callback(request)  # type: ignore
+            response = await match.target(request)  # type: ignore
             if response is None and request['type'] == 'websocket':
                 return None
 

@@ -1,3 +1,6 @@
+import re
+
+
 async def test_readme_request_response(Client):
 
     # Example
@@ -268,7 +271,7 @@ async def test_docs_router_middleware(Client):
     # Regexp paths
     # ------------
 
-    @router.route(r'/\d+/?')
+    @router.route(re.compile(r'/\d+/?'))
     async def num(scope, receive, send):
         num = int(scope['path'].strip('/'))
         response = ResponseHTML(f'Number { num }')
@@ -277,14 +280,14 @@ async def test_docs_router_middleware(Client):
     # Dynamic paths
     # -------------
 
-    @router.route('/hello/{name}')
+    @router.route('/hello/<name>')
     async def hello(scope, receive, send):
         name = scope['path_params']['name']
         response = ResponseHTML(f'Hello { name.title() }')
         await response(scope, receive, send)
 
     # Set regexp for params
-    @router.route(r'/multiply/{first:\d+}/{second:\d+}')
+    @router.route(r'/multiply/<first:int>/<second:int>')
     async def multiply(scope, receive, send):
         first, second = map(int, scope['path_params'].values())
         response = ResponseHTML(str(first * second))
