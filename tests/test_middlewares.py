@@ -55,7 +55,6 @@ async def test_request_response_middlewares(Client):
 
 async def test_lifespan_middleware(Client):
     from asgi_tools import LifespanMiddleware
-    from asgi_tools.utils import to_awaitable
 
     SIDE_EFFECTS = {}
 
@@ -100,7 +99,7 @@ async def test_router_middleware(Client):
     async def page1(scope, receive, send):
         return 'page1'
 
-    @router.route('/page2/<mode>')
+    @router.route('/page2/{mode}')
     async def page2(scope, receive, send):
         mode = scope['path_params']['mode']
         return f'page2: {mode}'

@@ -280,14 +280,14 @@ async def test_docs_router_middleware(Client):
     # Dynamic paths
     # -------------
 
-    @router.route('/hello/<name>')
+    @router.route('/hello/{name}')
     async def hello(scope, receive, send):
         name = scope['path_params']['name']
         response = ResponseHTML(f'Hello { name.title() }')
         await response(scope, receive, send)
 
     # Set regexp for params
-    @router.route(r'/multiply/<first:int>/<second:int>')
+    @router.route(r'/multiply/{first:int}/{second:int}')
     async def multiply(scope, receive, send):
         first, second = map(int, scope['path_params'].values())
         response = ResponseHTML(str(first * second))

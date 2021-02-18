@@ -279,7 +279,7 @@ class RouterMiddleware(BaseMiddeware):
         # Dynamic paths
         # -------------
 
-        @router.route('/hello/<name>')
+        @router.route('/hello/{name}')
         async def hello(scope, receive, send):
             name = scope['path_params']['name']
             response = ResponseHTML(f'Hello { name.title() }')

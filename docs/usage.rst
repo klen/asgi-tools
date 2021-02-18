@@ -140,12 +140,12 @@ Variable Rules
 ``````````````
 
 You can add variable sections to a URL by marking sections with
-``<variable_name>``. Your function then receives the ``<variable_name>`` from
+``{variable_name}``. Your function then receives the ``{variable_name}`` from
 ``request.path_params``.
 
 .. code-block:: python
 
-    @app.route('/user/<username>')
+    @app.route('/user/{username}')
     async def show_user_profile(request):
         username = request.path_params['username']
         return f'User {username}'
@@ -153,7 +153,7 @@ You can add variable sections to a URL by marking sections with
 By default this will capture characters up to the end of the path or the next /.
 
 Optionally, you can use a converter to specify the type of the argument like
-``<variable_name:converter>``.
+``{variable_name:converter}``.
 
 Converter types:
 
@@ -169,7 +169,7 @@ Convertors are used by prefixing them with a colon, like so:
 
 .. code-block:: python
 
-    @app.route('/post/<post_id:int>')
+    @app.route('/post/{post_id:int}')
     async def show_post(request):
         post_id = request.path_params['post_id']
         return f'Post # {post_id}'
@@ -178,7 +178,7 @@ Any unknown convertor will be parsed as a regex:
 
 .. code:: python
 
-    @app.route('/orders/<order_id:\d{3}>')
+    @app.route('/orders/{order_id:\d{3}}')
     async def orders(request):
         order_id = request.path_params['order_id']
         return f'Order # {order_id}'

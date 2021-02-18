@@ -8,7 +8,7 @@ async def test_app(Client):
 
     app = App(static_folders=[Path(__file__).parent])
 
-    @app.route('/test/<param>', methods='get')
+    @app.route('/test/{param}', methods='get')
     async def test_request(request):
         return "Done %s" % request.path_params['param']
 

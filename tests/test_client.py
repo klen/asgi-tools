@@ -163,7 +163,7 @@ async def test_websocket(app, Client):
 async def test_timeouts(app, client):
     from asgi_tools._compat import aio_sleep
 
-    @app.route('/sleep/<time>')
+    @app.route('/sleep/{time}')
     async def sleep(request):
         time = float(request.path_params['time'])
         await aio_sleep(time)
