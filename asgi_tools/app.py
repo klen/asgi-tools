@@ -21,6 +21,7 @@ from .response import ResponseError, Response
 from .utils import to_awaitable, iscoroutinefunction, is_awaitable
 
 
+
 HTTP_METHODS = {'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'}
 
 

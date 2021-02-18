@@ -49,22 +49,26 @@ class Response:
 
     """
     charset: str = DEFAULT_CHARSET
+    content_type: t.Optional[str] = None
 
     #  __slots__ = 'content', 'status_code', 'headers', 'cookies'
 
     def __init__(
             self, content: ResponseContent = None, status_code: int = HTTPStatus.OK.value,
-            headers: dict = None, content_type: str = None) -> None:
+            headers: dict = None, content_type: str = None):
         """Setup the response."""
         self.content = content
         self.status_code = status_code
         self.headers: CIMultiDict = CIMultiDict(headers or {})
         self.cookies: cookies.SimpleCookie = cookies.SimpleCookie()
-        if content_type:
-            if content_type.startswith('text/'):
-                content_type = f"{content_type}; charset={self.charset}"
+        if content_type is not None:
+            self.content_type = content_type
 
-            self.headers['content-type'] = content_type
+        if self.content_type:
+            self.headers.setdefault(
+                'content-type', self.content_type.startswith('text/') and
+                f"{self.content_type}; charset={self.charset}" or self.content_type
+            )
 
     def __str__(self) -> str:
         """Stringify the response."""
@@ -107,6 +111,7 @@ class Response:
             (key.lower().encode('latin-1'), str(val).encode('latin-1'))
             for key, val in self.headers.items()
         ]
+
         for cookie in self.cookies.values():
             headers.append((b"set-cookie", cookie.output(header='').strip().encode('latin-1')))
 
@@ -120,28 +125,19 @@ class Response:
 class ResponseText(Response):
     """A helper to return plain text responses (text/plain)."""
 
-    def __init__(self, *args, **kwargs) -> None:
-        """Setup the response."""
-        kwargs['content_type'] = 'text/plain'
-        super().__init__(*args, **kwargs)
+    content_type = 'text/plain'
 
 
 class ResponseHTML(Response):
     """A helper to return HTML responses (text/html)."""
 
-    def __init__(self, *args, **kwargs) -> None:
-        """Setup the response."""
-        kwargs['content_type'] = 'text/html'
-        super().__init__(*args, **kwargs)
+    content_type = 'text/html'
 
 
 class ResponseJSON(Response):
     """A helper to return JSON responses (application/json)."""
 
-    def __init__(self, *args, **kwargs) -> None:
-        """Setup the response."""
-        kwargs['content_type'] = 'application/json'
-        super().__init__(*args, **kwargs)
+    content_type = 'application/json'
 
     @Response.content.setter  # type: ignore
     def content(self, content: ResponseContent):
@@ -398,16 +394,29 @@ class ResponseWebSocket(Response):
         return raw and msg or parse_websocket_msg(msg, charset=self.charset)
 
 
+CAST_RESPONSE: t.Dict[t.Type, t.Type[Response]] = {
+    bool: ResponseJSON,
+    bytes: ResponseHTML,
+    dict: ResponseJSON,
+    int: ResponseJSON,
+    list: ResponseJSON,
+    str: ResponseHTML,
+    type(None): ResponseJSON,
+}
+
+
 def parse_response(response: t.Any, headers: t.Dict = None) -> Response:
     """Parse the given object and convert it into a asgi_tools.Response."""
 
-    if isinstance(response, Response):
+    rtype = type(response)
+    if issubclass(rtype, Response):
         return response
 
-    if isinstance(response, (str, bytes)):
-        return ResponseHTML(response, headers=headers)
+    ResponseType = CAST_RESPONSE.get(rtype)
+    if ResponseType:
+        return ResponseType(response, headers=headers)
 
-    if isinstance(response, tuple):
+    if rtype is tuple:
         status, *contents = response
         assert isinstance(status, int), 'Invalid Response Status'
         if len(contents) > 1:
@@ -415,9 +424,6 @@ def parse_response(response: t.Any, headers: t.Dict = None) -> Response:
         response = parse_response(contents[0] or '' if contents else '', headers=headers)
         response.status_code = status
         return response
-
-    if response is None or isinstance(response, (dict, list, int, bool)):
-        return ResponseJSON(response, headers=headers)
 
     return ResponseText(str(response), headers=headers)
 
