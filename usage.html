@@ -293,9 +293,9 @@ The everh routed callback should be awaitable and accept a <a class="reference i
 <div class="section" id="variable-rules">
 <h3>Variable Rules<a class="headerlink" href="#variable-rules" title="Permalink to this headline">¶</a></h3>
 <p>You can add variable sections to a URL by marking sections with
-<code class="docutils literal notranslate"><span class="pre">&lt;variable_name&gt;</span></code>. Your function then receives the <code class="docutils literal notranslate"><span class="pre">&lt;variable_name&gt;</span></code> from
+<code class="docutils literal notranslate"><span class="pre">{variable_name}</span></code>. Your function then receives the <code class="docutils literal notranslate"><span class="pre">{variable_name}</span></code> from
 <code class="docutils literal notranslate"><span class="pre">request.path_params</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/user/&lt;username&gt;&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/user/</span><span class="si">{username}</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">show_user_profile</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
     <span class="n">username</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">path_params</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;User </span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s1">&#39;</span>
@@ -303,7 +303,7 @@ The everh routed callback should be awaitable and accept a <a class="reference i
 </div>
 <p>By default this will capture characters up to the end of the path or the next /.</p>
 <p>Optionally, you can use a converter to specify the type of the argument like
-<code class="docutils literal notranslate"><span class="pre">&lt;variable_name:converter&gt;</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">{variable_name:converter}</span></code>.</p>
 <p>Converter types:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -329,14 +329,14 @@ The everh routed callback should be awaitable and accept a <a class="reference i
 </tbody>
 </table>
 <p>Convertors are used by prefixing them with a colon, like so:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/post/&lt;post_id:int&gt;&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/post/{post_id:int}&#39;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">show_post</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
     <span class="n">post_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">path_params</span><span class="p">[</span><span class="s1">&#39;post_id&#39;</span><span class="p">]</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;Post # </span><span class="si">{</span><span class="n">post_id</span><span class="si">}</span><span class="s1">&#39;</span>
 </pre></div>
 </div>
 <p>Any unknown convertor will be parsed as a regex:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/orders/&lt;order_id:\d</span><span class="si">{3}</span><span class="s1">&gt;&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/orders/{order_id:\d</span><span class="si">{3}</span><span class="s1">}&#39;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">orders</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
     <span class="n">order_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">path_params</span><span class="p">[</span><span class="s1">&#39;order_id&#39;</span><span class="p">]</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;Order # </span><span class="si">{</span><span class="n">order_id</span><span class="si">}</span><span class="s1">&#39;</span>

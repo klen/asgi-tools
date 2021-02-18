@@ -439,7 +439,7 @@
 <span class="sd">        # Dynamic paths</span>
 <span class="sd">        # -------------</span>
 
-<span class="sd">        @router.route(&#39;/hello/&lt;name&gt;&#39;)</span>
+<span class="sd">        @router.route(&#39;/hello/{name}&#39;)</span>
 <span class="sd">        async def hello(scope, receive, send):</span>
 <span class="sd">            name = scope[&#39;path_params&#39;][&#39;name&#39;]</span>
 <span class="sd">            response = ResponseHTML(f&#39;Hello { name.title() }&#39;)</span>
