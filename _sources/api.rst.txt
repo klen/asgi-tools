@@ -370,6 +370,43 @@ TestClient
                 assert response.status_code == 200
                 assert await response.text() == 'OK'
 
+        Stream Request
+
+        .. code-block:: python
+
+            async def test_app():
+                client = ASGITestClient(app)
+                async def stream():
+                    for n in range(10):
+                        yield b'chunk%s' % bytes(n)
+                        await aio_sleep(1)
+
+                response = await client.get('/', data=stream)
+                assert response.status_code == 200
+
+
+        Stream Response
+
+        .. code-block:: python
+
+            @app.route('/')
+            async def index(request):
+                async def stream():
+                    for n in range(10):
+                        yield b'chunk%s' % bytes(n)
+                        await aio_sleep(1)
+
+                return ResponseStream(stream)
+
+
+            async def test_app():
+                client = ASGITestClient(app)
+                response = await client.get('/')
+                assert response.status_code == 200
+                async for chunk in response.stream():
+                    assert chunk.startswith('chunk')
+
+
    .. automethod:: websocket
 
         .. code-block:: python
