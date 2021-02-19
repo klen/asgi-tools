@@ -15,15 +15,15 @@ async def test_aio_spawn():
     async with aio_spawn(task, 'tests'):
         await aio_sleep(1e-2)
 
-    assert SIDE_EFFECTS['tests'] == True
+    assert SIDE_EFFECTS['tests'] is True
 
 
-async def test_wait_for_first():
+async def test_aio_wait():
 
-    from asgi_tools._compat import wait_for_first, aio_sleep
+    from asgi_tools._compat import aio_wait, aio_sleep, FIRST_COMPLETED
 
     async def task(name, time):
         await aio_sleep(time)
         return name
 
-    assert 't2' == await wait_for_first(task('t1', 2e-2), task('t2', 1e-2))
+    assert 't2' == await aio_wait(task('t1', 2e-2), task('t2', 1e-2), strategy=FIRST_COMPLETED)

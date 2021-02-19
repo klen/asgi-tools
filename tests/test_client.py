@@ -121,7 +121,7 @@ async def test_redirects(app, client):
     assert res.headers['location'] == '/'
 
 
-async def test_streams(app, client):
+async def test_stream_response(app, client):
     from asgi_tools import ResponseStream
     from asgi_tools._compat import aio_sleep
 
@@ -140,6 +140,23 @@ async def test_streams(app, client):
     expected = [str(n).encode() for n in range(10)]
     async for chunk in res.stream():
         assert chunk == expected.pop(0)
+
+
+async def test_stream_request(app, client):
+    from asgi_tools._compat import aio_sleep
+
+    async def source(timeout=.001):
+        for idx in range(10):
+            yield bytes(idx)
+            await aio_sleep(timeout)
+
+    @app.route('/stream')
+    async def stream(request):
+        pass
+
+    res = await client.post('/stream', data=source())
+    assert res.status_code == 200
+
 
 
 async def test_websocket(app, Client):

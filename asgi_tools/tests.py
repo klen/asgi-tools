@@ -1,16 +1,17 @@
 import typing as t
 from collections import deque
+from contextlib import asynccontextmanager
 from email.mime import multipart, nonmultipart
 from functools import partial
 from http import cookies
+from inspect import isasyncgen
 from json import loads, dumps
 from urllib.parse import urlencode
-from contextlib import asynccontextmanager, contextmanager
 
 from yarl import URL
 
 from . import ASGIConnectionClosed
-from ._compat import aio_sleep, aio_spawn, wait_for_first, cancel_task
+from ._compat import aio_sleep, aio_spawn, aio_wait, aio_cancel, FIRST_COMPLETED
 from ._types import JSONType, Scope, Receive, Send, Message
 from .middleware import ASGIApp
 from .response import Response, ResponseWebSocket, parse_websocket_msg
@@ -103,8 +104,8 @@ class ASGITestClient:
     * cookies
     * multipart/form-data
     * follow redirects
-    * response streams
     * request streams
+    * response streams
     * websocket support
     * lifespan management
 
@@ -121,10 +122,10 @@ class ASGITestClient:
 
     async def request(
             self, path: str, method: str = 'GET', query: t.Union[str, t.Dict] = '',
-            headers: t.Dict[str, str] = None, data: t.Union[bytes, str, t.Dict] = b'',
-            json: JSONType = None, cookies: t.Dict = None, files: t.Dict = None,
+            headers: t.Dict[str, str] = None, cookies: t.Dict = None, files: t.Dict = None,
+            data: t.Union[bytes, str, t.Dict, t.AsyncGenerator] = b'', json: JSONType = None,
             follow_redirect: bool = True, timeout: float = 3.0) -> TestResponse:
-        """Make a HTTP request."""
+        """Make a HTTP requests."""
 
         res = TestResponse()
         headers = headers or dict(self.headers)
@@ -144,21 +145,21 @@ class ASGITestClient:
             headers['Content-Type'], data = encode_multipart_formdata(files)
             data = data.encode(res.charset)
 
-        headers.setdefault('Content-Length', str(len(data)))
-
         receive_from_client, send_to_app = simple_stream()
         receive_from_app, send_to_client = simple_stream()
 
-        # Prepare a request data
-        await send_to_app({'type': 'http.request', 'body': data, 'more_body': False})
+        if isinstance(data, bytes):
+            headers.setdefault('Content-Length', str(len(data)))
 
         scope = self.build_scope(
             path, headers=headers, query=query, cookies=cookies, type='http', method=method,
         )
 
-        await wait_for_first(
-            self.app(scope, receive_from_client, send_to_client),
-            raise_timeout(timeout),
+        await aio_wait(
+            aio_wait(
+                self.app(scope, receive_from_client, send_to_client),
+                stream_data(data, send_to_app, timeout),
+            ), raise_timeout(timeout), strategy=FIRST_COMPLETED
         )
         await send_to_client({'type': 'http.response.body', 'more_body': False})
         await res(scope, receive_from_app, send_to_app)
@@ -195,22 +196,27 @@ class ASGITestClient:
         receive_from_app, send_to_client = simple_stream()
 
         async def safe_spawn():
-            with ignore_errors():
+            try:
                 await self.app({'type': 'lifespan'}, receive_from_client, send_to_client)
+            except Exception:
+                pass
 
         async with aio_spawn(safe_spawn) as task:
             await send_to_app({'type': 'lifespan.startup'})
-            with ignore_errors():
-                msg = await wait_for_first(receive_from_app(), raise_timeout(timeout))
+            msg = await aio_wait(
+                receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED)
+            if msg:
                 if msg['type'] == 'lifespan.startup.failed':
-                    cancel_task(task)
-                assert msg['type'] == 'lifespan.startup.complete'
+                    aio_cancel(task)
+                else:
+                    assert msg['type'] == 'lifespan.startup.complete'
 
             yield
 
             await send_to_app({'type': 'lifespan.shutdown'})
-            with ignore_errors():
-                msg = await wait_for_first(receive_from_app(), raise_timeout(timeout))
+            msg = await aio_wait(
+                receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED)
+            if msg:
                 assert msg['type'] == 'lifespan.shutdown.complete'
 
     def build_scope(
@@ -285,16 +291,21 @@ def simple_stream(maxlen=None):
     return receive, to_awaitable(queue.append)
 
 
-async def raise_timeout(timeout):
+async def raise_timeout(timeout: t.Union[int, float]):
     await aio_sleep(timeout)
     raise TimeoutError('Timeout occured')
 
 
-@contextmanager
-def ignore_errors():
-    try:
-        yield
-    except BaseException:
-        pass
+async def stream_data(data: t.Union[bytes, t.AsyncGenerator[t.Any, bytes]],
+                      send: t.Callable[..., t.Awaitable], timeout: t.Union[int, float]):
+    """Stream a data to an application."""
+
+    if isinstance(data, bytes):
+        return await send({'type': 'http.request', 'body': data, 'more_body': False})
+
+    async for chunk in data:
+        await send({'type': 'http.request', 'body': chunk, 'more_body': True})
+    await send({'type': 'http.request', 'body': b'', 'more_body': False})
+
 
 # pylama:ignore=D

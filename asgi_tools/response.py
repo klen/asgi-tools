@@ -18,7 +18,7 @@ import typing as t
 from sniffio import current_async_library
 
 from . import DEFAULT_CHARSET, ASGIError, ASGIConnectionClosed
-from ._compat import aiofile, trio, wait_for_first
+from ._compat import aiofile, trio, aio_wait, FIRST_COMPLETED
 from ._types import Message, ResponseContent, Scope, Receive, Send
 from .request import Request
 
@@ -279,9 +279,10 @@ class ResponseStream(Response):
 
     async def __call__(self, scope: t.Any, receive: t.Any, send: Send) -> None:
         """Behave as an ASGI application."""
-        await wait_for_first(
+        await aio_wait(
             self.listen_for_disconnect(receive),
             self.stream_response(send),
+            strategy=FIRST_COMPLETED,
         )
 
 
