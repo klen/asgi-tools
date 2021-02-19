@@ -66,6 +66,8 @@ async def wait_for_first(*aws: t.Awaitable) -> t.Any:
         aws = tuple(create_task(aw) if inspect.iscoroutine(aw) else aw for aw in aws)
         (done,), pending = await asyncio.wait(aws, return_when=asyncio.FIRST_COMPLETED)
         [task.cancel() for task in pending]
+        await asyncio.gather(*pending, return_exceptions=True)
+
         return done.result()
 
     send_channel, receive_channel = trio.open_memory_channel(0)

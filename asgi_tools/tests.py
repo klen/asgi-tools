@@ -294,7 +294,7 @@ async def raise_timeout(timeout):
 def ignore_errors():
     try:
         yield
-    except Exception:
+    except BaseException:
         pass
 
 # pylama:ignore=D
