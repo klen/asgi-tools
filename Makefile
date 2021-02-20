@@ -64,6 +64,10 @@ example: $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.rates:app
 
 
+zoo: $(VIRTUAL_ENV)
+	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload zoo:app
+
+
 example-websocket: $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.websocket:app
 

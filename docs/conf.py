@@ -13,6 +13,8 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+import sys
+import pkg_resources
 
 
 # -- Project information -----------------------------------------------------
@@ -21,6 +23,20 @@ project = 'asgi-tools'
 copyright = '2021, Kirill Klenov'
 author = 'Kirill Klenov'
 
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+try:
+    release = pkg_resources.get_distribution('asgi-tools').version
+except pkg_resources.DistributionNotFound:
+    print('To build the documentation, The distribution information of ASGI-Tools')
+    print('Has to be available.  Either install the package into your')
+    print('development environment or run "setup.py develop" to setup the')
+    print('metadata.  A virtualenv is recommended!')
+    sys.exit(1)
+del pkg_resources
+
+version = release
 
 # -- General configuration ---------------------------------------------------
 

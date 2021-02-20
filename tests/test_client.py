@@ -230,9 +230,9 @@ async def test_lifespan(Client):
 
     client = Client(app)
 
-    #  with pytest.raises(AssertionError):
-    #      async with client.lifespan():
-    #          raise AssertionError('test')
+    with pytest.raises(AssertionError):
+        async with client.lifespan():
+            raise AssertionError('test')
 
     async with client.lifespan():
         assert SIDE_EFFECTS['started']

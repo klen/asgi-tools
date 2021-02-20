@@ -1,6 +1,7 @@
 /_
 /build
 /dist
+/docs/_build
 /env
 /todo.txt
-/docs/_build
+/zoo.py
