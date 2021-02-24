@@ -8,8 +8,8 @@ faster.
 
 The Features:
 
-* Both Asyncio_ and Trio_ async libraries are supported;
-* Good Perfomance;
+* All popular async python libraries are supported (Asyncio_, Trio_, Curio_);
+* Competitive Performance;
 * HTTP Headers/Cookies/Form data support (:class:`~asgi_tools.Request`);
 * HTTP (:class:`~asgi_tools.Response`), Static files (:class:`~asgi_tools.ResponseFile`), Streaming (:class:`~asgi_tools.ResponseStream`) responses;
 * WebSocket (:class:`~asgi_tools.ResponseWebSocket`) support;

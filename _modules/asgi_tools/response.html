@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>asgi_tools.response &mdash; asgi-tools 0.35.1 documentation</title>
+  <title>asgi_tools.response &mdash; asgi-tools 0.36.0 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.35.1
+                0.36.0
               </div>
             
           
@@ -184,10 +184,8 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">typing</span> <span class="k">as</span> <span class="nn">t</span>
 
-<span class="kn">from</span> <span class="nn">sniffio</span> <span class="kn">import</span> <span class="n">current_async_library</span>
-
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">DEFAULT_CHARSET</span><span class="p">,</span> <span class="n">ASGIError</span><span class="p">,</span> <span class="n">ASGIConnectionClosed</span>
-<span class="kn">from</span> <span class="nn">._compat</span> <span class="kn">import</span> <span class="n">aiofile</span><span class="p">,</span> <span class="n">trio</span><span class="p">,</span> <span class="n">aio_wait</span><span class="p">,</span> <span class="n">FIRST_COMPLETED</span>
+<span class="kn">from</span> <span class="nn">._compat</span> <span class="kn">import</span> <span class="n">aio_wait</span><span class="p">,</span> <span class="n">FIRST_COMPLETED</span><span class="p">,</span> <span class="n">aio_stream_file</span>
 <span class="kn">from</span> <span class="nn">._types</span> <span class="kn">import</span> <span class="n">Message</span><span class="p">,</span> <span class="n">ResponseContent</span><span class="p">,</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Send</span>
 <span class="kn">from</span> <span class="nn">.request</span> <span class="kn">import</span> <span class="n">Request</span>
 
@@ -325,6 +323,7 @@
 <span class="sd">    :param url: A string with the new location</span>
 <span class="sd">    :type url: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">TEMPORARY_REDIRECT</span><span class="o">.</span><span class="n">value</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -467,7 +466,7 @@
         <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ASGIError</span><span class="p">(</span><span class="o">*</span><span class="n">exc</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
 
-        <span class="n">stream</span> <span class="o">=</span> <span class="n">stream_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">headers_only</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">aio_stream_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">headers_only</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ResponseFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">headers_only</span> <span class="o">=</span> <span class="n">headers_only</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
@@ -613,25 +612,6 @@
         <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">charset</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">msg</span>
-
-
-<span class="k">async</span> <span class="k">def</span> <span class="nf">stream_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>  <span class="c1"># noqa</span>
-    <span class="sd">&quot;&quot;&quot;Stream the given file.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">current_async_library</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;trio&#39;</span><span class="p">:</span>
-        <span class="k">async</span> <span class="k">with</span> <span class="k">await</span> <span class="n">trio</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
-            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-                <span class="n">chunk</span> <span class="o">=</span> <span class="k">await</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">chunk</span><span class="p">:</span>
-                    <span class="k">break</span>
-                <span class="k">yield</span> <span class="n">chunk</span>
-
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">aiofile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ASGIError</span><span class="p">(</span><span class="s1">&#39;`aiofile` is required to return files with asyncio&#39;</span><span class="p">)</span>
-
-        <span class="k">async</span> <span class="k">with</span> <span class="n">aiofile</span><span class="o">.</span><span class="n">AIOFile</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
-            <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">aiofile</span><span class="o">.</span><span class="n">Reader</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">):</span>
-                <span class="k">yield</span> <span class="n">chunk</span>
 
 <span class="c1"># pylama: ignore=E501</span>
 </pre></div>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>asgi_tools.tests &mdash; asgi-tools 0.35.1 documentation</title>
+  <title>asgi_tools.tests &mdash; asgi-tools 0.36.0 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.35.1
+                0.36.0
               </div>
             
           
@@ -374,18 +374,17 @@
             <span class="k">await</span> <span class="n">send_to_app</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan.startup&#39;</span><span class="p">})</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span>
                 <span class="n">receive_from_app</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">msg</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">msg</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.startup.failed&#39;</span><span class="p">:</span>
-                    <span class="n">aio_cancel</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+                    <span class="k">await</span> <span class="n">aio_cancel</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">assert</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.startup.complete&#39;</span>
 
             <span class="k">yield</span>
 
             <span class="k">await</span> <span class="n">send_to_app</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan.shutdown&#39;</span><span class="p">})</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span>
-                <span class="n">receive_from_app</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">msg</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span><span class="n">receive_from_app</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">msg</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
                 <span class="k">assert</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.shutdown.complete&#39;</span></div>
 
     <span class="k">def</span> <span class="nf">build_scope</span><span class="p">(</span>
