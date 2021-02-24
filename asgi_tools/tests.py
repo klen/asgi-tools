@@ -205,18 +205,17 @@ class ASGITestClient:
             await send_to_app({'type': 'lifespan.startup'})
             msg = await aio_wait(
                 receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED)
-            if msg:
+            if msg and isinstance(msg, t.Mapping):
                 if msg['type'] == 'lifespan.startup.failed':
-                    aio_cancel(task)
+                    await aio_cancel(task)
                 else:
                     assert msg['type'] == 'lifespan.startup.complete'
 
             yield
 
             await send_to_app({'type': 'lifespan.shutdown'})
-            msg = await aio_wait(
-                receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED)
-            if msg:
+            msg = await aio_wait(receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED)
+            if msg and isinstance(msg, t.Mapping):
                 assert msg['type'] == 'lifespan.shutdown.complete'
 
     def build_scope(

@@ -15,10 +15,8 @@ from urllib.parse import quote_plus
 import os
 import typing as t
 
-from sniffio import current_async_library
-
 from . import DEFAULT_CHARSET, ASGIError, ASGIConnectionClosed
-from ._compat import aiofile, trio, aio_wait, FIRST_COMPLETED
+from ._compat import aio_wait, FIRST_COMPLETED, aio_stream_file
 from ._types import Message, ResponseContent, Scope, Receive, Send
 from .request import Request
 
@@ -156,6 +154,7 @@ class ResponseRedirect(Response, BaseException):
     :param url: A string with the new location
     :type url: str
     """
+
     status_code: int = HTTPStatus.TEMPORARY_REDIRECT.value
 
     def __init__(self, url: str, status_code: int = None, **kwargs) -> None:
@@ -298,7 +297,7 @@ class ResponseFile(ResponseStream):
         except FileNotFoundError as exc:
             raise ASGIError(*exc.args)
 
-        stream = stream_file(filepath, chunk_size) if not headers_only else None
+        stream = aio_stream_file(filepath, chunk_size) if not headers_only else None
         super(ResponseFile, self).__init__(stream, **kwargs)  # type: ignore
         self.headers_only = headers_only
         self.headers.setdefault(
@@ -444,24 +443,5 @@ def parse_websocket_msg(msg: Message, charset: str = None) -> t.Union[Message, s
         return data.decode(charset)
 
     return msg
-
-
-async def stream_file(filepath: t.Union[str, Path], chunk_size: int = 32 * 1024) -> t.AsyncGenerator[bytes, None]:  # noqa
-    """Stream the given file."""
-    if current_async_library() == 'trio':
-        async with await trio.open_file(filepath, 'rb') as fp:
-            while True:
-                chunk = await fp.read(chunk_size)
-                if not chunk:
-                    break
-                yield chunk
-
-    else:
-        if aiofile is None:
-            raise ASGIError('`aiofile` is required to return files with asyncio')
-
-        async with aiofile.AIOFile(filepath, mode='rb') as fp:
-            async for chunk in aiofile.Reader(fp, chunk_size=chunk_size):
-                yield chunk
 
 # pylama: ignore=E501

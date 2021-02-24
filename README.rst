@@ -41,7 +41,7 @@ For instance these middlewares were built with the library:
 
 **Features:**
 
-- Supports `Asyncio`_ and `Trio`_ libraries
+- Supports all most popular async python libraries: `Asyncio`_, `Trio`_ and Curio_
 - `Request`_                 -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
 - `Response`_                -- Send HTTP (text, html, json, stream, file, http errors) responses
 - `ResponseWebsocket`_       -- Work with websockets
@@ -126,11 +126,12 @@ Licensed under a `MIT license`_.
 
 .. _links:
 
+.. _ASGI: https://asgi.readthedocs.io/en/latest/
 .. _Asyncio: https://docs.python.org/3/library/asyncio.html
+.. _Curio: https://curio.readthedocs.io/en/latest/
+.. _MIT license: http://opensource.org/licenses/MIT
 .. _Trio: https://trio.readthedocs.io/en/stable/index.html
 .. _klen: https://github.com/klen
-.. _MIT license: http://opensource.org/licenses/MIT
-.. _ASGI: https://asgi.readthedocs.io/en/latest/
 
 .. _Request: https://klen.github.io/asgi-tools/api.html#request
 .. _Response: https://klen.github.io/asgi-tools/api.html#responses
