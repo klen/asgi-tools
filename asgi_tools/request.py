@@ -7,14 +7,13 @@ from cgi import parse_header, FieldStorage
 from functools import wraps
 from http import cookies
 from io import BytesIO
-from json import loads
 from urllib.parse import parse_qsl
 
 from multidict import MultiDict
 from yarl import URL
 
 from . import ASGIDecodeError, DEFAULT_CHARSET
-from ._compat import cached_property, TypedDict
+from ._compat import cached_property, TypedDict, json_loads
 from ._types import Scope, Receive, Send, JSONType
 from .utils import parse_headers, CIMultiDict
 
@@ -183,7 +182,7 @@ class Request(dict):
         `json = await request.json()`
         """
         text = await self.text()
-        return loads(text)
+        return json_loads(text)
 
     @process_decode(message='Invalid Form Data')
     async def form(self) -> MultiDict:

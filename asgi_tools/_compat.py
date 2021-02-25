@@ -10,6 +10,11 @@ from concurrent.futures import ALL_COMPLETED, FIRST_COMPLETED
 
 from sniffio import current_async_library
 
+try:
+    from ujson import dumps as json_dumps, loads as json_loads  # noqa
+except ImportError:
+    from json import dumps as json_dumps, loads as json_loads  # noqa
+
 
 # Python 3.8+
 if sys.version_info >= (3, 8):

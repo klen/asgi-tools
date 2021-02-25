@@ -7,7 +7,6 @@ from enum import Enum
 from functools import partial
 from hashlib import md5
 from http import cookies, HTTPStatus
-from json import dumps
 from mimetypes import guess_type
 from multidict import CIMultiDict
 from pathlib import Path
@@ -16,7 +15,7 @@ import os
 import typing as t
 
 from . import DEFAULT_CHARSET, ASGIError, ASGIConnectionClosed
-from ._compat import aio_wait, FIRST_COMPLETED, aio_stream_file
+from ._compat import aio_wait, FIRST_COMPLETED, aio_stream_file, json_dumps
 from ._types import Message, ResponseContent, Scope, Receive, Send
 from .request import Request
 
@@ -145,7 +144,8 @@ class ResponseJSON(Response):
     @Response.content.setter  # type: ignore
     def content(self, content: ResponseContent):
         """Jsonify the content."""
-        self.__content__ = dumps(content, ensure_ascii=False, allow_nan=False).encode(self.charset)
+        self.__content__ = json_dumps(
+            content, ensure_ascii=False, allow_nan=False).encode(self.charset)
 
 
 class ResponseRedirect(Response, BaseException):
