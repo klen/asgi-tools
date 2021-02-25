@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>asgi_tools.request &mdash; asgi-tools 0.37.0 documentation</title>
+  <title>asgi_tools.request &mdash; asgi-tools 0.38.0 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.37.0
+                0.38.0
               </div>
             
           
@@ -350,8 +350,7 @@
 
 <span class="sd">        `json = await request.json()`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">text</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">json_loads</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json_loads</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">())</span>
 
 <div class="viewcode-block" id="Request.form"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.form">[docs]</a>    <span class="nd">@process_decode</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;Invalid Form Data&#39;</span><span class="p">)</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">form</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MultiDict</span><span class="p">:</span>
