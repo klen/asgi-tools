@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>asgi_tools.response &mdash; asgi-tools 0.36.2 documentation</title>
+  <title>asgi_tools.response &mdash; asgi-tools 0.37.0 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.36.2
+                0.37.0
               </div>
             
           
@@ -176,7 +176,6 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">md5</span>
 <span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">cookies</span><span class="p">,</span> <span class="n">HTTPStatus</span>
-<span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">dumps</span>
 <span class="kn">from</span> <span class="nn">mimetypes</span> <span class="kn">import</span> <span class="n">guess_type</span>
 <span class="kn">from</span> <span class="nn">multidict</span> <span class="kn">import</span> <span class="n">CIMultiDict</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
@@ -185,7 +184,7 @@
 <span class="kn">import</span> <span class="nn">typing</span> <span class="k">as</span> <span class="nn">t</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">DEFAULT_CHARSET</span><span class="p">,</span> <span class="n">ASGIError</span><span class="p">,</span> <span class="n">ASGIConnectionClosed</span>
-<span class="kn">from</span> <span class="nn">._compat</span> <span class="kn">import</span> <span class="n">aio_wait</span><span class="p">,</span> <span class="n">FIRST_COMPLETED</span><span class="p">,</span> <span class="n">aio_stream_file</span>
+<span class="kn">from</span> <span class="nn">._compat</span> <span class="kn">import</span> <span class="n">aio_wait</span><span class="p">,</span> <span class="n">FIRST_COMPLETED</span><span class="p">,</span> <span class="n">aio_stream_file</span><span class="p">,</span> <span class="n">json_dumps</span>
 <span class="kn">from</span> <span class="nn">._types</span> <span class="kn">import</span> <span class="n">Message</span><span class="p">,</span> <span class="n">ResponseContent</span><span class="p">,</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Send</span>
 <span class="kn">from</span> <span class="nn">.request</span> <span class="kn">import</span> <span class="n">Request</span>
 
@@ -314,7 +313,8 @@
     <span class="nd">@Response</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">setter</span>  <span class="c1"># type: ignore</span>
     <span class="k">def</span> <span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">ResponseContent</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Jsonify the content.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__content__</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">allow_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__content__</span> <span class="o">=</span> <span class="n">json_dumps</span><span class="p">(</span>
+            <span class="n">content</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">allow_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ResponseRedirect"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseRedirect">[docs]</a><span class="k">class</span> <span class="nc">ResponseRedirect</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">):</span>
