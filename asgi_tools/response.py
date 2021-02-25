@@ -141,11 +141,14 @@ class ResponseJSON(Response):
 
     content_type = 'application/json'
 
+    def dumps(self, content: ResponseContent) -> str:
+        """Dumps the given content."""
+        return json_dumps(content)
+
     @Response.content.setter  # type: ignore
     def content(self, content: ResponseContent):
         """Jsonify the content."""
-        self.__content__ = json_dumps(
-            content, ensure_ascii=False, allow_nan=False).encode(self.charset)
+        self.__content__ = self.dumps(content)
 
 
 class ResponseRedirect(Response, BaseException):

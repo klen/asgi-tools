@@ -181,8 +181,7 @@ class Request(dict):
 
         `json = await request.json()`
         """
-        text = await self.text()
-        return json_loads(text)
+        return json_loads(await self.body())
 
     @process_decode(message='Invalid Form Data')
     async def form(self) -> MultiDict:

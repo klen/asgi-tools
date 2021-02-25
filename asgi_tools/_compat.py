@@ -11,9 +11,20 @@ from concurrent.futures import ALL_COMPLETED, FIRST_COMPLETED
 from sniffio import current_async_library
 
 try:
-    from ujson import dumps as json_dumps, loads as json_loads  # noqa
+    from orjson import dumps as json_dumps, loads as json_loads  # noqa
 except ImportError:
-    from json import dumps as json_dumps, loads as json_loads  # noqa
+    try:
+        from ujson import dumps, loads
+    except ImportError:
+        from json import dumps, loads
+
+    def json_dumps(content) -> bytes:
+        """Emulate orjson."""
+        dumps(content, ensure_ascii=False, allow_nan=False).encode('utf-8')
+
+    def json_loads(bytes_) -> t.Any:
+        """Emulate orjson."""
+        return loads(bytes_.decode('utf-8'))
 
 
 # Python 3.8+
