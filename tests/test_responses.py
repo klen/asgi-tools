@@ -102,7 +102,7 @@ async def test_error_response():
 
 
 # TODO: Exceptions
-async def test_stream_response(anyio_backend, Client):
+async def test_stream_response(Client):
     from asgi_tools import ResponseStream
     from asgi_tools._compat import aio_sleep
 
@@ -127,7 +127,7 @@ async def test_stream_response(anyio_backend, Client):
     assert await res.text() == '0123456789'
 
 
-async def test_file_response(anyio_backend):
+async def test_file_response():
     from asgi_tools import ResponseFile, ASGIError
 
     response = ResponseFile(__file__)
@@ -149,7 +149,7 @@ async def test_file_response(anyio_backend):
         response = ResponseFile('unknown')
 
 
-async def test_websocket_response(anyio_backend, Client):
+async def test_websocket_response(Client):
     from asgi_tools import ResponseWebSocket, ASGIConnectionClosed
     from asgi_tools.tests import simple_stream
 

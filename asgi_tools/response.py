@@ -414,7 +414,6 @@ CAST_RESPONSE: t.Dict[t.Type, t.Type[Response]] = {
 
 def parse_response(response: t.Any, headers: t.Dict = None) -> Response:
     """Parse the given object and convert it into a asgi_tools.Response."""
-
     rtype = type(response)
     if issubclass(rtype, Response):
         return response

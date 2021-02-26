@@ -1,15 +1,6 @@
 import pytest
 
 
-@pytest.fixture(params=[
-    pytest.param('asyncio'),
-    pytest.param('trio'),
-    pytest.param('curio'),
-], autouse=True)
-def anyio_backend(request):
-    return request.param
-
-
 @pytest.fixture(scope='session')
 def Client():
     from asgi_tools.tests import ASGITestClient
