@@ -141,7 +141,7 @@ class ResponseJSON(Response):
 
     content_type = 'application/json'
 
-    def dumps(self, content: ResponseContent) -> str:
+    def dumps(self, content: ResponseContent) -> bytes:
         """Dumps the given content."""
         return json_dumps(content)
 
