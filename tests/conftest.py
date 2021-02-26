@@ -1,6 +1,15 @@
 import pytest
 
 
+@pytest.fixture(params=[
+    pytest.param(('asyncio', {'use_uvloop': False}), id='asyncio'),
+    pytest.param(('asyncio', {'use_uvloop': True}), id='asyncio+uvloop'),
+    'trio', 'curio'
+])
+def aiolib(request):
+    return request.param
+
+
 @pytest.fixture(scope='session')
 def Client():
     from asgi_tools.tests import ASGITestClient
