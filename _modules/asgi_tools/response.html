@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>asgi_tools.response &mdash; asgi-tools 0.38.1 documentation</title>
+  <title>asgi_tools.response &mdash; asgi-tools 0.38.2 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.38.1
+                0.38.2
               </div>
             
           
@@ -583,7 +583,6 @@
 
 <span class="k">def</span> <span class="nf">parse_response</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Any</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Parse the given object and convert it into a asgi_tools.Response.&quot;&quot;&quot;</span>
-
     <span class="n">rtype</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">rtype</span><span class="p">,</span> <span class="n">Response</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">response</span>
