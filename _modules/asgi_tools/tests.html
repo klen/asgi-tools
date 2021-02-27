@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>asgi_tools.tests &mdash; asgi-tools 0.39.0 documentation</title>
+  <title>asgi_tools.tests &mdash; asgi-tools 0.39.1 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.39.0
+                0.39.1
               </div>
             
           
@@ -427,11 +427,11 @@
 
 <span class="k">def</span> <span class="nf">encode_multipart</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
     <span class="n">fields</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">field</span> <span class="o">=</span> <span class="n">RequestField</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">IOBase</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="n">RequestField</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOBase</span><span class="p">):</span>
             <span class="n">field</span> <span class="o">=</span> <span class="n">RequestField</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span>
-                <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">data</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span>
+                <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">value</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span>
 
         <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
 

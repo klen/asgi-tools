@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>API &mdash; asgi-tools 0.39.0 documentation</title>
+  <title>API &mdash; asgi-tools 0.39.1 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.39.0
+                0.39.1
               </div>
             
           
@@ -337,12 +337,19 @@ returns case-insensitive multi-dict <a class="reference external" href="https://
 
 <dl class="py method">
 <dt id="asgi_tools.Request.form">
-<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">form</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.form"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.form" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">form</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upload_to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_memory_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1048576</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.form"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.form" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read and return the request’s multipart formdata as a multidict.</p>
 <p><cite>formdata = await request.form()</cite></p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>multidict._multidict.MultiDict</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_size</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>]</em>) – </p></li>
+<li><p><strong>upload_to</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
+<li><p><strong>file_memory_limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>multidict._multidict.MultiDict</p>
 </dd>
 </dl>
 </dd></dl>
