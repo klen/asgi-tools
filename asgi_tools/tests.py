@@ -258,11 +258,11 @@ class ASGITestClient:
 
 def encode_multipart(data: t.Dict) -> t.Tuple[bytes, str]:
     fields = []
-    for name, data in data.items():
-        field = RequestField.from_tuples(name, data)
-        if isinstance(data, io.IOBase):
+    for name, value in data.items():
+        field = RequestField.from_tuples(name, value)
+        if isinstance(value, io.TextIOBase):
             field = RequestField.from_tuples(
-                name, (getattr(data, 'name', None), data.read()))
+                name, (getattr(value, 'name', None), value.read()))
 
         fields.append(field)
 

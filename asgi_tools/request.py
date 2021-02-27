@@ -187,7 +187,8 @@ class Request(dict):
         return json_loads(await self.body())
 
     @process_decode(message='Invalid Form Data')
-    async def form(self) -> MultiDict:
+    async def form(self, max_size: t.Union[int, float] = float('inf'), upload_to: str = None,
+                   file_memory_limit: int = 1024 * 1024) -> MultiDict:
         """Read and return the request's multipart formdata as a multidict.
 
         `formdata = await request.form()`
@@ -195,7 +196,8 @@ class Request(dict):
         from .forms import FormParser, MultipartParser
 
         parser = MultipartParser() if self.content_type == 'multipart/form-data' else FormParser()
-        return await parser.parse(self)
+        return await parser.parse(
+            self, max_size=max_size, upload_to=upload_to, file_memory_limit=file_memory_limit)
 
     def data(self) -> t.Awaitable[t.Union[str, JSONType, MultiDict]]:
         """The method checks `request.content_type` and parse the request's body automatically.

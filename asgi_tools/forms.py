@@ -45,12 +45,14 @@ class Parser(metaclass=ParserMeta):
 
     __slots__ = 'messages',
 
+    callbacks: t.Dict = {}
+
     def __init__(self):
         """Store a stream."""
         self.messages = []
 
     @abc.abstractmethod
-    async def parse(self, request: Request) -> MultiDict:
+    async def parse(self, request: Request, **opts) -> MultiDict:
         """Parse data."""
         pass
 
@@ -58,9 +60,11 @@ class Parser(metaclass=ParserMeta):
 class FormParser(Parser):
     """Parse querystring form data."""
 
-    async def parse(self, request: Request) -> MultiDict:
+    async def parse(self, request: Request,
+                    max_size: t.Union[int, float] = float('inf'), **opts) -> MultiDict:
         """Parse data."""
-        parser = _FormParser({m: getattr(self, m) for m in self.callbacks})
+        parser = _FormParser(
+            {m: getattr(self, m) for m in self.callbacks}, max_size=max_size)
         async for chunk in request.stream():
             parser.write(chunk)
 
@@ -102,22 +106,26 @@ class FormParser(Parser):
 class MultipartParser(Parser):
     """Parse multipart formdata."""
 
-    async def parse(self, request: Request) -> MultiDict:  # noqa
+    async def parse(self, request: Request, max_size: t.Union[int, float] = float('inf'),  # noqa
+                    upload_to: str = None, file_memory_limit: int = 1024 * 1024,
+                    **opts) -> MultiDict:
         """Parse data."""
 
         _, params = parse_header(request.headers["content-type"])
         boundary = params.get('boundary')
         charset = params.get('charset', request.charset)
-        parser = _MultipartParser(boundary, {m: getattr(self, m) for m in self.callbacks})
+        parser = _MultipartParser(
+            boundary, {m: getattr(self, m) for m in self.callbacks}, max_size=max_size)
         async for chunk in request.stream():
             parser.write(chunk)
 
         parser.finalize()
 
-        items: t.List[t.Tuple[str, str]] = []
+        items: t.List[t.Tuple[str, t.Union[str, t.IO]]] = []
         headers, data = {}, b''
         header_name, header_value = b'', b''
-        name, value, fileobj = b'', b'', None
+        name, value = '', b''
+        fileobj: t.Optional[t.IO] = None
         for event, data in self.messages:
             if event == HEADER_FIELD:
                 header_name += data
@@ -131,9 +139,10 @@ class MultipartParser(Parser):
                     headers[b'content-disposition'].decode(charset))
                 name = options['name']
                 if 'filename' in options:
-                    fileobj = SpooledTemporaryFile(1024 * 1024)
-                    fileobj.filename = options['filename']
-                    fileobj.content_type = headers[b'content-type'].decode(charset)
+                    fileobj = open(upload_to, 'a') if upload_to else SpooledTemporaryFile(
+                        file_memory_limit)
+                    fileobj.filename = options['filename']  # type: ignore
+                    fileobj.content_type = headers[b'content-type'].decode(charset)  # type: ignore
             elif event == PART_BEGIN:
                 headers, data = {}, b''
             elif event == PART_DATA:
