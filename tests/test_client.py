@@ -88,7 +88,7 @@ async def test_files(app, client):
         formdata = await request.form()
         return formdata['test_client.py'].read()
 
-    res = await client.post('/files', data={'test_client.py': open(__file__)})
+    res = await client.post('/files', data={'field': 'value', 'test_client.py': open(__file__)})
     assert res.status_code == 200
     assert 'test_files' in await res.text()
 

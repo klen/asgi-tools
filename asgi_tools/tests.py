@@ -1,12 +1,14 @@
+import binascii
+import io
+import mimetypes
+import os
 import typing as t
 from collections import deque
-import io
 from contextlib import asynccontextmanager
 from functools import partial
 from http import cookies
 from json import loads, dumps
 from urllib.parse import urlencode
-from urllib3.filepost import RequestField, encode_multipart_formdata
 
 from yarl import URL
 
@@ -257,16 +259,26 @@ class ASGITestClient:
 
 
 def encode_multipart(data: t.Dict) -> t.Tuple[bytes, str]:
-    fields = []
+    body = io.BytesIO()
+    boundary = binascii.hexlify(os.urandom(16))
     for name, value in data.items():
-        field = RequestField.from_tuples(name, value)
+        headers = f'Content-Disposition: form-data; name="{ name }"'
         if isinstance(value, io.TextIOBase):
-            field = RequestField.from_tuples(
-                name, (getattr(value, 'name', None), value.read()))
+            filename = getattr(value, 'name', None)
+            if filename:
+                headers = f'{ headers }; filename="{ filename }"'
+                content_type = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+                headers = f'{ headers }\r\nContent-Type: { content_type }'
+                value = value.read()
 
-        fields.append(field)
+        body.write(b"--%b\r\n" % boundary)
+        body.write(headers.encode('utf-8'))
+        body.write(b'\r\n\r\n')
+        body.write(value.encode('utf-8'))
+        body.write(b"\r\n")
 
-    return encode_multipart_formdata(fields)
+    body.write(b"--%b--\r\n" % boundary)
+    return body.getvalue(), (b"multipart/form-data; boundary=%s" % boundary).decode()
 
 
 def simple_stream(maxlen=None):
