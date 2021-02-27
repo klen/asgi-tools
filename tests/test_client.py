@@ -45,10 +45,6 @@ async def test_client(app, client):
     json = await res.json()
     assert json['data'] == 'test'
 
-    res = await client.patch('/test', data={'var': '42'})
-    json = await res.json()
-    assert json['data'] == {'var': '42'}
-
     res = await client.patch('/test', json={'var': 42})
     json = await res.json()
     assert json['data'] == {'var': 42}
@@ -79,6 +75,17 @@ async def test_client(app, client):
     res = await client.propfind('/caldav')
     assert res.status_code == 200
     assert await res.text() == 'PROPFIND'
+
+
+async def test_formdata(app, client):
+    @app.route('/formdata')
+    async def formdata(request):
+        formdata = await request.form()
+        return dict(formdata)
+
+    res = await client.post('/formdata', data={'field': 'value', 'field2': 'value2'})
+    assert res.status_code == 200
+    assert await res.json() == {'field': 'value', 'field2': 'value2'}
 
 
 async def test_files(app, client):
@@ -168,7 +175,6 @@ async def test_stream_request(app, client):
 
     res = await client.post('/stream', data=source())
     assert res.status_code == 200
-
 
 
 async def test_websocket(app, Client):

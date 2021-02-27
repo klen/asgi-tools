@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import abc
+import io
 import typing as t
 from cgi import parse_header
 from tempfile import SpooledTemporaryFile
@@ -14,7 +14,137 @@ from multipart import QuerystringParser as _FormParser, MultipartParser as _Mult
 from .request import Request
 
 
-# Messages
+class FormField:
+
+    __slots__ = 'name', 'data'
+
+    def __init__(self):
+        self.name = b''
+        self.data = b''
+
+    def render(self):
+        return (
+            unquote_plus(self.name.decode("latin-1")),
+            unquote_plus(self.data.decode("latin-1"))
+        )
+
+
+class FormPart:
+
+    __slots__ = 'name', 'data', 'headers', 'header_field', 'header_value'
+
+    def __init__(self):
+        self.name = ''
+        self.data = io.BytesIO()
+        self.headers = {}
+        self.header_field = b''
+        self.header_value = b''
+
+    def on_header_end(self):
+        self.headers[self.header_field.lower()] = self.header_value
+        self.header_field, self.header_value = b'', b''
+
+    def on_headers_finished(self, upload_to: str, file_memory_limit: int):
+        disposition, options = parse_header(
+            self.headers[b'content-disposition'].decode('utf-8'))
+        self.name = options['name']
+        if 'filename' in options:
+            self.data = open(upload_to, 'a') if upload_to else SpooledTemporaryFile(
+                file_memory_limit)
+            self.data.filename = options['filename']
+            self.data.content_type = self.headers[b'content-type'].decode('utf-8')
+
+    def render(self):
+        data = self.data
+        if isinstance(data, io.BytesIO):
+            return (self.name, data.getvalue().decode('utf-8'))
+
+        data.seek(0)
+        return self.name, data
+
+
+class FormParser:
+    """Parse querystring form data."""
+
+    __slots__ = 'field', 'items'
+
+    async def parse(self, request: Request,
+                    max_size: t.Union[int, float] = float('inf'), **opts) -> MultiDict:
+        """Parse data."""
+        self.field = FormField()
+        self.items = []
+
+        parser = _FormParser({
+            'on_field_name': self.on_field_name, 'on_field_data': self.on_field_data,
+            'on_field_end': self.on_field_end}, max_size=max_size)
+        async for chunk in request.stream():
+            parser.write(chunk)
+
+        parser.finalize()
+        return MultiDict(self.items)
+
+    def on_field_name(self, data: bytes, start: int, end: int):
+        self.field.name += data[start:end]
+
+    def on_field_data(self, data: bytes, start: int, end: int):
+        self.field.data += data[start:end]
+
+    def on_field_end(self):
+        self.items.append(self.field.render())
+        self.field = FormField()
+
+
+class MultipartParser:
+    """Parse multipart formdata."""
+
+    __slots__ = 'upload_to', 'file_memory_limit', 'items', 'part'
+
+    async def parse(self, request: Request, max_size: t.Union[int, float] = float('inf'),  # noqa
+                    upload_to: str = None, file_memory_limit: int = 1024 * 1024,
+                    **opts) -> MultiDict:
+        """Parse data."""
+
+        _, params = parse_header(request.headers["content-type"])
+        self.upload_to = upload_to
+        self.file_memory_limit = file_memory_limit
+        self.items = []
+        self.part = FormPart()
+        parser = _MultipartParser(params.get('boundary'), {
+            'on_header_end': self.on_header_end,
+            'on_header_field': self.on_header_field,
+            'on_headers_finished': self.on_headers_finished,
+            'on_header_value': self.on_header_value,
+            'on_part_data': self.on_part_data,
+            'on_part_end': self.on_part_end,
+        }, max_size=max_size)
+        async for chunk in request.stream():
+            parser.write(chunk)
+
+        parser.finalize()
+
+        return MultiDict(self.items)
+
+    def on_header_field(self, data: bytes, start: int, end: int):
+        self.part.header_field += data[start:end]
+
+    def on_header_value(self, data: bytes, start: int, end: int):
+        self.part.header_value += data[start:end]
+
+    def on_header_end(self):
+        self.part.on_header_end()
+
+    def on_headers_finished(self):
+        self.part.on_headers_finished(self.upload_to, self.file_memory_limit)
+
+    def on_part_data(self, data: bytes, start: int, end: int):
+        self.part.data.write(data[start:end])
+
+    def on_part_end(self):
+        self.items.append(self.part.render())
+        self.part = FormPart()
+
+
+# Events
 START = 1
 END = 2
 FIELD_START = 10
@@ -28,158 +158,5 @@ HEADER_FIELD = 30
 HEADER_VALUE = 31
 HEADER_END = 32
 HEADERS_FINISHED = 33
-
-
-class ParserMeta(abc.ABCMeta):
-    """Prepare a parser."""
-
-    def __new__(mcs, name, bases, params):
-        """Detect callbacks."""
-        cls = super(ParserMeta, mcs).__new__(mcs, name, bases, params)
-        cls.callbacks = {m for m in cls.__dict__ if m.startswith('on_')}
-        return cls
-
-
-class Parser(metaclass=ParserMeta):
-    """Base abstract parser class."""
-
-    __slots__ = 'messages',
-
-    callbacks: t.Dict = {}
-
-    def __init__(self):
-        """Store a stream."""
-        self.messages = []
-
-    @abc.abstractmethod
-    async def parse(self, request: Request, **opts) -> MultiDict:
-        """Parse data."""
-        pass
-
-
-class FormParser(Parser):
-    """Parse querystring form data."""
-
-    async def parse(self, request: Request,
-                    max_size: t.Union[int, float] = float('inf'), **opts) -> MultiDict:
-        """Parse data."""
-        parser = _FormParser(
-            {m: getattr(self, m) for m in self.callbacks}, max_size=max_size)
-        async for chunk in request.stream():
-            parser.write(chunk)
-
-        parser.finalize()
-
-        items: t.List[t.Tuple[str, str]] = []
-        name, value = b'', b''
-        for event, data in self.messages:
-            if event == FIELD_START:
-                name, value = b'', b''
-
-            elif event == FIELD_NAME:
-                name += data
-
-            elif event == FIELD_DATA:
-                value += data
-
-            elif event == FIELD_END:
-                items.append((
-                    unquote_plus(name.decode("latin-1")),
-                    unquote_plus(value.decode("latin-1"))
-                ))
-
-        return MultiDict(items)
-
-    def on_field_start(self):
-        self.messages.append((FIELD_START, b""))
-
-    def on_field_end(self):
-        self.messages.append((FIELD_END, b""))
-
-    def on_field_name(self, data: bytes, start: int, end: int):
-        self.messages.append((FIELD_NAME, data[start:end]))
-
-    def on_field_data(self, data: bytes, start: int, end: int):
-        self.messages.append((FIELD_DATA, data[start:end]))
-
-
-class MultipartParser(Parser):
-    """Parse multipart formdata."""
-
-    async def parse(self, request: Request, max_size: t.Union[int, float] = float('inf'),  # noqa
-                    upload_to: str = None, file_memory_limit: int = 1024 * 1024,
-                    **opts) -> MultiDict:
-        """Parse data."""
-
-        _, params = parse_header(request.headers["content-type"])
-        boundary = params.get('boundary')
-        charset = params.get('charset', request.charset)
-        parser = _MultipartParser(
-            boundary, {m: getattr(self, m) for m in self.callbacks}, max_size=max_size)
-        async for chunk in request.stream():
-            parser.write(chunk)
-
-        parser.finalize()
-
-        items: t.List[t.Tuple[str, t.Union[str, t.IO]]] = []
-        headers, data = {}, b''
-        header_name, header_value = b'', b''
-        name, value = '', b''
-        fileobj: t.Optional[t.IO] = None
-        for event, data in self.messages:
-            if event == HEADER_FIELD:
-                header_name += data
-            elif event == HEADER_VALUE:
-                header_value += data
-            elif event == HEADER_END:
-                headers[header_name.lower()] = header_value
-                header_name, header_value = b'', b''
-            elif event == HEADERS_FINISHED:
-                disposition, options = parse_header(
-                    headers[b'content-disposition'].decode(charset))
-                name = options['name']
-                if 'filename' in options:
-                    fileobj = open(upload_to, 'a') if upload_to else SpooledTemporaryFile(
-                        file_memory_limit)
-                    fileobj.filename = options['filename']  # type: ignore
-                    fileobj.content_type = headers[b'content-type'].decode(charset)  # type: ignore
-            elif event == PART_BEGIN:
-                headers, data = {}, b''
-            elif event == PART_DATA:
-                if fileobj is None:
-                    value += data
-                else:
-                    fileobj.write(data)
-            elif event == PART_END:
-                if fileobj is None:
-                    items.append((name, data.decode('charset')))
-                else:
-                    fileobj.seek(0)
-                    items.append((name, fileobj))
-
-                value, fileobj = b'', None
-
-        return MultiDict(items)
-
-    def on_part_begin(self):
-        self.messages.append((PART_BEGIN, b""))
-
-    def on_part_data(self, data: bytes, start: int, end: int):
-        self.messages.append((PART_DATA, data[start:end]))
-
-    def on_part_end(self):
-        self.messages.append((PART_END, b""))
-
-    def on_header_field(self, data: bytes, start: int, end: int):
-        self.messages.append((HEADER_FIELD, data[start:end]))
-
-    def on_header_value(self, data: bytes, start: int, end: int):
-        self.messages.append((HEADER_VALUE, data[start:end]))
-
-    def on_header_end(self):
-        self.messages.append((HEADER_END, b""))
-
-    def on_headers_finished(self):
-        self.messages.append((HEADERS_FINISHED, b""))
 
 # pylama: ignore=D
