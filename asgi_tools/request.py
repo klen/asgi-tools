@@ -3,11 +3,9 @@ incoming request.
 """
 
 import typing as t
-from cgi import parse_header, FieldStorage
+from cgi import parse_header
 from functools import wraps
 from http import cookies
-from io import BytesIO
-from urllib.parse import parse_qsl
 
 from multidict import MultiDict
 from yarl import URL
@@ -58,6 +56,7 @@ class Request(dict):
         self._body: t.Optional[bytes] = None
         self._receive: t.Optional[Receive] = receive
         self._send: t.Optional[Send] = send
+        self._is_read = False
 
     def __getattr__(self, name: str) -> t.Any:
         """Proxy the request's unknown attributes to scope."""
@@ -145,6 +144,10 @@ class Request(dict):
         if not self._receive:
             raise RuntimeError('Request doesnt have a receive coroutine')
 
+        if self._is_read:
+            raise RuntimeError('Stream has been read')
+
+        self._is_read = True
         message = await self._receive()
         yield message.get('body', b'')
         while message.get('more_body'):
@@ -189,24 +192,10 @@ class Request(dict):
 
         `formdata = await request.form()`
         """
-        form: MultiDict = MultiDict()
-        body = await self.body()
+        from .forms import FormParser, MultipartParser
 
-        # TODO: Improve multipart parsing
-        if self.content_type == 'multipart/form-data':
-            fs = FieldStorage(
-                BytesIO(body), headers=self.headers, encoding=self.charset,
-                environ={'REQUEST_METHOD': self.method})
-            for name in fs:
-                for val in fs.getlist(name):
-                    form[name] = val
-
-            return form
-
-        query = body.decode(self.charset)
-        form.extend(parse_qsl(qs=query, keep_blank_values=True, encoding=self.charset))
-
-        return form
+        parser = MultipartParser() if self.content_type == 'multipart/form-data' else FormParser()
+        return await parser.parse(self)
 
     def data(self) -> t.Awaitable[t.Union[str, JSONType, MultiDict]]:
         """The method checks `request.content_type` and parse the request's body automatically.

@@ -1,10 +1,10 @@
 """Test Request."""
 
+import pytest
+
 
 async def test_request():
     from asgi_tools import Request
-    from asgi_tools._types import Scope
-
 
     # Request is lazy
     request = Request([], None)
@@ -48,18 +48,13 @@ async def test_request():
     assert request.type == 'http'
     assert request['type'] == 'http'
 
-    body = await request.body()
-    assert body
-
     formdata = await request.form()
     assert formdata
     assert formdata['name'] == 'value'
 
-    formdata2 = await request.form()
-    assert formdata2 == formdata
-
-    data = await request.data()
-    assert data == formdata
+    with pytest.raises(RuntimeError):
+        body = await request.body()
+        assert body
 
 
 async def test_multipart(Client):
@@ -69,12 +64,12 @@ async def test_multipart(Client):
         request = Request(scope, receive)
         data = await request.form()
         response = ResponseHTML(
-            data['test'].split('\n')[0]
+            data['test'].read().decode().split('\n')[0]
         )
         return await response(scope, receive, send)
 
     client = Client(app)
-    res = await client.post('/', files={'test': open(__file__)})
+    res = await client.post('/', data={'test': open(__file__)})
     assert res.status_code == 200
     assert await res.text() == '"""Test Request."""'
     assert res.headers['content-length'] == str(len('"""Test Request."""'))

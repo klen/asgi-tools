@@ -1,12 +1,12 @@
 import typing as t
 from collections import deque
+import io
 from contextlib import asynccontextmanager
-from email.mime import multipart, nonmultipart
 from functools import partial
 from http import cookies
-from inspect import isasyncgen
 from json import loads, dumps
 from urllib.parse import urlencode
+from urllib3.filepost import RequestField, encode_multipart_formdata
 
 from yarl import URL
 
@@ -122,7 +122,7 @@ class ASGITestClient:
 
     async def request(
             self, path: str, method: str = 'GET', query: t.Union[str, t.Dict] = '',
-            headers: t.Dict[str, str] = None, cookies: t.Dict = None, files: t.Dict = None,
+            headers: t.Dict[str, str] = None, cookies: t.Dict = None,
             data: t.Union[bytes, str, t.Dict, t.AsyncGenerator] = b'', json: JSONType = None,
             follow_redirect: bool = True, timeout: float = 3.0) -> TestResponse:
         """Make a HTTP requests."""
@@ -134,16 +134,17 @@ class ASGITestClient:
             data = data.encode(res.charset)
 
         elif isinstance(data, dict):
-            headers['Content-Type'], data = encode_multipart_formdata(data)
-            data = data.encode(res.charset)
+            is_multipart = any(isinstance(value, io.IOBase) for value in data.values())
+            if is_multipart:
+                data, headers['Content-Type'] = encode_multipart(data)
+
+            else:
+                headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                data = urlencode(data).encode(res.charset)
 
         elif json is not None:
             headers['Content-Type'] = 'application/json'
             data = dumps(json).encode(res.charset)
-
-        elif files:
-            headers['Content-Type'], data = encode_multipart_formdata(files)
-            data = data.encode(res.charset)
 
         receive_from_client, send_to_app = simple_stream()
         receive_from_app, send_to_client = simple_stream()
@@ -255,28 +256,17 @@ class ASGITestClient:
         }, **scope)
 
 
-class MIMEFormdata(nonmultipart.MIMENonMultipart):
+def encode_multipart(data: t.Dict) -> t.Tuple[bytes, str]:
+    fields = []
+    for name, data in data.items():
+        field = RequestField.from_tuples(name, data)
+        if isinstance(data, io.IOBase):
+            field = RequestField.from_tuples(
+                name, (getattr(data, 'name', None), data.read()))
 
-    def __init__(self, keyname, *args, **kwargs):
-        super(MIMEFormdata, self).__init__(*args, **kwargs)
-        self.add_header(
-            "Content-Disposition", "form-data; name=\"%s\"" % keyname)
+        fields.append(field)
 
-
-def encode_multipart_formdata(fields: t.Dict) -> t.Tuple[str, str]:
-    # Based on https://julien.danjou.info/handling-multipart-form-data-python/
-    m = multipart.MIMEMultipart("form-data")
-
-    for field, value in fields.items():
-        data = MIMEFormdata(field, "text", "plain")
-        if hasattr(value, 'read'):
-            value = value.read()
-
-        data.set_payload(str(value))
-        m.attach(data)
-
-    header, _, body = str(m).partition('\n')
-    return header[len('Content-Type: '):], body
+    return encode_multipart_formdata(fields)
 
 
 def simple_stream(maxlen=None):

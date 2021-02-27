@@ -34,7 +34,6 @@ async def test_request_response_middlewares(Client):
     from asgi_tools import RequestMiddleware, ResponseMiddleware
 
     async def app(request, receive, send):
-        data = await request.form()
         data = await request.json()
         first_name = data.get('first_name', 'Anonymous')
         last_name = request.url.query.get('last_name', 'Test')

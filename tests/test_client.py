@@ -81,6 +81,18 @@ async def test_client(app, client):
     assert await res.text() == 'PROPFIND'
 
 
+async def test_files(app, client):
+
+    @app.route('/files')
+    async def files(request):
+        formdata = await request.form()
+        return formdata['test_client.py'].read()
+
+    res = await client.post('/files', data={'test_client.py': open(__file__)})
+    assert res.status_code == 200
+    assert 'test_files' in await res.text()
+
+
 async def test_cookies(app, client):
     from asgi_tools import ResponseRedirect
 
