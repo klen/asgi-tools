@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>asgi_tools.tests &mdash; asgi-tools 0.38.3 documentation</title>
+  <title>asgi_tools.tests &mdash; asgi-tools 0.39.0 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.38.3
+                0.39.0
               </div>
             
           
@@ -169,13 +169,13 @@
   <h1>Source code for asgi_tools.tests</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">typing</span> <span class="k">as</span> <span class="nn">t</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
+<span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">asynccontextmanager</span>
-<span class="kn">from</span> <span class="nn">email.mime</span> <span class="kn">import</span> <span class="n">multipart</span><span class="p">,</span> <span class="n">nonmultipart</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">cookies</span>
-<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">isasyncgen</span>
 <span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">loads</span><span class="p">,</span> <span class="n">dumps</span>
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlencode</span>
+<span class="kn">from</span> <span class="nn">urllib3.filepost</span> <span class="kn">import</span> <span class="n">RequestField</span><span class="p">,</span> <span class="n">encode_multipart_formdata</span>
 
 <span class="kn">from</span> <span class="nn">yarl</span> <span class="kn">import</span> <span class="n">URL</span>
 
@@ -291,7 +291,7 @@
 
 <div class="viewcode-block" id="ASGITestClient.request"><a class="viewcode-back" href="../../api.html#asgi_tools.tests.ASGITestClient.request">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">request</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
-            <span class="n">headers</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cookies</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">headers</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cookies</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">data</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">]</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">json</span><span class="p">:</span> <span class="n">JSONType</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">follow_redirect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TestResponse</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Make a HTTP requests.&quot;&quot;&quot;</span>
@@ -303,16 +303,17 @@
             <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">],</span> <span class="n">data</span> <span class="o">=</span> <span class="n">encode_multipart_formdata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
+            <span class="n">is_multipart</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">IOBase</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">is_multipart</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">encode_multipart</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;application/x-www-form-urlencoded&#39;</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">urlencode</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="n">json</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;application/json&#39;</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">json</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
-
-        <span class="k">elif</span> <span class="n">files</span><span class="p">:</span>
-            <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">],</span> <span class="n">data</span> <span class="o">=</span> <span class="n">encode_multipart_formdata</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
 
         <span class="n">receive_from_client</span><span class="p">,</span> <span class="n">send_to_app</span> <span class="o">=</span> <span class="n">simple_stream</span><span class="p">()</span>
         <span class="n">receive_from_app</span><span class="p">,</span> <span class="n">send_to_client</span> <span class="o">=</span> <span class="n">simple_stream</span><span class="p">()</span>
@@ -424,28 +425,17 @@
         <span class="p">},</span> <span class="o">**</span><span class="n">scope</span><span class="p">)</span></div>
 
 
-<span class="k">class</span> <span class="nc">MIMEFormdata</span><span class="p">(</span><span class="n">nonmultipart</span><span class="o">.</span><span class="n">MIMENonMultipart</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">encode_multipart</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="n">RequestField</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">IOBase</span><span class="p">):</span>
+            <span class="n">field</span> <span class="o">=</span> <span class="n">RequestField</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">data</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyname</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">MIMEFormdata</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span>
-            <span class="s2">&quot;Content-Disposition&quot;</span><span class="p">,</span> <span class="s2">&quot;form-data; name=</span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">keyname</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
 
-
-<span class="k">def</span> <span class="nf">encode_multipart_formdata</span><span class="p">(</span><span class="n">fields</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-    <span class="c1"># Based on https://julien.danjou.info/handling-multipart-form-data-python/</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="n">multipart</span><span class="o">.</span><span class="n">MIMEMultipart</span><span class="p">(</span><span class="s2">&quot;form-data&quot;</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">MIMEFormdata</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;plain&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-
-        <span class="n">data</span><span class="o">.</span><span class="n">set_payload</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-        <span class="n">m</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-
-    <span class="n">header</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">header</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="s1">&#39;Content-Type: &#39;</span><span class="p">):],</span> <span class="n">body</span>
+    <span class="k">return</span> <span class="n">encode_multipart_formdata</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">simple_stream</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
