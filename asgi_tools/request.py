@@ -195,7 +195,7 @@ class Request(dict):
         """
         from .forms import FormParser, MultipartParser
 
-        parser = MultipartParser() if self.content_type == 'multipart/form-data' else FormParser()
+        parser: t.Union[MultipartParser, FormParser] = MultipartParser() if self.content_type == 'multipart/form-data' else FormParser()  # noqa
         return await parser.parse(
             self, max_size=max_size, upload_to=upload_to, file_memory_limit=file_memory_limit)
 

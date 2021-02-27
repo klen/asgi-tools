@@ -22,7 +22,7 @@ class FormField:
         self.name = b''
         self.data = b''
 
-    def render(self):
+    def render(self) -> t.Tuple[str, str]:
         return (
             unquote_plus(self.name.decode("latin-1")),
             unquote_plus(self.data.decode("latin-1"))
@@ -51,10 +51,10 @@ class FormPart:
         if 'filename' in options:
             self.data = open(upload_to, 'a') if upload_to else SpooledTemporaryFile(
                 file_memory_limit)
-            self.data.filename = options['filename']
-            self.data.content_type = self.headers[b'content-type'].decode('utf-8')
+            self.data.filename = options['filename']  # type: ignore
+            self.data.content_type = self.headers[b'content-type'].decode('utf-8')  # type: ignore
 
-    def render(self):
+    def render(self) -> t.Tuple:
         data = self.data
         if isinstance(data, io.BytesIO):
             return (self.name, data.getvalue().decode('utf-8'))
@@ -72,7 +72,7 @@ class FormParser:
                     max_size: t.Union[int, float] = float('inf'), **opts) -> MultiDict:
         """Parse data."""
         self.field = FormField()
-        self.items = []
+        self.items: t.List[t.Tuple[str, str]] = []
 
         parser = _FormParser({
             'on_field_name': self.on_field_name, 'on_field_data': self.on_field_data,
@@ -107,7 +107,7 @@ class MultipartParser:
         _, params = parse_header(request.headers["content-type"])
         self.upload_to = upload_to
         self.file_memory_limit = file_memory_limit
-        self.items = []
+        self.items: t.List[t.Tuple[str, t.Union[str, io.TextIOBase]]] = []
         self.part = FormPart()
         parser = _MultipartParser(params.get('boundary'), {
             'on_header_end': self.on_header_end,
