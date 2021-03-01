@@ -1,3 +1,6 @@
+import pathlib
+
+
 async def test_form_parser():
     from asgi_tools.forms import FormParser
 
@@ -15,7 +18,7 @@ async def test_form_parser():
     assert formdata.getall('names') == ['bob', 'alice']
 
 
-async def test_multipart_parser(app, client):
+async def test_multipart_parser(app, client, tmp_path):
     from asgi_tools.forms import MultipartParser
     from asgi_tools.tests import encode_multipart
 
@@ -37,7 +40,15 @@ async def test_multipart_parser(app, client):
     parser = MultipartParser()
     formdata = await parser.parse(FakeRequest())
     assert formdata['file1']
-    assert formdata['file1'].filename == __file__
+    assert formdata['file1'].filename == pathlib.Path(__file__).name
     assert formdata['file1'].content_type == 'text/x-python'
     assert formdata['file2']
+    assert b'test_multipart_parser' in formdata['file2'].read()
+
+    formdata = await parser.parse(FakeRequest(), upload_to=tmp_path)
+    assert formdata['file1']
+    assert formdata['file1'].filename == pathlib.Path(__file__).name
+    assert formdata['file1'].content_type == 'text/x-python'
+    assert formdata['file2']
+    assert formdata['file2'].name.startswith(str(tmp_path))
     assert b'test_multipart_parser' in formdata['file2'].read()

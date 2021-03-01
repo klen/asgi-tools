@@ -4,6 +4,7 @@ import mimetypes
 import os
 import typing as t
 from collections import deque
+from pathlib import Path
 from contextlib import asynccontextmanager
 from functools import partial
 from http import cookies
@@ -262,7 +263,7 @@ def encode_multipart(data: t.Dict) -> t.Tuple[bytes, str]:
         if isinstance(value, io.TextIOBase):
             filename = getattr(value, 'name', None)
             if filename:
-                headers = f'{ headers }; filename="{ filename }"'
+                headers = f'{ headers }; filename="{ Path(filename).name }"'
                 content_type = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
                 headers = f'{ headers }\r\nContent-Type: { content_type }'
                 value = value.read()

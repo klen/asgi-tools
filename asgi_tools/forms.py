@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import typing as t
+from pathlib import Path
 from cgi import parse_header
 from tempfile import SpooledTemporaryFile
 from urllib.parse import unquote_plus
@@ -44,20 +45,25 @@ class FormPart:
         self.headers[self.header_field.lower()] = self.header_value
         self.header_field, self.header_value = b'', b''
 
-    def on_headers_finished(self, upload_to: str, file_memory_limit: int):
+    def on_headers_finished(self, upload_to: t.Union[str, Path], file_memory_limit: int):
         disposition, options = parse_header(
             self.headers[b'content-disposition'].decode('utf-8'))
         self.name = options['name']
         if 'filename' in options:
-            self.data = open(upload_to, 'a') if upload_to else SpooledTemporaryFile(
-                file_memory_limit)
+            if upload_to:
+                upload_to = Path(upload_to) / options['filename']
+                self.data = open(upload_to, 'wb+')
+
+            else:
+                self.data = SpooledTemporaryFile(file_memory_limit)
+
             self.data.filename = options['filename']  # type: ignore
             self.data.content_type = self.headers[b'content-type'].decode('utf-8')  # type: ignore
 
     def render(self) -> t.Tuple:
         data = self.data
         if isinstance(data, io.BytesIO):
-            return (self.name, data.getvalue().decode('utf-8'))
+            return self.name, data.getvalue().decode('utf-8')
 
         data.seek(0)
         return self.name, data
@@ -100,7 +106,7 @@ class MultipartParser:
     __slots__ = 'upload_to', 'file_memory_limit', 'items', 'part'
 
     async def parse(self, request: Request, max_size: t.Union[int, float] = float('inf'),  # noqa
-                    upload_to: str = None, file_memory_limit: int = 1024 * 1024,
+                    upload_to: t.Union[str, Path] = None, file_memory_limit: int = 1024 * 1024,
                     **opts) -> MultiDict:
         """Parse data."""
 
