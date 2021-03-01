@@ -22,6 +22,7 @@ The Features:
 .. _ASGI: https://asgi.readthedocs.io/en/latest/
 .. _Asyncio: https://docs.python.org/3/library/asyncio.html
 .. _Trio: https://trio.readthedocs.io/en/stable/index.html
+.. _Curio: https://github.com/dabeaz/curio
 
 .. _badges:
 
