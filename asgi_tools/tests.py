@@ -20,10 +20,6 @@ from .response import Response, ResponseWebSocket, parse_websocket_msg
 from .utils import to_awaitable, parse_headers
 
 
-class ContextError(Exception):
-    pass
-
-
 class TestResponse(Response):
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
