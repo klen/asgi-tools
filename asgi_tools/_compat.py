@@ -119,7 +119,7 @@ async def aio_wait(*aws: t.Awaitable, strategy: str = ALL_COMPLETED) -> t.Any:
         async with curio.TaskGroup(wait=wait) as g:
             [await g.spawn(aw) for aw in aws]
 
-        return g.result
+        return g.results if strategy == ALL_COMPLETED else g.result
 
     aws = tuple(create_task(aw) if inspect.iscoroutine(aw) else aw for aw in aws)
     done, pending = await asyncio.wait(aws, return_when=strategy)
