@@ -171,6 +171,18 @@ class LifespanMiddleware(BaseMiddeware):
         async def start():
             print('The app is finishing')
 
+    Lifespan middleware may be used as an async context manager for testing purposes
+
+    .. code-block: python
+
+        async def test_my_app():
+
+            # ...
+
+            # Registered startup/shutdown handlers will be called
+            async with lifespan:
+                # ... do something
+
     """
 
     scopes = {'lifespan'}
@@ -209,6 +221,15 @@ class LifespanMiddleware(BaseMiddeware):
             handlers = [handlers]
 
         container += handlers
+
+    async def __aenter__(self):
+        """Use the lifespan middleware as a context manager."""
+        await self.run('startup')
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Use the lifespan middleware as a context manager."""
+        await self.run('shutdown')
 
     async def run(self, event: str, send: Send = None):
         """Run startup/shutdown handlers."""
