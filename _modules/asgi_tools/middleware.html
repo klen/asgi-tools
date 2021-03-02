@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>asgi_tools.middleware &mdash; asgi-tools 0.40.5 documentation</title>
+  <title>asgi_tools.middleware &mdash; asgi-tools 0.41.0 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.40.5
+                0.41.0
               </div>
             
           
@@ -340,6 +340,18 @@
 <span class="sd">        async def start():</span>
 <span class="sd">            print(&#39;The app is finishing&#39;)</span>
 
+<span class="sd">    Lifespan middleware may be used as an async context manager for testing purposes</span>
+
+<span class="sd">    .. code-block: python</span>
+
+<span class="sd">        async def test_my_app():</span>
+
+<span class="sd">            # ...</span>
+
+<span class="sd">            # Registered startup/shutdown handlers will be called</span>
+<span class="sd">            async with lifespan:</span>
+<span class="sd">                # ... do something</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">scopes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;lifespan&#39;</span><span class="p">}</span>
@@ -378,6 +390,15 @@
             <span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span><span class="n">handlers</span><span class="p">]</span>
 
         <span class="n">container</span> <span class="o">+=</span> <span class="n">handlers</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__aenter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Use the lifespan middleware as a context manager.&quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;startup&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__aexit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Use the lifespan middleware as a context manager.&quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;shutdown&#39;</span><span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Run startup/shutdown handlers.&quot;&quot;&quot;</span>
