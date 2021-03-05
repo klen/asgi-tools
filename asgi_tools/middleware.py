@@ -377,7 +377,7 @@ class StaticFilesMiddleware(BaseMiddeware):
     async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Serve static files for self url prefix."""
         path = scope['path']
-        if not self.folders or not path.startswith(self.url_prefix):
+        if not path.startswith(self.url_prefix):
             return await self.app(scope, receive, send)
 
         filename = path[len(self.url_prefix):].strip('/')
