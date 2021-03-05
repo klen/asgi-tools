@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>asgi_tools.middleware &mdash; asgi-tools 0.41.0 documentation</title>
+  <title>asgi_tools.middleware &mdash; asgi-tools 0.41.1 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.41.0
+                0.41.1
               </div>
             
           
@@ -546,7 +546,7 @@
     <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Serve static files for self url prefix.&quot;&quot;&quot;</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">folders</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url_prefix</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url_prefix</span><span class="p">):</span>
             <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 
         <span class="n">filename</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url_prefix</span><span class="p">):]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
