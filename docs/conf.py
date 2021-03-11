@@ -71,6 +71,7 @@ html_theme = 'pydata_sphinx_theme'
 html_logo = '../.github/assets/asgi-tools.png'
 html_theme_options = {
     'github_url': 'https://github.com/klen/asgi-tools',
+    'use_edit_page_button': True,
     'icon_links': [
         {
             'name': 'PyPI',
@@ -81,6 +82,12 @@ html_theme_options = {
 }
 html_sidebars = {
     "**": ["sidebar-search-bs.html", "custom-sidebar.html"],
+}
+html_context = {
+    'github_user': 'klen',
+    'github_repo': 'asgi-tools',
+    'github_version': 'develop',
+    'doc_path': 'docs',
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
