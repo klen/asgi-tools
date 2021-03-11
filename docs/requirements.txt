@@ -1,1 +1,2 @@
 git+https://github.com/klen/asgi-tools@develop
+https://github.com/pydata/pydata-sphinx-theme/archive/master.tar.gz
