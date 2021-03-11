@@ -67,20 +67,27 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
-html_theme = 'sphinx_rtd_theme'
-#  html_theme = 'default'
-pygments_style = 'monokai'
+html_theme = 'pydata_sphinx_theme'
 html_logo = '../.github/assets/asgi-tools.png'
+html_theme_options = {
+    'github_url': 'https://github.com/klen/asgi-tools',
+    'icon_links': [
+        {
+            'name': 'PyPI',
+            'url': 'https://pypi.org/project/asgi-tools',
+            'icon': 'fas fa-box',
+        }
+    ],
+}
+html_sidebars = {
+    "**": ["sidebar-search-bs.html", "custom-sidebar.html"],
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = [
     '_static'
-]
-html_css_files = [
-    'custom.css'
 ]
 
 autodoc_member_order = 'bysource'
