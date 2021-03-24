@@ -1,5 +1,6 @@
 """Simple Test Client."""
 
+import io
 import pytest
 
 
@@ -98,6 +99,12 @@ async def test_files(app, client):
     res = await client.post('/files', data={'field': 'value', 'test_client.py': open(__file__)})
     assert res.status_code == 200
     assert 'test_files' in await res.text()
+
+    fakefile = io.BytesIO(b'file content')
+    fakefile.name = 'test_client.py'
+    res = await client.post('/files', data={'field': 'value', 'test_client.py': fakefile})
+    assert res.status_code == 200
+    assert 'file content' in await res.text()
 
 
 async def test_cookies(app, client):

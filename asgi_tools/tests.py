@@ -260,18 +260,20 @@ def encode_multipart(data: t.Dict) -> t.Tuple[bytes, str]:
     boundary = binascii.hexlify(os.urandom(16))
     for name, value in data.items():
         headers = f'Content-Disposition: form-data; name="{ name }"'
-        if isinstance(value, io.TextIOBase):
+        if isinstance(value, io.IOBase):
             filename = getattr(value, 'name', None)
             if filename:
                 headers = f'{ headers }; filename="{ Path(filename).name }"'
                 content_type = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
                 headers = f'{ headers }\r\nContent-Type: { content_type }'
-                value = value.read()
+            value = value.read()
 
         body.write(b"--%b\r\n" % boundary)
         body.write(headers.encode('utf-8'))
         body.write(b'\r\n\r\n')
-        body.write(value.encode('utf-8'))
+        if isinstance(value, str):
+            value = value.encode('utf-8')
+        body.write(value)
         body.write(b"\r\n")
 
     body.write(b"--%b--\r\n" % boundary)
