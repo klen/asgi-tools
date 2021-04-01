@@ -198,7 +198,7 @@ class ASGITestClient:
         async def safe_spawn():
             try:
                 await self.app({'type': 'lifespan'}, receive_from_client, send_to_client)
-            except Exception:
+            except BaseException:
                 pass
 
         async with aio_spawn(safe_spawn) as task:
