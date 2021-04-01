@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.tests &#8212; asgi-tools 0.41.4 documentation</title>
+    <title>asgi_tools.tests &#8212; asgi-tools 0.42.3 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
-  <link href="../../_static/css/index.57d3cd9fdfd1e83932aa4eb4774f9fb9.css" rel="stylesheet" />
+  <link href="../../_static/css/index.f6b7ca918bee2f46fd9abac01cfb07d5.css" rel="stylesheet" />
 
     
   <link rel="stylesheet"
@@ -20,16 +20,12 @@
 
     
       
-  <link rel="stylesheet"
-    href="../../_static/vendor/open-sans_all/1.44.1/index.css">
-  <link rel="stylesheet"
-    href="../../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     
-  <link rel="preload" as="script" href="../../_static/js/index.109f8ec7af5a9d176fcd.js">
+  <link rel="preload" as="script" href="../../_static/js/index.1e043a052b0af929e4d8.js">
 
     <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
@@ -110,7 +106,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <div class="sidebar-message pl-3">
-    Version: 0.41.4
+    Version: 0.42.3
 </div>
 
             </div>
@@ -339,7 +335,7 @@
         <span class="k">async</span> <span class="k">def</span> <span class="nf">safe_spawn</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan&#39;</span><span class="p">},</span> <span class="n">receive_from_client</span><span class="p">,</span> <span class="n">send_to_client</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
                 <span class="k">pass</span>
 
         <span class="k">async</span> <span class="k">with</span> <span class="n">aio_spawn</span><span class="p">(</span><span class="n">safe_spawn</span><span class="p">)</span> <span class="k">as</span> <span class="n">task</span><span class="p">:</span>
@@ -401,18 +397,20 @@
     <span class="n">boundary</span> <span class="o">=</span> <span class="n">binascii</span><span class="o">.</span><span class="n">hexlify</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Content-Disposition: form-data; name=&quot;</span><span class="si">{</span> <span class="n">name</span> <span class="si">}</span><span class="s1">&quot;&#39;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOBase</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
                 <span class="n">headers</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span> <span class="n">headers</span> <span class="si">}</span><span class="s1">; filename=&quot;</span><span class="si">{</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">name</span> <span class="si">}</span><span class="s1">&quot;&#39;</span>
                 <span class="n">content_type</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s1">&#39;application/octet-stream&#39;</span>
                 <span class="n">headers</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span> <span class="n">headers</span> <span class="si">}</span><span class="se">\r\n</span><span class="s1">Content-Type: </span><span class="si">{</span> <span class="n">content_type</span> <span class="si">}</span><span class="s1">&#39;</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
         <span class="n">body</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;--%b</span><span class="se">\r\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">boundary</span><span class="p">)</span>
         <span class="n">body</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">headers</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
         <span class="n">body</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\r\n\r\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="n">body</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="n">body</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="n">body</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="n">body</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;--%b--</span><span class="se">\r\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">boundary</span><span class="p">)</span>
@@ -465,14 +463,14 @@
     </div>
 
     
-  <script src="../../_static/js/index.109f8ec7af5a9d176fcd.js"></script>
+  <script src="../../_static/js/index.1e043a052b0af929e4d8.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2021, Kirill Klenov.<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.3.<br/>
     </p>
   </div>
 </footer>

@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.request &#8212; asgi-tools 0.41.4 documentation</title>
+    <title>asgi_tools.request &#8212; asgi-tools 0.42.3 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
-  <link href="../../_static/css/index.57d3cd9fdfd1e83932aa4eb4774f9fb9.css" rel="stylesheet" />
+  <link href="../../_static/css/index.f6b7ca918bee2f46fd9abac01cfb07d5.css" rel="stylesheet" />
 
     
   <link rel="stylesheet"
@@ -20,16 +20,12 @@
 
     
       
-  <link rel="stylesheet"
-    href="../../_static/vendor/open-sans_all/1.44.1/index.css">
-  <link rel="stylesheet"
-    href="../../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
     
-  <link rel="preload" as="script" href="../../_static/js/index.109f8ec7af5a9d176fcd.js">
+  <link rel="preload" as="script" href="../../_static/js/index.1e043a052b0af929e4d8.js">
 
     <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
@@ -110,7 +106,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <div class="sidebar-message pl-3">
-    Version: 0.41.4
+    Version: 0.42.3
 </div>
 
             </div>
@@ -195,6 +191,7 @@
         <span class="sd">&quot;&quot;&quot;Create a request based on the given scope.&quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Request</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_body</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_form</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">MultiDict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">Receive</span><span class="p">]</span> <span class="o">=</span> <span class="n">receive</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">Send</span><span class="p">]</span> <span class="o">=</span> <span class="n">send</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_read</span> <span class="o">=</span> <span class="kc">False</span>
@@ -281,7 +278,13 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">media</span><span class="p">[</span><span class="s1">&#39;content_type&#39;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Request.stream"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.stream">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">stream</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Stream the request&#39;s body.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Stream the request&#39;s body.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            You can only read stream once. Second call raises an error. Save a readed stream into a</span>
+<span class="sd">            variable if you need.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Request doesnt have a receive coroutine&#39;</span><span class="p">)</span>
 
@@ -336,9 +339,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.forms</span> <span class="kn">import</span> <span class="n">FormParser</span><span class="p">,</span> <span class="n">MultipartParser</span>
 
-        <span class="n">parser</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">MultipartParser</span><span class="p">,</span> <span class="n">FormParser</span><span class="p">]</span> <span class="o">=</span> <span class="n">MultipartParser</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="s1">&#39;multipart/form-data&#39;</span> <span class="k">else</span> <span class="n">FormParser</span><span class="p">()</span>  <span class="c1"># noqa</span>
-        <span class="k">return</span> <span class="k">await</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="n">max_size</span><span class="p">,</span> <span class="n">upload_to</span><span class="o">=</span><span class="n">upload_to</span><span class="p">,</span> <span class="n">file_memory_limit</span><span class="o">=</span><span class="n">file_memory_limit</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_form</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parser</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">MultipartParser</span><span class="p">,</span> <span class="n">FormParser</span><span class="p">]</span> <span class="o">=</span> <span class="n">MultipartParser</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="s1">&#39;multipart/form-data&#39;</span> <span class="k">else</span> <span class="n">FormParser</span><span class="p">()</span>  <span class="c1"># noqa</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_form</span> <span class="o">=</span> <span class="k">await</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="n">max_size</span><span class="p">,</span> <span class="n">upload_to</span><span class="o">=</span><span class="n">upload_to</span><span class="p">,</span> <span class="n">file_memory_limit</span><span class="o">=</span><span class="n">file_memory_limit</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_form</span></div>
 
 <div class="viewcode-block" id="Request.data"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.data">[docs]</a>    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">JSONType</span><span class="p">,</span> <span class="n">MultiDict</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;The method checks `request.content_type` and parse the request&#39;s body automatically.</span>
@@ -371,14 +377,14 @@
     </div>
 
     
-  <script src="../../_static/js/index.109f8ec7af5a9d176fcd.js"></script>
+  <script src="../../_static/js/index.1e043a052b0af929e4d8.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2021, Kirill Klenov.<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.3.<br/>
     </p>
   </div>
 </footer>
