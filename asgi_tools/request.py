@@ -54,6 +54,7 @@ class Request(dict):
         """Create a request based on the given scope."""
         super(Request, self).__init__(scope)
         self._body: t.Optional[bytes] = None
+        self._form: t.Optional[MultiDict] = None
         self._receive: t.Optional[Receive] = receive
         self._send: t.Optional[Send] = send
         self._is_read = False
@@ -140,7 +141,13 @@ class Request(dict):
         return self.media['content_type']
 
     async def stream(self) -> t.AsyncGenerator:
-        """Stream the request's body."""
+        """Stream the request's body.
+
+        .. warning::
+            You can only read stream once. Second call raises an error. Save a readed stream into a
+            variable if you need.
+
+        """
         if not self._receive:
             raise RuntimeError('Request doesnt have a receive coroutine')
 
@@ -195,9 +202,12 @@ class Request(dict):
         """
         from .forms import FormParser, MultipartParser
 
-        parser: t.Union[MultipartParser, FormParser] = MultipartParser() if self.content_type == 'multipart/form-data' else FormParser()  # noqa
-        return await parser.parse(
-            self, max_size=max_size, upload_to=upload_to, file_memory_limit=file_memory_limit)
+        if self._form is None:
+            parser: t.Union[MultipartParser, FormParser] = MultipartParser() if self.content_type == 'multipart/form-data' else FormParser()  # noqa
+            self._form = await parser.parse(
+                self, max_size=max_size, upload_to=upload_to, file_memory_limit=file_memory_limit)
+
+        return self._form
 
     def data(self) -> t.Awaitable[t.Union[str, JSONType, MultiDict]]:
         """The method checks `request.content_type` and parse the request's body automatically.
