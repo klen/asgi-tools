@@ -260,7 +260,7 @@ def encode_multipart(data: t.Dict) -> t.Tuple[bytes, str]:
     boundary = binascii.hexlify(os.urandom(16))
     for name, value in data.items():
         headers = f'Content-Disposition: form-data; name="{ name }"'
-        if isinstance(value, io.IOBase):
+        if hasattr(value, 'read'):
             filename = getattr(value, 'name', None)
             if filename:
                 headers = f'{ headers }; filename="{ Path(filename).name }"'
