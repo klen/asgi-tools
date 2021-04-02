@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.request &#8212; asgi-tools 0.42.3 documentation</title>
+    <title>asgi_tools.request &#8212; asgi-tools 0.42.4 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.f6b7ca918bee2f46fd9abac01cfb07d5.css" rel="stylesheet" />
@@ -106,7 +106,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <div class="sidebar-message pl-3">
-    Version: 0.42.3
+    Version: 0.42.4
 </div>
 
             </div>
@@ -280,6 +280,10 @@
 <div class="viewcode-block" id="Request.stream"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.stream">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">stream</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">AsyncGenerator</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Stream the request&#39;s body.</span>
 
+<span class="sd">        The method provides byte chunks without storing the entire body to memory.</span>
+<span class="sd">        Any subsequent calls to :py:meth:`body`, :py:meth:`form`, :py:meth:`json`</span>
+<span class="sd">        or :py:meth:`data` will raise an error.</span>
+
 <span class="sd">        .. warning::</span>
 <span class="sd">            You can only read stream once. Second call raises an error. Save a readed stream into a</span>
 <span class="sd">            variable if you need.</span>
@@ -322,20 +326,25 @@
         <span class="n">charset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charset</span> <span class="ow">or</span> <span class="n">DEFAULT_CHARSET</span>
         <span class="k">return</span> <span class="n">body</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">charset</span><span class="p">)</span></div>
 
-    <span class="nd">@process_decode</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;Invalid JSON&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="Request.json"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.json">[docs]</a>    <span class="nd">@process_decode</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;Invalid JSON&#39;</span><span class="p">)</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JSONType</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Read and return the request&#39;s body as a JSON.</span>
 
 <span class="sd">        `json = await request.json()`</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">json_loads</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">json_loads</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="Request.form"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.form">[docs]</a>    <span class="nd">@process_decode</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;Invalid Form Data&#39;</span><span class="p">)</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_size</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span> <span class="n">upload_to</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                    <span class="n">file_memory_limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MultiDict</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Read and return the request&#39;s multipart formdata as a multidict.</span>
 
+<span class="sd">        The method reads the request&#39;s stream stright into memory formdata.</span>
+<span class="sd">        Any subsequent calls to :py:meth:`body`, :py:meth:`json` will raise an error.</span>
+
 <span class="sd">        `formdata = await request.form()`</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.forms</span> <span class="kn">import</span> <span class="n">FormParser</span><span class="p">,</span> <span class="n">MultipartParser</span>
 
@@ -347,11 +356,12 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_form</span></div>
 
 <div class="viewcode-block" id="Request.data"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.data">[docs]</a>    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">JSONType</span><span class="p">,</span> <span class="n">MultiDict</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;The method checks `request.content_type` and parse the request&#39;s body automatically.</span>
+        <span class="sd">&quot;&quot;&quot;The method checks Content-Type Header and parse the request&#39;s data automatically.</span>
 
 <span class="sd">        `data = await request.data()`</span>
 
-<span class="sd">        Returns JSON for `application/json`, formdata for forms and text otherwise.</span>
+<span class="sd">        Returns data from :py:meth:`json` for `application/json`, :py:meth:`form` for</span>
+<span class="sd">        `application/x-www-form-urlencoded`,  `multipart/form-data` and :py:meth:`text` otherwise.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;application/x-www-form-urlencoded&#39;</span><span class="p">,</span> <span class="s1">&#39;multipart/form-data&#39;</span><span class="p">}:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">form</span><span class="p">()</span>
