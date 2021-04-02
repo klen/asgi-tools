@@ -143,6 +143,10 @@ class Request(dict):
     async def stream(self) -> t.AsyncGenerator:
         """Stream the request's body.
 
+        The method provides byte chunks without storing the entire body to memory.
+        Any subsequent calls to :py:meth:`body`, :py:meth:`form`, :py:meth:`json`
+        or :py:meth:`data` will raise an error.
+
         .. warning::
             You can only read stream once. Second call raises an error. Save a readed stream into a
             variable if you need.
@@ -190,6 +194,7 @@ class Request(dict):
         """Read and return the request's body as a JSON.
 
         `json = await request.json()`
+
         """
         return json_loads(await self.body())
 
@@ -198,7 +203,11 @@ class Request(dict):
                    file_memory_limit: int = 1024 * 1024) -> MultiDict:
         """Read and return the request's multipart formdata as a multidict.
 
+        The method reads the request's stream stright into memory formdata.
+        Any subsequent calls to :py:meth:`body`, :py:meth:`json` will raise an error.
+
         `formdata = await request.form()`
+
         """
         from .forms import FormParser, MultipartParser
 
@@ -210,11 +219,12 @@ class Request(dict):
         return self._form
 
     def data(self) -> t.Awaitable[t.Union[str, JSONType, MultiDict]]:
-        """The method checks `request.content_type` and parse the request's body automatically.
+        """The method checks Content-Type Header and parse the request's data automatically.
 
         `data = await request.data()`
 
-        Returns JSON for `application/json`, formdata for forms and text otherwise.
+        Returns data from :py:meth:`json` for `application/json`, :py:meth:`form` for
+        `application/x-www-form-urlencoded`,  `multipart/form-data` and :py:meth:`text` otherwise.
         """
         if self.content_type in {'application/x-www-form-urlencoded', 'multipart/form-data'}:
             return self.form()

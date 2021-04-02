@@ -67,6 +67,8 @@ Request
 
     .. automethod:: form
 
+    .. automethod:: json
+
     .. automethod:: data
 
 Responses
