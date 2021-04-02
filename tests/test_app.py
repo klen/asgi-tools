@@ -68,6 +68,56 @@ async def test_app(Client):
     assert await res.text() == '42'
 
 
+async def test_trim_last_slach(Client):
+    from asgi_tools.app import App
+
+    app = App()
+    client = Client(app)
+
+    @app.route('/route1')
+    async def route1(request):
+        return 'route1'
+
+    @app.route('/route2/')
+    async def route2(request):
+        return 'route2'
+
+    res = await client.get('/route1')
+    assert res.status_code == 200
+
+    res = await client.get('/route2/')
+    assert res.status_code == 200
+
+    res = await client.get('/route1/')
+    assert res.status_code == 404
+
+    res = await client.get('/route2')
+    assert res.status_code == 404
+
+    app = App(trim_last_slash=True)
+    client = Client(app)
+
+    @app.route('/route1')
+    async def route1(request):
+        return 'route1'
+
+    @app.route('/route2/')
+    async def route2(request):
+        return 'route2'
+
+    res = await client.get('/route1')
+    assert res.status_code == 200
+
+    res = await client.get('/route2/')
+    assert res.status_code == 200
+
+    res = await client.get('/route1/')
+    assert res.status_code == 200
+
+    res = await client.get('/route2')
+    assert res.status_code == 200
+
+
 async def test_app_static(Client):
     from asgi_tools.app import App
 
