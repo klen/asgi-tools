@@ -369,13 +369,13 @@ class ResponseWebSocket(Response):
         await self.send({'type': 'websocket.accept', **params})
         self.state = self.STATES.connected
 
-    async def close(self, code=1000) -> None:
+    async def close(self, code: int = 1000) -> None:
         """Sent by the application to tell the server to close the connection."""
         if self.connected:
             await self.send({'type': 'websocket.close', 'code': code})
         self.state = self.STATES.disconnected
 
-    def send(self, msg, type='websocket.send') -> t.Awaitable:
+    async def send(self, msg: t.Union[t.Dict, str, bytes], type='websocket.send') -> None:
         """Send the given message to a client."""
         if self.state == self.STATES.disconnected:
             raise ASGIConnectionClosed('Cannot send once the connection has been disconnected.')
@@ -383,10 +383,17 @@ class ResponseWebSocket(Response):
         if not isinstance(msg, dict):
             msg = {'type': type, (isinstance(msg, str) and 'text' or 'bytes'): msg}
 
-        return self._send(msg)
+        return await self._send(msg)
+
+    async def send_json(self, data) -> None:
+        """Serialize the given data to JSON and send to a client."""
+        return await self._send({'type': 'websocket.send', 'bytes': json_dumps(data)})
 
     async def receive(self, raw: bool = False) -> t.Union[Message, str]:
-        """Receive messages from a client."""
+        """Receive messages from a client.
+
+        :param raw: Receive messages as is.
+        """
         if self.partner_state == self.STATES.disconnected:
             raise ASGIConnectionClosed('Cannot receive once a connection has been disconnected.')
 

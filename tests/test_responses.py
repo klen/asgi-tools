@@ -152,6 +152,7 @@ async def test_file_response():
 async def test_websocket_response(Client):
     from asgi_tools import ResponseWebSocket, ASGIConnectionClosed
     from asgi_tools.tests import simple_stream
+    import json
 
     app_receive, send_to_app = simple_stream()
     client_receive, send_to_client = simple_stream()
@@ -172,11 +173,14 @@ async def test_websocket_response(Client):
             msg = await ws.receive()
             assert msg == 'ping'
             await ws.send('pong')
+            await ws.send_json(['ping', 'pong'])
 
     async with Client(app).websocket('/') as ws:
         await ws.send('ping')
         msg = await ws.receive()
         assert msg == 'pong'
+        msg = json.loads(await ws.receive())
+        assert msg == ['ping', 'pong']
         with pytest.raises(ASGIConnectionClosed):
             await ws.receive()
 
