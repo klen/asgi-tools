@@ -36,6 +36,7 @@ For instance these middlewares were built with the library:
 
 * `ASGI-Sessions <https://github.com/klen/asgi-sessions>`_
 * `ASGI-Babel <https://github.com/klen/asgi-babel>`_
+* `ASGI-Prometheus <https://github.com/klen/asgi-prometheus>`_
 
 .. _features:
 
