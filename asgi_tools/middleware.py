@@ -1,20 +1,17 @@
 """ASGI-Tools Middlewares."""
 
 import abc
+import inspect
 import typing as t
 from functools import partial
-import inspect
 from pathlib import Path
 
 from http_router import Router
 
 from . import ASGIError, asgi_logger
-from ._types import Scope, Receive, Send
+from ._types import Scope, Receive, Send, ASGIApp
 from .request import Request
 from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, Response, ResponseRedirect
-
-
-ASGIApp = t.Callable[[t.Union[Scope, Request], Receive, Send], t.Awaitable]
 
 
 class BaseMiddeware(metaclass=abc.ABCMeta):
