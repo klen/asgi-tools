@@ -1,6 +1,6 @@
 """ ASGI-Tools -- Tools to make ASGI Applications """
 
-__version__ = "0.43.2"
+__version__ = "0.44.0"
 __license__ = "MIT"
 
 import logging
