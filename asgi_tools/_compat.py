@@ -15,12 +15,17 @@ try:
 except ImportError:
     try:
         from ujson import dumps, loads
+
+        def json_dumps(content) -> bytes:  # type: ignore
+            """Emulate orjson."""
+            return dumps(content, ensure_ascii=False).encode('utf-8')
+
     except ImportError:
         from json import dumps, loads  # type: ignore
 
-    def json_dumps(content) -> bytes:  # type: ignore
-        """Emulate orjson."""
-        return dumps(content, ensure_ascii=False).encode('utf-8')
+        def json_dumps(content) -> bytes:  # type: ignore
+            """Emulate orjson."""
+            return dumps(content, ensure_ascii=False, separators=(',', ':')).encode('utf-8')  # type: ignore # noqa
 
     def json_loads(bytes_) -> t.Any:  # type: ignore
         """Emulate orjson."""
