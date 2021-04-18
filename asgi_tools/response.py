@@ -78,7 +78,7 @@ class Response:
 
     def __repr__(self) -> str:
         """Stringify the response."""
-        return f"<{ self.__class__.__name__ } '{ self }'"
+        return f"<{ self.__class__.__name__ } '{ self }'>"
 
     async def __call__(self, scope: t.Any, receive: t.Any, send: Send) -> None:
         """Behave as an ASGI application."""
