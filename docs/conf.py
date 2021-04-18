@@ -44,7 +44,6 @@ version = release
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx_rtd_theme',
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     "sphinx.ext.intersphinx",
@@ -81,7 +80,7 @@ html_theme_options = {
     ],
 }
 html_sidebars = {
-    "**": ["sidebar-search-bs.html", "custom-sidebar.html"],
+    "**": ["search-field.html", "sidebar-nav-bs.html", "custom-sidebar.html"],
 }
 html_context = {
     'github_user': 'klen',
