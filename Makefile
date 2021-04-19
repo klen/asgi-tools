@@ -60,8 +60,10 @@ mypy: $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/mypy asgi_tools
 
 
+EXAMPLE = rates
+
 example: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.rates:app
+	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.$(EXAMPLE):app
 
 
 zoo: $(VIRTUAL_ENV)

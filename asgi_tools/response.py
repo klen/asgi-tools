@@ -51,8 +51,6 @@ class Response:
     content_type: t.Optional[str] = None
     status_code: int = HTTPStatus.OK.value
 
-    #  __slots__ = 'content', 'status_code', 'headers', 'cookies'
-
     def __init__(
             self, content: ResponseContent = None, status_code: int = None,
             headers: dict = None, content_type: str = None):
@@ -63,13 +61,11 @@ class Response:
         if status_code is not None:
             self.status_code = status_code
 
-        if content_type is not None:
-            self.content_type = content_type
-
-        if self.content_type:
+        content_type = content_type or self.content_type
+        if content_type:
             self.headers.setdefault(
-                'content-type', self.content_type.startswith('text/') and
-                f"{self.content_type}; charset={self.charset}" or self.content_type
+                'content-type', content_type.startswith('text/') and
+                f"{content_type}; charset={self.charset}" or content_type
             )
 
     def __str__(self) -> str:
