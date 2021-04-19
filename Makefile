@@ -1,4 +1,5 @@
 VIRTUAL_ENV 	?= env
+PACKAGE		?= asgi_tools
 
 all: $(VIRTUAL_ENV)
 
@@ -35,10 +36,10 @@ major:
 .PHONY: clean
 # target: clean - Display callable targets
 clean:
-	rm -rf build/ dist/ docs/_build *.egg-info
+	rm -rf build/ dist/ docs/_build *.egg-info $(PACKAGE)/*.c $(PACKAGE)/*.so
 	find $(CURDIR) -name "*.py[co]" -delete
 	find $(CURDIR) -name "*.orig" -delete
-	find $(CURDIR)/$(MODULE) -name "__pycache__" | xargs rm -rf
+	find $(CURDIR) -name "__pycache__" | xargs rm -rf
 
 .PHONY: register
 # target: register - Register module on PyPi
@@ -50,6 +51,11 @@ register:
 upload: clean
 	@python setup.py bdist_wheel
 	@$(VIRTUAL_ENV)/bin/twine upload dist/*
+
+.PHONY: docs
+docs: $(VIRTUAL_ENV)
+	rm -rf docs/_build/html
+	make -C docs html
 
 
 test t: $(VIRTUAL_ENV)
@@ -65,15 +71,5 @@ EXAMPLE = rates
 example: $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.$(EXAMPLE):app
 
-
-zoo: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload zoo:app
-
-
-example-websocket: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.websocket:app
-
-.PHONY: docs
-docs: $(VIRTUAL_ENV)
-	rm -rf docs/_build/html
-	make -C docs html
+benchmark:
+	gunicorn -k uvicorn.workers.UvicornWorker examples.app:app
