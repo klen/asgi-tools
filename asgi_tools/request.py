@@ -11,7 +11,7 @@ from multidict import MultiDict
 from yarl import URL
 
 from . import ASGIDecodeError, DEFAULT_CHARSET
-from ._compat import cached_property, TypedDict, json_loads
+from ._compat import json_loads
 from ._types import Scope, Receive, Send, JSONType
 from .utils import parse_headers, CIMultiDict
 
@@ -32,13 +32,6 @@ def process_decode(message: str):
     return decorator
 
 
-class Media(TypedDict):
-    """Keep requests media data."""
-
-    opts: t.Dict[str, str]
-    content_type: str
-
-
 class Request(dict):
     """Represent a HTTP Request.
 
@@ -48,22 +41,25 @@ class Request(dict):
 
     """
 
-    method: str  #: Contains the request's HTTP method
+    _is_read: bool = False
+    _url: t.Optional[URL] = None
+    _body: t.Optional[bytes] = None
+    _form: t.Optional[MultiDict] = None
+    _headers: t.Optional[MultiDict] = None
+    _cookies: t.Optional[t.Dict[str, str]] = None
+    _media: t.Optional[t.Dict[str, t.Union[str, t.Dict[str, str]]]] = None
 
     def __init__(self, scope: Scope, receive: Receive = None, send: Send = None) -> None:
         """Create a request based on the given scope."""
         super(Request, self).__init__(scope)
-        self._body: t.Optional[bytes] = None
-        self._form: t.Optional[MultiDict] = None
         self._receive: t.Optional[Receive] = receive
         self._send: t.Optional[Send] = send
-        self._is_read = False
 
     def __getattr__(self, name: str) -> t.Any:
         """Proxy the request's unknown attributes to scope."""
         return self[name]
 
-    @cached_property
+    @property
     def url(self) -> URL:
         """A lazy property that parses the current URL and returns :class:`yarl.URL` object.
 
@@ -79,16 +75,19 @@ class Request(dict):
         See :py:mod:`yarl` documentation for further reference.
 
         """
-        host, port = self.get('server') or (None, None)
-        host = self.headers.get('host') or host or ''
-        host, _, _ = host.partition(':')
-        return URL.build(
-            scheme=self.get('scheme', 'http'), host=host, port=port, encoded=True,
-            path=f"{ self.get('root_path', '') }{ self['path'] }",
-            query_string=self.get("query_string", b"").decode("latin-1"),
-        )
+        if self._url is None:
+            host, port = self.get('server') or (None, None)
+            host = self.headers.get('host') or host or ''
+            host, _, _ = host.partition(':')
+            self._url = URL.build(
+                scheme=self.get('scheme', 'http'), host=host, port=port, encoded=True,
+                path=f"{ self.get('root_path', '') }{ self['path'] }",
+                query_string=self.get("query_string", b"").decode("latin-1"),
+            )
 
-    @cached_property
+        return self._url
+
+    @property
     def headers(self) -> CIMultiDict:
         """ A lazy property that parses the current scope's headers, decodes them as strings and
         returns case-insensitive multi-dict :py:class:`multidict.CIMultiDict`.
@@ -103,9 +102,11 @@ class Request(dict):
         See :py:mod:`multidict` documentation for futher reference.
 
         """
-        return parse_headers(self.get('headers') or [])
+        if self._headers is None:
+            self._headers = parse_headers(self['headers'])
+        return self._headers
 
-    @cached_property
+    @property
     def cookies(self) -> t.Dict[str, str]:
         """A lazy property that parses the current scope's cookies and returns a dictionary.
 
@@ -115,20 +116,21 @@ class Request(dict):
             ses = request.cookies.get('session')
 
         """
-        data = {}
-        cookie = self.headers.get('cookie')
-        if cookie:
-            for chunk in cookie.split(';'):
-                key, _, val = chunk.partition('=')
-                data[key.strip()] = cookies._unquote(val.strip())  # type: ignore
+        if self._cookies is None:
+            self._cookies = {}
+            cookie = self.headers.get('cookie')
+            if cookie:
+                for chunk in cookie.split(';'):
+                    key, _, val = chunk.partition('=')
+                    self._cookies[key.strip()] = cookies._unquote(val.strip())  # type: ignore
 
-        return data
+        return self._cookies
 
-    @cached_property
-    def media(self) -> Media:
+    @property
+    def media(self) -> t.Dict[str, t.Union[str, t.Dict[str, str]]]:
         """Prepare a media data for the request."""
         content_type, opts = parse_header(self.headers.get('content-type', ''))
-        return Media(opts=opts, content_type=content_type)
+        return dict(opts=opts, content_type=content_type)
 
     @property
     def charset(self) -> str:
@@ -179,7 +181,7 @@ class Request(dict):
 
         return self._body
 
-    @process_decode(message='Invalid Encoding')
+    @process_decode('Invalid Encoding')
     async def text(self) -> str:
         """Read and return the request's body as a string.
 
@@ -189,7 +191,7 @@ class Request(dict):
         charset = self.charset or DEFAULT_CHARSET
         return body.decode(charset)
 
-    @process_decode(message='Invalid JSON')
+    @process_decode('Invalid JSON')
     async def json(self) -> JSONType:
         """Read and return the request's body as a JSON.
 
@@ -198,7 +200,7 @@ class Request(dict):
         """
         return json_loads(await self.body())
 
-    @process_decode(message='Invalid Form Data')
+    @process_decode('Invalid Form Data')
     async def form(self, max_size: t.Union[int, float] = float('inf'), upload_to: str = None,
                    file_memory_limit: int = 1024 * 1024) -> MultiDict:
         """Read and return the request's multipart formdata as a multidict.
