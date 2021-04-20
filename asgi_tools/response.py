@@ -8,7 +8,7 @@ from functools import partial
 from hashlib import md5
 from http import cookies, HTTPStatus
 from mimetypes import guess_type
-from multidict import CIMultiDict
+from multidict import MultiDict
 from pathlib import Path
 from urllib.parse import quote_plus
 import os
@@ -33,7 +33,7 @@ class Response:
     :type content_type: str
     """
 
-    headers: CIMultiDict  #: Multidict of response's headers
+    headers: MultiDict  #: Multidict of response's headers
     cookies: cookies.SimpleCookie
     """ Set/Update cookies
 
@@ -56,7 +56,7 @@ class Response:
             headers: dict = None, content_type: str = None):
         """Setup the response."""
         self.content = content
-        self.headers: CIMultiDict = CIMultiDict(headers or {})
+        self.headers: MultiDict = MultiDict(headers or {})
         self.cookies: cookies.SimpleCookie = cookies.SimpleCookie()
         if status_code is not None:
             self.status_code = status_code
@@ -106,7 +106,7 @@ class Response:
     def msg_start(self) -> Message:
         """Get ASGI response start message."""
         headers = [
-            (key.lower().encode('latin-1'), str(val).encode('latin-1'))
+            (key.encode('latin-1'), str(val).encode('latin-1'))
             for key, val in self.headers.items()
         ]
 
@@ -151,104 +151,6 @@ class ResponseJSON(Response):
     def content(self, content: ResponseContent):
         """Jsonify the content."""
         self.__content__ = self.dumps(content)
-
-
-class ResponseRedirect(Response, BaseException):
-    """A helper to return HTTP redirects. Uses a 307 status code by default.
-
-    :param url: A string with the new location
-    :type url: str
-    """
-
-    status_code: int = HTTPStatus.TEMPORARY_REDIRECT.value
-
-    def __init__(self, url: str, status_code: int = None, **kwargs) -> None:
-        """Set status code and prepare location."""
-        super(ResponseRedirect, self).__init__(status_code=status_code, **kwargs)
-        assert 300 <= self.status_code < 400, f"Invalid status code for redirection: {self.status_code}"  # noqa
-        self.headers["location"] = quote_plus(str(url), safe=":/%#?&=@[]!$&'()*+,;")
-
-
-class ResponseErrorMeta(type):
-    """Generate Response Errors by HTTP names."""
-
-    # XXX: From python 3.9 -> partial['ResponseError]
-    def __getattr__(cls, name: str) -> t.Callable[..., ResponseError]:
-        """Generate Response Errors by HTTP names."""
-        status = HTTPStatus[name]
-        return partial(cls, status_code=status.value)
-
-
-class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
-    """A helper to return HTTP errors. Uses a 500 status code by default.
-
-    :param message: A string with the error's message (HTTPStatus messages will be used by default)
-    :type message: str
-
-    You able to use :py:class:`http.HTTPStatus` properties with the `ResponseError` class
-
-    .. code-block:: python
-
-        response = ResponseError.BAD_REQUEST('invalid data')
-        response = ResponseError.NOT_FOUND()
-        response = ResponseError.BAD_GATEWAY()
-        # and etc
-
-    """
-
-    status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR.value
-
-    # Typing annotations
-    if t.TYPE_CHECKING:
-        BAD_REQUEST: t.Callable[..., ResponseError]                       # 400
-        UNAUTHORIZED: t.Callable[..., ResponseError]                      # 401
-        PAYMENT_REQUIRED: t.Callable[..., ResponseError]                  # 402
-        FORBIDDEN: t.Callable[..., ResponseError]                         # 403
-        NOT_FOUND: t.Callable[..., ResponseError]                         # 404
-        METHOD_NOT_ALLOWED: t.Callable[..., ResponseError]                # 405
-        NOT_ACCEPTABLE: t.Callable[..., ResponseError]                    # 406
-        PROXY_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]     # 407
-        REQUEST_TIMEOUT: t.Callable[..., ResponseError]                   # 408
-        CONFLICT: t.Callable[..., ResponseError]                          # 409
-        GONE: t.Callable[..., ResponseError]                              # 410
-        LENGTH_REQUIRED: t.Callable[..., ResponseError]                   # 411
-        PRECONDITION_FAILED: t.Callable[..., ResponseError]               # 412
-        REQUEST_ENTITY_TOO_LARGE: t.Callable[..., ResponseError]          # 413
-        REQUEST_URI_TOO_LONG: t.Callable[..., ResponseError]              # 414
-        UNSUPPORTED_MEDIA_TYPE: t.Callable[..., ResponseError]            # 415
-        REQUESTED_RANGE_NOT_SATISFIABLE: t.Callable[..., ResponseError]   # 416
-        EXPECTATION_FAILED: t.Callable[..., ResponseError]                # 417
-        # XXX: From python 3.9
-        # IM_A_TEAPOT: t.Callable[..., ResponseError]                       # 418
-        # MISDIRECTED_REQUEST: t.Callable[..., ResponseError]               # 421
-        UNPROCESSABLE_ENTITY: t.Callable[..., ResponseError]              # 422
-        LOCKED: t.Callable[..., ResponseError]                            # 423
-        FAILED_DEPENDENCY: t.Callable[..., ResponseError]                 # 424
-        TOO_EARLY: t.Callable[..., ResponseError]                         # 425
-        UPGRADE_REQUIRED: t.Callable[..., ResponseError]                  # 426
-        PRECONDITION_REQUIRED: t.Callable[..., ResponseError]             # 428
-        TOO_MANY_REQUESTS: t.Callable[..., ResponseError]                 # 429
-        REQUEST_HEADER_FIELDS_TOO_LARGE: t.Callable[..., ResponseError]   # 431
-        # XXX: From python 3.9
-        # UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., ResponseError]     # 451
-
-        INTERNAL_SERVER_ERROR: t.Callable[..., ResponseError]             # 500
-        NOT_IMPLEMENTED: t.Callable[..., ResponseError]                   # 501
-        BAD_GATEWAY: t.Callable[..., ResponseError]                       # 502
-        SERVICE_UNAVAILABLE: t.Callable[..., ResponseError]               # 503
-        GATEWAY_TIMEOUT: t.Callable[..., ResponseError]                   # 504
-        HTTP_VERSION_NOT_SUPPORTED: t.Callable[..., ResponseError]        # 505
-        VARIANT_ALSO_NEGOTIATES: t.Callable[..., ResponseError]           # 506
-        INSUFFICIENT_STORAGE: t.Callable[..., ResponseError]              # 507
-        LOOP_DETECTED: t.Callable[..., ResponseError]                     # 508
-        NOT_EXTENDED: t.Callable[..., ResponseError]                      # 510
-        NETWORK_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]   # 511
-
-    def __init__(self, message: ResponseContent = None, status_code: int = None, **kwargs):
-        """Check error status."""
-        super(ResponseError, self).__init__(content=message, status_code=status_code, **kwargs)
-        assert self.status_code >= 400, f"Invalid status code for an error: {self.status_code}"
-        self.content = message or HTTPStatus(self.status_code).description
 
 
 class ResponseStream(Response):
@@ -408,6 +310,104 @@ class ResponseWebSocket(Response):
             self.partner_state = self.STATES.disconnected
 
         return raw and msg or parse_websocket_msg(msg, charset=self.charset)
+
+
+class ResponseRedirect(Response, BaseException):
+    """A helper to return HTTP redirects. Uses a 307 status code by default.
+
+    :param url: A string with the new location
+    :type url: str
+    """
+
+    status_code: int = HTTPStatus.TEMPORARY_REDIRECT.value
+
+    def __init__(self, url: str, status_code: int = None, **kwargs) -> None:
+        """Set status code and prepare location."""
+        super(ResponseRedirect, self).__init__(status_code=status_code, **kwargs)
+        assert 300 <= self.status_code < 400, f"Invalid status code for redirection: {self.status_code}"  # noqa
+        self.headers["location"] = quote_plus(str(url), safe=":/%#?&=@[]!$&'()*+,;")
+
+
+class ResponseErrorMeta(type):
+    """Generate Response Errors by HTTP names."""
+
+    # XXX: From python 3.9 -> partial['ResponseError]
+    def __getattr__(cls, name: str) -> t.Callable[..., ResponseError]:
+        """Generate Response Errors by HTTP names."""
+        status = HTTPStatus[name]
+        return partial(cls, status_code=status.value)
+
+
+class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
+    """A helper to return HTTP errors. Uses a 500 status code by default.
+
+    :param message: A string with the error's message (HTTPStatus messages will be used by default)
+    :type message: str
+
+    You able to use :py:class:`http.HTTPStatus` properties with the `ResponseError` class
+
+    .. code-block:: python
+
+        response = ResponseError.BAD_REQUEST('invalid data')
+        response = ResponseError.NOT_FOUND()
+        response = ResponseError.BAD_GATEWAY()
+        # and etc
+
+    """
+
+    status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR.value
+
+    # Typing annotations
+    if t.TYPE_CHECKING:
+        BAD_REQUEST: t.Callable[..., ResponseError]                       # 400
+        UNAUTHORIZED: t.Callable[..., ResponseError]                      # 401
+        PAYMENT_REQUIRED: t.Callable[..., ResponseError]                  # 402
+        FORBIDDEN: t.Callable[..., ResponseError]                         # 403
+        NOT_FOUND: t.Callable[..., ResponseError]                         # 404
+        METHOD_NOT_ALLOWED: t.Callable[..., ResponseError]                # 405
+        NOT_ACCEPTABLE: t.Callable[..., ResponseError]                    # 406
+        PROXY_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]     # 407
+        REQUEST_TIMEOUT: t.Callable[..., ResponseError]                   # 408
+        CONFLICT: t.Callable[..., ResponseError]                          # 409
+        GONE: t.Callable[..., ResponseError]                              # 410
+        LENGTH_REQUIRED: t.Callable[..., ResponseError]                   # 411
+        PRECONDITION_FAILED: t.Callable[..., ResponseError]               # 412
+        REQUEST_ENTITY_TOO_LARGE: t.Callable[..., ResponseError]          # 413
+        REQUEST_URI_TOO_LONG: t.Callable[..., ResponseError]              # 414
+        UNSUPPORTED_MEDIA_TYPE: t.Callable[..., ResponseError]            # 415
+        REQUESTED_RANGE_NOT_SATISFIABLE: t.Callable[..., ResponseError]   # 416
+        EXPECTATION_FAILED: t.Callable[..., ResponseError]                # 417
+        # XXX: From python 3.9
+        # IM_A_TEAPOT: t.Callable[..., ResponseError]                       # 418
+        # MISDIRECTED_REQUEST: t.Callable[..., ResponseError]               # 421
+        UNPROCESSABLE_ENTITY: t.Callable[..., ResponseError]              # 422
+        LOCKED: t.Callable[..., ResponseError]                            # 423
+        FAILED_DEPENDENCY: t.Callable[..., ResponseError]                 # 424
+        TOO_EARLY: t.Callable[..., ResponseError]                         # 425
+        UPGRADE_REQUIRED: t.Callable[..., ResponseError]                  # 426
+        PRECONDITION_REQUIRED: t.Callable[..., ResponseError]             # 428
+        TOO_MANY_REQUESTS: t.Callable[..., ResponseError]                 # 429
+        REQUEST_HEADER_FIELDS_TOO_LARGE: t.Callable[..., ResponseError]   # 431
+        # XXX: From python 3.9
+        # UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., ResponseError]     # 451
+
+        INTERNAL_SERVER_ERROR: t.Callable[..., ResponseError]             # 500
+        NOT_IMPLEMENTED: t.Callable[..., ResponseError]                   # 501
+        BAD_GATEWAY: t.Callable[..., ResponseError]                       # 502
+        SERVICE_UNAVAILABLE: t.Callable[..., ResponseError]               # 503
+        GATEWAY_TIMEOUT: t.Callable[..., ResponseError]                   # 504
+        HTTP_VERSION_NOT_SUPPORTED: t.Callable[..., ResponseError]        # 505
+        VARIANT_ALSO_NEGOTIATES: t.Callable[..., ResponseError]           # 506
+        INSUFFICIENT_STORAGE: t.Callable[..., ResponseError]              # 507
+        LOOP_DETECTED: t.Callable[..., ResponseError]                     # 508
+        NOT_EXTENDED: t.Callable[..., ResponseError]                      # 510
+        NETWORK_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]   # 511
+
+    def __init__(self, message: ResponseContent = None, status_code: int = None, **kwargs):
+        """Check error status."""
+        super(ResponseError, self).__init__(content=message, status_code=status_code, **kwargs)
+        assert self.status_code >= 400, f"Invalid status code for an error: {self.status_code}"
+        self.content = message or HTTPStatus(self.status_code).description
 
 
 CAST_RESPONSE: t.Dict[t.Type, t.Type[Response]] = {

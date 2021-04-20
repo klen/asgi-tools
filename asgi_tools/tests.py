@@ -4,11 +4,11 @@ import mimetypes
 import os
 import typing as t
 from collections import deque
-from pathlib import Path
 from contextlib import asynccontextmanager
 from functools import partial
 from http import cookies
 from json import loads, dumps
+from pathlib import Path
 from urllib.parse import urlencode
 
 from yarl import URL
@@ -27,7 +27,7 @@ class TestResponse(Response):
         msg = await self._receive()
         assert msg.get('type') == 'http.response.start', 'Invalid Response'
         self.status_code = int(msg.get('status', 502))
-        self.headers = parse_headers(msg.get('headers', []))
+        self.headers = parse_headers(msg.get('headers', []))  # type: ignore
         for cookie in self.headers.getall('set-cookie', []):
             self.cookies.load(cookie)
 

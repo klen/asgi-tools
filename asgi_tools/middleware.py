@@ -17,7 +17,7 @@ from .response import ResponseHTML, parse_response, ResponseError, ResponseFile,
 class BaseMiddeware(metaclass=abc.ABCMeta):
     """Base class for ASGI-Tools middlewares."""
 
-    scopes: t.Union[t.Set, t.Sequence] = {'http', 'websocket'}
+    scopes: t.Set = {'http', 'websocket'}
 
     def __init__(self, app: ASGIApp = None) -> None:
         """Save ASGI App."""
