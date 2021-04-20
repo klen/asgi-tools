@@ -1,5 +1,9 @@
+/.benchmarks
 /.vscode
 /_
+/asgi_tools/*.c
+/asgi_tools/*.html
+/asgi_tools/*.so
 /build
 /dist
 /docs/_build

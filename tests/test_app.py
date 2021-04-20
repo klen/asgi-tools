@@ -317,5 +317,4 @@ async def test_app_lifespan(app, client):
         res = await client.get('/')
         assert res.status_code == 200
 
-
     assert SIDE_EFFECTS['finished']

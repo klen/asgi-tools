@@ -58,8 +58,9 @@ docs: $(VIRTUAL_ENV)
 	make -C docs html
 
 
+LATEST_BENCHMARK = $(shell ls -t .benchmarks/* | head -1 | head -c4)
 test t: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/pytest tests
+	$(VIRTUAL_ENV)/bin/pytest tests --benchmark-autosave --benchmark-compare=$(LATEST_BENCHMARK)
 
 
 mypy: $(VIRTUAL_ENV)
@@ -70,6 +71,3 @@ EXAMPLE = rates
 
 example: $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.$(EXAMPLE):app
-
-benchmark:
-	gunicorn -k uvicorn.workers.UvicornWorker examples.app:app
