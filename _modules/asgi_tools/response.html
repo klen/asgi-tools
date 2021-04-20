@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.response &#8212; asgi-tools 0.46.1 documentation</title>
+    <title>asgi_tools.response &#8212; asgi-tools 0.46.2 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -128,7 +128,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.46.1
+    Version: 0.46.2
 </div>
 
             </div>
@@ -174,7 +174,7 @@
 <span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">md5</span>
 <span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">cookies</span><span class="p">,</span> <span class="n">HTTPStatus</span>
 <span class="kn">from</span> <span class="nn">mimetypes</span> <span class="kn">import</span> <span class="n">guess_type</span>
-<span class="kn">from</span> <span class="nn">multidict</span> <span class="kn">import</span> <span class="n">CIMultiDict</span>
+<span class="kn">from</span> <span class="nn">multidict</span> <span class="kn">import</span> <span class="n">MultiDict</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote_plus</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -199,7 +199,7 @@
 <span class="sd">    :type content_type: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">headers</span><span class="p">:</span> <span class="n">CIMultiDict</span>  <span class="c1">#: Multidict of response&#39;s headers</span>
+    <span class="n">headers</span><span class="p">:</span> <span class="n">MultiDict</span>  <span class="c1">#: Multidict of response&#39;s headers</span>
     <span class="n">cookies</span><span class="p">:</span> <span class="n">cookies</span><span class="o">.</span><span class="n">SimpleCookie</span>
     <span class="sd">&quot;&quot;&quot; Set/Update cookies</span>
 
@@ -222,7 +222,7 @@
             <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Setup the response.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">content</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span> <span class="n">CIMultiDict</span> <span class="o">=</span> <span class="n">CIMultiDict</span><span class="p">(</span><span class="n">headers</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span> <span class="n">MultiDict</span> <span class="o">=</span> <span class="n">MultiDict</span><span class="p">(</span><span class="n">headers</span> <span class="ow">or</span> <span class="p">{})</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="p">:</span> <span class="n">cookies</span><span class="o">.</span><span class="n">SimpleCookie</span> <span class="o">=</span> <span class="n">cookies</span><span class="o">.</span><span class="n">SimpleCookie</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">status_code</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
@@ -272,7 +272,7 @@
     <span class="k">def</span> <span class="nf">msg_start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Message</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Get ASGI response start message.&quot;&quot;&quot;</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;latin-1&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;latin-1&#39;</span><span class="p">))</span>
+            <span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;latin-1&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;latin-1&#39;</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">]</span>
 
@@ -317,104 +317,6 @@
     <span class="k">def</span> <span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">ResponseContent</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Jsonify the content.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__content__</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">content</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="ResponseRedirect"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseRedirect">[docs]</a><span class="k">class</span> <span class="nc">ResponseRedirect</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A helper to return HTTP redirects. Uses a 307 status code by default.</span>
-
-<span class="sd">    :param url: A string with the new location</span>
-<span class="sd">    :type url: str</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">TEMPORARY_REDIRECT</span><span class="o">.</span><span class="n">value</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Set status code and prepare location.&quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ResponseRedirect</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="mi">300</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">400</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Invalid status code for redirection: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span>  <span class="c1"># noqa</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">quote_plus</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">url</span><span class="p">),</span> <span class="n">safe</span><span class="o">=</span><span class="s2">&quot;:/%#?&amp;=@[]!$&amp;&#39;()*+,;&quot;</span><span class="p">)</span></div>
-
-
-<span class="k">class</span> <span class="nc">ResponseErrorMeta</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Generate Response Errors by HTTP names.&quot;&quot;&quot;</span>
-
-    <span class="c1"># XXX: From python 3.9 -&gt; partial[&#39;ResponseError]</span>
-    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Generate Response Errors by HTTP names.&quot;&quot;&quot;</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="ResponseError"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseError">[docs]</a><span class="k">class</span> <span class="nc">ResponseError</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">ResponseErrorMeta</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A helper to return HTTP errors. Uses a 500 status code by default.</span>
-
-<span class="sd">    :param message: A string with the error&#39;s message (HTTPStatus messages will be used by default)</span>
-<span class="sd">    :type message: str</span>
-
-<span class="sd">    You able to use :py:class:`http.HTTPStatus` properties with the `ResponseError` class</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        response = ResponseError.BAD_REQUEST(&#39;invalid data&#39;)</span>
-<span class="sd">        response = ResponseError.NOT_FOUND()</span>
-<span class="sd">        response = ResponseError.BAD_GATEWAY()</span>
-<span class="sd">        # and etc</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="o">.</span><span class="n">value</span>
-
-    <span class="c1"># Typing annotations</span>
-    <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
-        <span class="n">BAD_REQUEST</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                       <span class="c1"># 400</span>
-        <span class="n">UNAUTHORIZED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                      <span class="c1"># 401</span>
-        <span class="n">PAYMENT_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                  <span class="c1"># 402</span>
-        <span class="n">FORBIDDEN</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                         <span class="c1"># 403</span>
-        <span class="n">NOT_FOUND</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                         <span class="c1"># 404</span>
-        <span class="n">METHOD_NOT_ALLOWED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                <span class="c1"># 405</span>
-        <span class="n">NOT_ACCEPTABLE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                    <span class="c1"># 406</span>
-        <span class="n">PROXY_AUTHENTICATION_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>     <span class="c1"># 407</span>
-        <span class="n">REQUEST_TIMEOUT</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                   <span class="c1"># 408</span>
-        <span class="n">CONFLICT</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                          <span class="c1"># 409</span>
-        <span class="n">GONE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                              <span class="c1"># 410</span>
-        <span class="n">LENGTH_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                   <span class="c1"># 411</span>
-        <span class="n">PRECONDITION_FAILED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>               <span class="c1"># 412</span>
-        <span class="n">REQUEST_ENTITY_TOO_LARGE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>          <span class="c1"># 413</span>
-        <span class="n">REQUEST_URI_TOO_LONG</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>              <span class="c1"># 414</span>
-        <span class="n">UNSUPPORTED_MEDIA_TYPE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>            <span class="c1"># 415</span>
-        <span class="n">REQUESTED_RANGE_NOT_SATISFIABLE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>   <span class="c1"># 416</span>
-        <span class="n">EXPECTATION_FAILED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                <span class="c1"># 417</span>
-        <span class="c1"># XXX: From python 3.9</span>
-        <span class="c1"># IM_A_TEAPOT: t.Callable[..., ResponseError]                       # 418</span>
-        <span class="c1"># MISDIRECTED_REQUEST: t.Callable[..., ResponseError]               # 421</span>
-        <span class="n">UNPROCESSABLE_ENTITY</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>              <span class="c1"># 422</span>
-        <span class="n">LOCKED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                            <span class="c1"># 423</span>
-        <span class="n">FAILED_DEPENDENCY</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                 <span class="c1"># 424</span>
-        <span class="n">TOO_EARLY</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                         <span class="c1"># 425</span>
-        <span class="n">UPGRADE_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                  <span class="c1"># 426</span>
-        <span class="n">PRECONDITION_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>             <span class="c1"># 428</span>
-        <span class="n">TOO_MANY_REQUESTS</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                 <span class="c1"># 429</span>
-        <span class="n">REQUEST_HEADER_FIELDS_TOO_LARGE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>   <span class="c1"># 431</span>
-        <span class="c1"># XXX: From python 3.9</span>
-        <span class="c1"># UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., ResponseError]     # 451</span>
-
-        <span class="n">INTERNAL_SERVER_ERROR</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>             <span class="c1"># 500</span>
-        <span class="n">NOT_IMPLEMENTED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                   <span class="c1"># 501</span>
-        <span class="n">BAD_GATEWAY</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                       <span class="c1"># 502</span>
-        <span class="n">SERVICE_UNAVAILABLE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>               <span class="c1"># 503</span>
-        <span class="n">GATEWAY_TIMEOUT</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                   <span class="c1"># 504</span>
-        <span class="n">HTTP_VERSION_NOT_SUPPORTED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>        <span class="c1"># 505</span>
-        <span class="n">VARIANT_ALSO_NEGOTIATES</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>           <span class="c1"># 506</span>
-        <span class="n">INSUFFICIENT_STORAGE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>              <span class="c1"># 507</span>
-        <span class="n">LOOP_DETECTED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                     <span class="c1"># 508</span>
-        <span class="n">NOT_EXTENDED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                      <span class="c1"># 510</span>
-        <span class="n">NETWORK_AUTHENTICATION_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>   <span class="c1"># 511</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">ResponseContent</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check error status.&quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ResponseError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">message</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Invalid status code for an error: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">message</span> <span class="ow">or</span> <span class="n">HTTPStatus</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">description</span></div>
 
 
 <div class="viewcode-block" id="ResponseStream"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseStream">[docs]</a><span class="k">class</span> <span class="nc">ResponseStream</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
@@ -574,6 +476,104 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">disconnected</span>
 
         <span class="k">return</span> <span class="n">raw</span> <span class="ow">and</span> <span class="n">msg</span> <span class="ow">or</span> <span class="n">parse_websocket_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">charset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ResponseRedirect"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseRedirect">[docs]</a><span class="k">class</span> <span class="nc">ResponseRedirect</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A helper to return HTTP redirects. Uses a 307 status code by default.</span>
+
+<span class="sd">    :param url: A string with the new location</span>
+<span class="sd">    :type url: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">TEMPORARY_REDIRECT</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set status code and prepare location.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ResponseRedirect</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="mi">300</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">400</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Invalid status code for redirection: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span>  <span class="c1"># noqa</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">quote_plus</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">url</span><span class="p">),</span> <span class="n">safe</span><span class="o">=</span><span class="s2">&quot;:/%#?&amp;=@[]!$&amp;&#39;()*+,;&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">ResponseErrorMeta</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate Response Errors by HTTP names.&quot;&quot;&quot;</span>
+
+    <span class="c1"># XXX: From python 3.9 -&gt; partial[&#39;ResponseError]</span>
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Generate Response Errors by HTTP names.&quot;&quot;&quot;</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ResponseError"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseError">[docs]</a><span class="k">class</span> <span class="nc">ResponseError</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">ResponseErrorMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A helper to return HTTP errors. Uses a 500 status code by default.</span>
+
+<span class="sd">    :param message: A string with the error&#39;s message (HTTPStatus messages will be used by default)</span>
+<span class="sd">    :type message: str</span>
+
+<span class="sd">    You able to use :py:class:`http.HTTPStatus` properties with the `ResponseError` class</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        response = ResponseError.BAD_REQUEST(&#39;invalid data&#39;)</span>
+<span class="sd">        response = ResponseError.NOT_FOUND()</span>
+<span class="sd">        response = ResponseError.BAD_GATEWAY()</span>
+<span class="sd">        # and etc</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="c1"># Typing annotations</span>
+    <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
+        <span class="n">BAD_REQUEST</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                       <span class="c1"># 400</span>
+        <span class="n">UNAUTHORIZED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                      <span class="c1"># 401</span>
+        <span class="n">PAYMENT_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                  <span class="c1"># 402</span>
+        <span class="n">FORBIDDEN</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                         <span class="c1"># 403</span>
+        <span class="n">NOT_FOUND</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                         <span class="c1"># 404</span>
+        <span class="n">METHOD_NOT_ALLOWED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                <span class="c1"># 405</span>
+        <span class="n">NOT_ACCEPTABLE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                    <span class="c1"># 406</span>
+        <span class="n">PROXY_AUTHENTICATION_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>     <span class="c1"># 407</span>
+        <span class="n">REQUEST_TIMEOUT</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                   <span class="c1"># 408</span>
+        <span class="n">CONFLICT</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                          <span class="c1"># 409</span>
+        <span class="n">GONE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                              <span class="c1"># 410</span>
+        <span class="n">LENGTH_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                   <span class="c1"># 411</span>
+        <span class="n">PRECONDITION_FAILED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>               <span class="c1"># 412</span>
+        <span class="n">REQUEST_ENTITY_TOO_LARGE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>          <span class="c1"># 413</span>
+        <span class="n">REQUEST_URI_TOO_LONG</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>              <span class="c1"># 414</span>
+        <span class="n">UNSUPPORTED_MEDIA_TYPE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>            <span class="c1"># 415</span>
+        <span class="n">REQUESTED_RANGE_NOT_SATISFIABLE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>   <span class="c1"># 416</span>
+        <span class="n">EXPECTATION_FAILED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                <span class="c1"># 417</span>
+        <span class="c1"># XXX: From python 3.9</span>
+        <span class="c1"># IM_A_TEAPOT: t.Callable[..., ResponseError]                       # 418</span>
+        <span class="c1"># MISDIRECTED_REQUEST: t.Callable[..., ResponseError]               # 421</span>
+        <span class="n">UNPROCESSABLE_ENTITY</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>              <span class="c1"># 422</span>
+        <span class="n">LOCKED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                            <span class="c1"># 423</span>
+        <span class="n">FAILED_DEPENDENCY</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                 <span class="c1"># 424</span>
+        <span class="n">TOO_EARLY</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                         <span class="c1"># 425</span>
+        <span class="n">UPGRADE_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                  <span class="c1"># 426</span>
+        <span class="n">PRECONDITION_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>             <span class="c1"># 428</span>
+        <span class="n">TOO_MANY_REQUESTS</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                 <span class="c1"># 429</span>
+        <span class="n">REQUEST_HEADER_FIELDS_TOO_LARGE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>   <span class="c1"># 431</span>
+        <span class="c1"># XXX: From python 3.9</span>
+        <span class="c1"># UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., ResponseError]     # 451</span>
+
+        <span class="n">INTERNAL_SERVER_ERROR</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>             <span class="c1"># 500</span>
+        <span class="n">NOT_IMPLEMENTED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                   <span class="c1"># 501</span>
+        <span class="n">BAD_GATEWAY</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                       <span class="c1"># 502</span>
+        <span class="n">SERVICE_UNAVAILABLE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>               <span class="c1"># 503</span>
+        <span class="n">GATEWAY_TIMEOUT</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                   <span class="c1"># 504</span>
+        <span class="n">HTTP_VERSION_NOT_SUPPORTED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>        <span class="c1"># 505</span>
+        <span class="n">VARIANT_ALSO_NEGOTIATES</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>           <span class="c1"># 506</span>
+        <span class="n">INSUFFICIENT_STORAGE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>              <span class="c1"># 507</span>
+        <span class="n">LOOP_DETECTED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                     <span class="c1"># 508</span>
+        <span class="n">NOT_EXTENDED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>                      <span class="c1"># 510</span>
+        <span class="n">NETWORK_AUTHENTICATION_REQUIRED</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]</span>   <span class="c1"># 511</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">ResponseContent</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check error status.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ResponseError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">message</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Invalid status code for an error: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">message</span> <span class="ow">or</span> <span class="n">HTTPStatus</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">description</span></div>
 
 
 <span class="n">CAST_RESPONSE</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Type</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Type</span><span class="p">[</span><span class="n">Response</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
