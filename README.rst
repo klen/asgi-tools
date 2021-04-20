@@ -68,8 +68,7 @@ Requirements
 .. note:: pypy3 is also supported
 
 **ASGI-Tools** belongs to the category of ASGI_ web frameworks, so it requires
-an ASGI HTTP server to run, such as uvicorn, daphne, or hypercorn. For example,
-to use it with uvicorn:
+an ASGI HTTP server to run, such as uvicorn_, daphne_, or hypercorn_.
 
 .. _installation:
 
@@ -79,9 +78,6 @@ Installation
 **asgi-tools** should be installed using pip: ::
 
     pip install asgi-tools
-
-**ASGI-Tools** belongs to the category of ASGI_ web frameworks, so it requires
-an ASGI HTTP server to run, such as uvicorn_, daphne_, or hypercorn_.
 
 A Quick Example
 ===============
