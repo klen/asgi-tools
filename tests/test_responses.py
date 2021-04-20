@@ -35,7 +35,7 @@ async def test_parse_response():
     assert response.status_code == 200
     assert response.headers['content-type'] == 'application/json'
     _, body = await read_response(response)
-    assert body == {'body': b'{"test": "passed"}', 'type': 'http.response.body'}
+    assert body == {'body': b'{"test":"passed"}', 'type': 'http.response.body'}
 
     response = parse_response((500, 'SERVER ERROR'))
     assert response.status_code == 500
@@ -74,7 +74,7 @@ async def test_json_response():
     response = ResponseJSON([1, 2, 3])
     assert response.status_code == 200
     assert response.headers['content-type'] == 'application/json'
-    assert response.content == b"[1, 2, 3]"
+    assert response.content == b"[1,2,3]"
 
 
 async def test_redirect_response():
