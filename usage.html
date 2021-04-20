@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Usage &#8212; asgi-tools 0.45.0 documentation</title>
+    <title>Usage &#8212; asgi-tools 0.46.0 documentation</title>
     
   <link href="_static/css/theme.css" rel="stylesheet" />
   <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -130,7 +130,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.45.0
+    Version: 0.46.0
 </div>
 
             </div>
@@ -235,9 +235,9 @@
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="asgi-application">
 <h2>ASGI Application<a class="headerlink" href="#asgi-application" title="Permalink to this headline">¶</a></h2>
-<p>ASGI-Tools is designed to be used as an ASGI Toolkit. You can use any of its
-components independently. Dispite this ASGI-Tools contains <a class="reference internal" href="api.html#asgi_tools.App" title="asgi_tools.App"><code class="xref py py-class docutils literal notranslate"><span class="pre">asgi_tools.App</span></code></a> helper to
-quickly build ASGI applications.</p>
+<p>ASGI-Tools is designed to be used as an <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> Toolkit. You can use any of its
+components independently. Dispite this ASGI-Tools contains
+<a class="reference internal" href="api.html#asgi_tools.App" title="asgi_tools.App"><code class="xref py py-class docutils literal notranslate"><span class="pre">asgi_tools.App</span></code></a> helper to quickly build ASGI applications.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If you are looking more for a toolkit for your <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> apps go straight to the
@@ -253,6 +253,8 @@ quickly build ASGI applications.</p>
 </pre></div>
 </div>
 <p>Save it as <code class="file docutils literal notranslate"><span class="pre">hello.py</span></code> or something similar.</p>
+<p><strong>ASGI-Tools</strong> belongs to the category of <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> web frameworks, so it requires
+an ASGI HTTP server to run, such as <a class="reference external" href="http://www.uvicorn.org/">uvicorn</a>, <a class="reference external" href="https://github.com/django/daphne/">daphne</a>, or <a class="reference external" href="https://pgjones.gitlab.io/hypercorn/">hypercorn</a>.</p>
 <p>To run the application, run the command:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">uvicorn</span> <span class="n">hello</span><span class="p">:</span><span class="n">app</span>
 </pre></div>
@@ -269,7 +271,7 @@ documented in the API section and we will not cover it here in detail (see
 <a class="reference internal" href="api.html#asgi_tools.Request" title="asgi_tools.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>). Here is a broad overview of some of the most
 common operations.</p>
 <p>The current request method is available by using the
-<a class="reference internal" href="api.html#asgi_tools.Request.method" title="asgi_tools.Request.method"><code class="xref py py-attr docutils literal notranslate"><span class="pre">method</span></code></a> attribute.  To access form data (data
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">method</span></code> attribute.  To access form data (data
 transmitted in a <code class="docutils literal notranslate"><span class="pre">POST</span></code> or <code class="docutils literal notranslate"><span class="pre">PUT</span></code> request) you can use the
 <a class="reference internal" href="api.html#asgi_tools.Request.form" title="asgi_tools.Request.form"><code class="xref py py-attr docutils literal notranslate"><span class="pre">form</span></code></a> attribute.  Here is a full example of the two
 attributes mentioned above:</p>

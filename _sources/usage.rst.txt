@@ -4,9 +4,9 @@ Usage
 ASGI Application
 -----------------
 
-ASGI-Tools is designed to be used as an ASGI Toolkit. You can use any of its
-components independently. Dispite this ASGI-Tools contains :py:class:`asgi_tools.App` helper to
-quickly build ASGI applications.
+ASGI-Tools is designed to be used as an ASGI_ Toolkit. You can use any of its
+components independently. Dispite this ASGI-Tools contains
+:py:class:`asgi_tools.App` helper to quickly build ASGI applications.
 
 .. note::
    If you are looking more for a toolkit for your ASGI_ apps go straight to the
@@ -23,6 +23,9 @@ quickly build ASGI applications.
         return "<p>Hello, World!</p>"
 
 Save it as :file:`hello.py` or something similar.
+
+**ASGI-Tools** belongs to the category of ASGI_ web frameworks, so it requires
+an ASGI HTTP server to run, such as uvicorn_, daphne_, or hypercorn_.
 
 To run the application, run the command:
 
@@ -294,3 +297,6 @@ applies to converting return values into response objects is as follows:
 .. Links
 
 .. _ASGI: https://asgi.readthedocs.io/en/latest/
+.. _uvicorn: http://www.uvicorn.org/ 
+.. _daphne: https://github.com/django/daphne/
+.. _hypercorn: https://pgjones.gitlab.io/hypercorn/
