@@ -45,9 +45,9 @@ class Request(dict):
     _url: t.Optional[URL] = None
     _body: t.Optional[bytes] = None
     _form: t.Optional[MultiDict] = None
-    _headers: t.Optional[MultiDict] = None
+    _headers: t.Optional[CIMultiDict] = None
+    _media: t.Optional[t.Dict[str, str]] = None
     _cookies: t.Optional[t.Dict[str, str]] = None
-    _media: t.Optional[t.Dict[str, t.Union[str, t.Dict[str, str]]]] = None
 
     def __init__(self, scope: Scope, receive: Receive = None, send: Send = None) -> None:
         """Create a request based on the given scope."""
@@ -127,15 +127,15 @@ class Request(dict):
         return self._cookies
 
     @property
-    def media(self) -> t.Dict[str, t.Union[str, t.Dict[str, str]]]:
+    def media(self) -> t.Dict[str, str]:
         """Prepare a media data for the request."""
         content_type, opts = parse_header(self.headers.get('content-type', ''))
-        return dict(opts=opts, content_type=content_type)
+        return dict(opts, content_type=content_type)
 
     @property
     def charset(self) -> str:
         """Get an encoding charset for the current scope."""
-        return self.media['opts'].get('charset', DEFAULT_CHARSET)
+        return self.media.get('charset', DEFAULT_CHARSET)
 
     @property
     def content_type(self) -> str:
