@@ -52,8 +52,8 @@ class Request(dict):
     def __init__(self, scope: Scope, receive: Receive = None, send: Send = None) -> None:
         """Create a request based on the given scope."""
         super(Request, self).__init__(scope)
-        self._receive: t.Optional[Receive] = receive
-        self._send: t.Optional[Send] = send
+        self._receive = receive
+        self._send = send
 
     def __getattr__(self, name: str) -> t.Any:
         """Proxy the request's unknown attributes to scope."""
@@ -129,8 +129,11 @@ class Request(dict):
     @property
     def media(self) -> t.Dict[str, str]:
         """Prepare a media data for the request."""
-        content_type, opts = parse_header(self.headers.get('content-type', ''))
-        return dict(opts, content_type=content_type)
+        if self._media is None:
+            content_type, opts = parse_header(self.headers.get('content-type', ''))
+            self._media = dict(opts, content_type=content_type)
+
+        return self._media
 
     @property
     def charset(self) -> str:
