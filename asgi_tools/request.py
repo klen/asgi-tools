@@ -12,8 +12,8 @@ from yarl import URL
 
 from . import ASGIDecodeError, DEFAULT_CHARSET
 from ._compat import json_loads
-from ._types import Scope, Receive, Send, JSONType
 from .utils import parse_headers, CIMultiDict
+from .typing import Scope, Receive, Send, JSONType
 
 
 def process_decode(message: str):

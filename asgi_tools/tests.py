@@ -15,9 +15,9 @@ from yarl import URL
 
 from . import ASGIConnectionClosed
 from ._compat import aio_sleep, aio_spawn, aio_wait, aio_cancel, FIRST_COMPLETED
-from ._types import JSONType, Scope, Receive, Send, Message, ASGIApp
 from .response import Response, ResponseWebSocket, parse_websocket_msg
 from .utils import to_awaitable, parse_headers
+from .typing import JSONType, Scope, Receive, Send, Message, ASGIApp
 
 
 class TestResponse(Response):

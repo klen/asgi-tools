@@ -16,8 +16,8 @@ import typing as t
 
 from . import DEFAULT_CHARSET, ASGIError, ASGIConnectionClosed
 from ._compat import aio_wait, FIRST_COMPLETED, aio_stream_file, json_dumps
-from ._types import Message, ResponseContent, Scope, Receive, Send
 from .request import Request
+from .typing import Message, ResponseContent, Scope, Receive, Send
 
 
 class Response:

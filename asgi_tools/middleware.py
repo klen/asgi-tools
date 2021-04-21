@@ -9,9 +9,9 @@ from pathlib import Path
 from http_router import Router
 
 from . import ASGIError, asgi_logger
-from ._types import Scope, Receive, Send, ASGIApp
 from .request import Request
 from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, Response, ResponseRedirect
+from .typing import Scope, Receive, Send, ASGIApp
 
 
 class BaseMiddeware(metaclass=abc.ABCMeta):

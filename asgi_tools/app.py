@@ -9,7 +9,6 @@ from http_router import Router as HTTPRouter
 from http_router.typing import TYPE_METHODS
 
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed, asgi_logger
-from ._types import Scope, Receive, Send, F
 from .middleware import (
     BaseMiddeware,
     LifespanMiddleware,
@@ -20,6 +19,7 @@ from .middleware import (
 from .request import Request
 from .response import ResponseError, Response
 from .utils import to_awaitable, iscoroutinefunction, is_awaitable
+from .typing import Scope, Receive, Send, F
 
 
 HTTP_METHODS = {'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'}

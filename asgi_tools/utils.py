@@ -6,7 +6,7 @@ from typing import Callable, Awaitable
 
 from multidict import CIMultiDict
 
-from ._types import ScopeHeaders
+from .typing import ScopeHeaders
 
 
 def is_awaitable(fn: Callable) -> bool:
