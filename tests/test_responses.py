@@ -127,6 +127,33 @@ async def test_stream_response(Client):
     assert await res.text() == '0123456789'
 
 
+async def test_sse_response(Client):
+    from asgi_tools import ResponseSSE
+    from asgi_tools._compat import aio_sleep
+
+    async def filler(timeout=.001):
+        for idx in range(2):
+            await aio_sleep(timeout)
+            yield "data: test"
+            yield {"event": "ping"}
+
+    response = ResponseSSE(filler())
+    messages = await read_response(response)
+    assert messages[1]['body'] == b'data: test\n\n'
+    assert messages[2]['body'] == b'event: ping\n\n'
+
+    def app(scope, receive, send):
+        response = ResponseSSE(filler())
+        return response(scope, receive, send)
+
+    client = Client(app)
+    res = await client.get('/')
+    assert res.status_code == 200
+    text = await res.text()
+    assert "data: test\n\n" in text
+    assert "event: ping\n\n" in text
+
+
 async def test_file_response():
     from asgi_tools import ResponseFile, ASGIError
 

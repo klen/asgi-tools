@@ -165,6 +165,12 @@ class ResponseStream(Response):
         """Store self content as is."""
         self.__content__ = content  # type: ignore
 
+    def prepare_chunk(self, chunk: t.Any) -> bytes:
+        """Prepare a chunk from stream generator to send."""
+        if not isinstance(chunk, bytes):
+            chunk = str(chunk).encode(self.charset)
+        return chunk
+
     async def listen_for_disconnect(self, receive: Receive):
         """Listen for the client has been disconnected."""
         while True:
@@ -177,9 +183,8 @@ class ResponseStream(Response):
         await send(self.msg_start())
         if self.content:
             async for chunk in self.content:
-                if not isinstance(chunk, bytes):
-                    chunk = str(chunk).encode(self.charset)
-                await send({"type": "http.response.body", "body": chunk, "more_body": True})
+                await send({"type": "http.response.body",
+                            "body": self.prepare_chunk(chunk), "more_body": True})
 
         await send({"type": "http.response.body", "body": b""})
 
@@ -190,6 +195,31 @@ class ResponseStream(Response):
             self.stream_response(send),
             strategy=FIRST_COMPLETED,
         )
+
+
+class ResponseSSE(ResponseStream):
+    """A helper to stream SSE (server side events).
+
+    :param content: An async generator to stream the events
+    :type content: AsyncGenerator
+    """
+
+    content_type = 'text/event-stream'
+
+    def msg_start(self) -> Message:
+        """Set cache-control header."""
+        self.headers.setdefault('Cache-Control', 'no-cache')
+        return super(ResponseSSE, self).msg_start()
+
+    def prepare_chunk(self, chunk: t.Any) -> bytes:
+        """Prepare a chunk from stream generator to send."""
+        if isinstance(chunk, dict):
+            chunk = '\n'.join(f"{k}: {v}" for k, v in chunk.items())
+
+        if not isinstance(chunk, bytes):
+            chunk = str(chunk).encode(self.charset)
+
+        return chunk + b'\n\n'
 
 
 class ResponseFile(ResponseStream):

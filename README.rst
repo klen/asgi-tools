@@ -44,7 +44,7 @@ For instance these middlewares were built with the library:
 
 - Supports all most popular async python libraries: `Asyncio`_, `Trio`_ and Curio_
 - `Request`_                 -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
-- `Response`_                -- Send HTTP (text, html, json, stream, file, http errors) responses
+- `Response`_                -- Send HTTP (text, html, json, stream, sse, file, http errors) responses
 - `ResponseWebsocket`_       -- Work with websockets
 - `RequestMiddleware`_       -- Parse a scope and insert the parsed request into the scope
 - `ResponseMiddleware`_      -- Parse responses and convert them into ASGI messages

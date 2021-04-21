@@ -43,8 +43,8 @@ DEFAULT_CHARSET: str = 'utf-8'
 
 from .request import Request  # noqa
 from .response import (  # noqa
-    Response, ResponseHTML, ResponseJSON, ResponseText, ResponseRedirect,
-    ResponseError, ResponseStream, ResponseFile, ResponseWebSocket, parse_response
+    Response, ResponseHTML, ResponseJSON, ResponseText, ResponseRedirect, ResponseError,
+        ResponseStream, ResponseSSE, ResponseFile, ResponseWebSocket, parse_response
 )
 from .middleware import (  # noqa
     RequestMiddleware, ResponseMiddleware, LifespanMiddleware,
