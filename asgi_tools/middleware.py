@@ -332,7 +332,7 @@ class RouterMiddleware(BaseMiddeware):
         """Lookup for a callback."""
         try:
             match = self.router(scope.get("root_path", "") + scope["path"], scope['method'])
-            return match.target, match.path_params
+            return match.target, match.params
 
         except self.router.RouterError:
             return self.app, {}

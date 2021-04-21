@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 async def test_app(Client):
-    from asgi_tools.app import App, ResponseError
+    from asgi_tools.app import App
 
     app = App(static_folders=[Path(__file__).parent])
 
@@ -26,22 +26,6 @@ async def test_app(Client):
     res = await client.post('/test/42')
     assert res.status_code == 405
     assert await res.text() == 'Specified method is invalid for this resource'
-
-    @app.route('/502')
-    async def test_response_error(request):
-        raise ResponseError.BAD_GATEWAY()
-
-    res = await client.get('/502')
-    assert res.status_code == 502
-    assert await res.text() == "Invalid responses from another server/proxy"
-
-    @app.route('/error')
-    async def test_unhandled_exception(request):
-        raise RuntimeError('An exception')
-
-    res = await client.get('/error')
-    assert res.status_code == 500
-    assert await res.text() == "Server got itself in trouble"
 
     @app.route('/data', methods='post')
     async def test_data(request):
@@ -66,6 +50,29 @@ async def test_app(Client):
     res = await client.get('/path_params')
     assert res.status_code == 200
     assert await res.text() == '42'
+
+
+async def test_errors(Client):
+    from asgi_tools.app import App, ResponseError
+
+    app = App()
+    client = Client(app)
+
+    @app.route('/502')
+    async def test_response_error(request):
+        raise ResponseError.BAD_GATEWAY()
+
+    res = await client.get('/502')
+    assert res.status_code == 502
+    assert await res.text() == "Invalid responses from another server/proxy"
+
+    @app.route('/error')
+    async def test_unhandled_exception(request):
+        raise RuntimeError('An exception')
+
+    res = await client.get('/error')
+    assert res.status_code == 500
+    assert await res.text() == "Server got itself in trouble"
 
 
 async def test_trim_last_slach(Client):
@@ -98,11 +105,11 @@ async def test_trim_last_slach(Client):
     client = Client(app)
 
     @app.route('/route1')
-    async def route1(request):
+    async def route1(request):  # noqa
         return 'route1'
 
     @app.route('/route2/')
-    async def route2(request):
+    async def route2(request):  # noqa
         return 'route2'
 
     res = await client.get('/route1')

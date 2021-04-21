@@ -6,7 +6,7 @@ import typing as t
 from functools import partial
 
 from http_router import Router as HTTPRouter
-from http_router._types import TYPE_METHODS
+from http_router.typing import TYPE_METHODS
 
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed, asgi_logger
 from ._types import Scope, Receive, Send, F
@@ -163,7 +163,7 @@ class App:
         try:
             path = f"{ request.get('root_path', '') }{ request['path'] }"
             match = self.router(path, request.get('method', 'GET'))
-            request['path_params'] = {} if match.path_params is None else match.path_params
+            request['path_params'] = {} if match.params is None else match.params
             response = await match.target(request)  # type: ignore
             if response is None and request['type'] == 'websocket':
                 return None
