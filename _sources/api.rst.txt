@@ -34,7 +34,11 @@ Request
 
         # and etc
 
-    .. autoattribute:: method
+        # ASGI Scope keys also are available as Request attrubutes.
+
+        assert request.version == scope['version']
+        assert request.method == scope['method']
+        assert request.scheme == scope['scheme']
 
     .. autoattribute:: url
 
@@ -236,6 +240,34 @@ ResponseStream
             generator = stream_response()
             response = ResponseStream(generator, content_type='plain/text')
             await response(scope, receive, send)
+
+ResponseSSE
+^^^^^^^^^^^
+
+.. autoclass:: ResponseSSE
+
+    .. code-block:: python
+
+        from asgi_tools import ResponseSSE
+        from asgi_tools.utils import aio_sleep  # for compatability with different async libs
+
+        async def stream_response():
+            for number in range(10):
+                await aio_sleep(1)
+                # The response support messages as text
+                yield "data: message text"
+
+                # And as dictionaties as weel
+                yield {
+                    "event": "ping",
+                    "data": time.time(),
+                }
+
+        async def app(scope, receive, send):
+            generator = stream_response()
+            response = ResponseSSE(generator)
+            await response(scope, receive, send)
+
 
 ResponseFile
 ^^^^^^^^^^^^

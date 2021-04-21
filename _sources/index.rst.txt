@@ -12,7 +12,7 @@ The Features:
 * Competitive Performance;
 * HTTP Headers/Cookies/Form data support (:class:`~asgi_tools.Request`);
 * HTTP (:class:`~asgi_tools.Response`), Static files (:class:`~asgi_tools.ResponseFile`), Streaming (:class:`~asgi_tools.ResponseStream`) responses;
-* WebSocket (:class:`~asgi_tools.ResponseWebSocket`) support;
+* WebSockets (:class:`~asgi_tools.ResponseWebSocket`) and SSE (server side events :class:`~asgi_tools.ResponseSSE`) support;
 * ASGI Lifespan support (:class:`~asgi_tools.LifespanMiddleware`) with startup and shutdown events;
 * ASGI Routing support (:class:`~asgi_tools.RouterMiddleware`) to route your handlers by http urls;
 * Auto parsing for app responses (:class:`~asgi_tools.ResponseMiddleware`);

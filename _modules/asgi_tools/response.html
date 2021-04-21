@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.response &#8212; asgi-tools 0.46.4 documentation</title>
+    <title>asgi_tools.response &#8212; asgi-tools 0.47.0 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -128,7 +128,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.46.4
+    Version: 0.47.0
 </div>
 
             </div>
@@ -331,6 +331,12 @@
         <span class="sd">&quot;&quot;&quot;Store self content as is.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__content__</span> <span class="o">=</span> <span class="n">content</span>  <span class="c1"># type: ignore</span>
 
+    <span class="k">def</span> <span class="nf">prepare_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Prepare a chunk from stream generator to send.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">chunk</span>
+
     <span class="k">async</span> <span class="k">def</span> <span class="nf">listen_for_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Listen for the client has been disconnected.&quot;&quot;&quot;</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -343,9 +349,8 @@
         <span class="k">await</span> <span class="n">send</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msg_start</span><span class="p">())</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
             <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-                    <span class="n">chunk</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
-                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">chunk</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+                <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
 
         <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">})</span>
 
@@ -356,6 +361,31 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">stream_response</span><span class="p">(</span><span class="n">send</span><span class="p">),</span>
             <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">,</span>
         <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResponseSSE"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseSSE">[docs]</a><span class="k">class</span> <span class="nc">ResponseSSE</span><span class="p">(</span><span class="n">ResponseStream</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A helper to stream SSE (server side events).</span>
+
+<span class="sd">    :param content: An async generator to stream the events</span>
+<span class="sd">    :type content: AsyncGenerator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">content_type</span> <span class="o">=</span> <span class="s1">&#39;text/event-stream&#39;</span>
+
+    <span class="k">def</span> <span class="nf">msg_start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Message</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Set cache-control header.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;Cache-Control&#39;</span><span class="p">,</span> <span class="s1">&#39;no-cache&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">ResponseSSE</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">msg_start</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">prepare_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Prepare a chunk from stream generator to send.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">chunk</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">chunk</span> <span class="o">+</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span></div>
 
 
 <div class="viewcode-block" id="ResponseFile"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseFile">[docs]</a><span class="k">class</span> <span class="nc">ResponseFile</span><span class="p">(</span><span class="n">ResponseStream</span><span class="p">):</span>
