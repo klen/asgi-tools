@@ -41,17 +41,6 @@ clean:
 	find $(CURDIR) -name "*.orig" -delete
 	find $(CURDIR) -name "__pycache__" | xargs rm -rf
 
-.PHONY: register
-# target: register - Register module on PyPi
-register:
-	@python setup.py register
-
-.PHONY: upload
-# target: upload - Upload module on PyPi
-upload: clean
-	@python setup.py bdist_wheel
-	@$(VIRTUAL_ENV)/bin/twine upload dist/*
-
 .PHONY: docs
 docs: $(VIRTUAL_ENV)
 	rm -rf docs/_build/html
