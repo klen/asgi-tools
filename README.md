@@ -1,3 +1,3 @@
 GitHub Pages of [klen/asgi-tools](https://github.com/klen/asgi-tools.git)
 ===
-Sphinx html documentation of [60be5d84](https://github.com/klen/asgi-tools/tree/60be5d845a3d3edfbc5a215de20e7676c49d0d81)
+Sphinx html documentation of [fecb331d](https://github.com/klen/asgi-tools/tree/fecb331d898ac5fe50857ff4a11bf607336e3dd6)
