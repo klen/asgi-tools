@@ -27,15 +27,10 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Get pip cache dir
-      id: pip-cache
-      run: |
-        echo "::set-output name=dir::$(pip cache dir)"
-
     - name: Cache pip
       uses: actions/cache@v2.1.5
       with:
-        path: ${{ steps.pip-cache.outputs.dir }}
+        path: ~/.cache/pip
         key: ${{ hashFiles('setup.cfg') }}
 
     - name: Install dependencies
