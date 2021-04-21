@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.middleware &#8212; asgi-tools 0.47.8 documentation</title>
+    <title>asgi_tools.middleware &#8212; asgi-tools 0.47.9 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -128,7 +128,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.47.8
+    Version: 0.47.9
 </div>
 
             </div>
@@ -175,9 +175,9 @@
 <span class="kn">from</span> <span class="nn">http_router</span> <span class="kn">import</span> <span class="n">Router</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">ASGIError</span><span class="p">,</span> <span class="n">asgi_logger</span>
-<span class="kn">from</span> <span class="nn">._types</span> <span class="kn">import</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Send</span><span class="p">,</span> <span class="n">ASGIApp</span>
 <span class="kn">from</span> <span class="nn">.request</span> <span class="kn">import</span> <span class="n">Request</span>
 <span class="kn">from</span> <span class="nn">.response</span> <span class="kn">import</span> <span class="n">ResponseHTML</span><span class="p">,</span> <span class="n">parse_response</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">,</span> <span class="n">ResponseFile</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">ResponseRedirect</span>
+<span class="kn">from</span> <span class="nn">.typing</span> <span class="kn">import</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Send</span><span class="p">,</span> <span class="n">ASGIApp</span>
 
 
 <span class="k">class</span> <span class="nc">BaseMiddeware</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.tests &#8212; asgi-tools 0.47.8 documentation</title>
+    <title>asgi_tools.tests &#8212; asgi-tools 0.47.9 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -128,7 +128,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.47.8
+    Version: 0.47.9
 </div>
 
             </div>
@@ -181,9 +181,9 @@
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">ASGIConnectionClosed</span>
 <span class="kn">from</span> <span class="nn">._compat</span> <span class="kn">import</span> <span class="n">aio_sleep</span><span class="p">,</span> <span class="n">aio_spawn</span><span class="p">,</span> <span class="n">aio_wait</span><span class="p">,</span> <span class="n">aio_cancel</span><span class="p">,</span> <span class="n">FIRST_COMPLETED</span>
-<span class="kn">from</span> <span class="nn">._types</span> <span class="kn">import</span> <span class="n">JSONType</span><span class="p">,</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Send</span><span class="p">,</span> <span class="n">Message</span><span class="p">,</span> <span class="n">ASGIApp</span>
 <span class="kn">from</span> <span class="nn">.response</span> <span class="kn">import</span> <span class="n">Response</span><span class="p">,</span> <span class="n">ResponseWebSocket</span><span class="p">,</span> <span class="n">parse_websocket_msg</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">to_awaitable</span><span class="p">,</span> <span class="n">parse_headers</span>
+<span class="kn">from</span> <span class="nn">.typing</span> <span class="kn">import</span> <span class="n">JSONType</span><span class="p">,</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Send</span><span class="p">,</span> <span class="n">Message</span><span class="p">,</span> <span class="n">ASGIApp</span>
 
 
 <span class="k">class</span> <span class="nc">TestResponse</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
