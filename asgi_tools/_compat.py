@@ -34,16 +34,10 @@ except ImportError:
 
 # Python 3.8+
 if sys.version_info >= (3, 8):
-    from functools import cached_property  # noqa
-    from typing import TypedDict  # noqa
-
     create_task = asyncio.create_task
 
 # Python 3.7
 else:
-    from cached_property import cached_property  # noqa
-    from typing_extensions import TypedDict  # noqa
-
     create_task = asyncio.ensure_future
 
 

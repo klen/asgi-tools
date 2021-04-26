@@ -1,8 +1,7 @@
 import pytest
 
 
-@pytest.mark.parametrize('aiolib', ['asyncio'])
-def test_benchmark_req_res(aiolib, benchmark, client):
+def test_benchmark_req_res(benchmark, client):
     from asgi_tools import Request, parse_response
 
     scope = client.build_scope(

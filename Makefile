@@ -36,7 +36,7 @@ major:
 .PHONY: clean
 # target: clean - Display callable targets
 clean:
-	rm -rf build/ dist/ docs/_build *.egg-info $(PACKAGE)/*.c $(PACKAGE)/*.so
+	rm -rf build/ dist/ docs/_build *.egg-info $(PACKAGE)/*.c $(PACKAGE)/*.so $(PACKAGE)/*.html
 	find $(CURDIR) -name "*.py[co]" -delete
 	find $(CURDIR) -name "*.orig" -delete
 	find $(CURDIR) -name "__pycache__" | xargs rm -rf
@@ -60,3 +60,11 @@ EXAMPLE = rates
 
 example: $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.$(EXAMPLE):app
+
+$(PACKAGE)/%.c: $(PACKAGE)/%.pyx
+	$(VIRTUAL_ENV)/bin/cython -a $<
+
+cyt: $(PACKAGE)/request.c $(PACKAGE)/multipart.c $(PACKAGE)/forms.c
+
+compile: cyt
+	$(VIRTUAL_ENV)/bin/python setup.py build_ext --inplace

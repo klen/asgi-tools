@@ -5,7 +5,6 @@ incoming request.
 import typing as t
 from cgi import parse_header
 from http import cookies
-from pathlib import Path
 
 from multidict import MultiDict
 from yarl import URL
@@ -16,7 +15,7 @@ from .typing import Scope, Receive, Send, JSONType
 from .utils import parse_headers, CIMultiDict
 
 
-class Request(dict):
+cdef class Request(dict):
     """Represent a HTTP Request.
 
     :param scope: HTTP ASGI Scope
@@ -25,22 +24,14 @@ class Request(dict):
 
     """
 
-    _is_read: bool = False
-    _url: t.Optional[URL] = None
-    _body: t.Optional[bytes] = None
-    _form: t.Optional[MultiDict] = None
-    _headers: t.Optional[CIMultiDict] = None
-    _media: t.Optional[t.Dict[str, str]] = None
-    _cookies: t.Optional[t.Dict[str, str]] = None
-
     def __init__(self, scope: Scope, receive: Receive = None, send: Send = None) -> None:
         """Create a request based on the given scope."""
         super(Request, self).__init__(scope)
-        self._receive = receive
-        self._send = send
+        self._receive: t.Optional[Receive] = receive
+        self._send: t.Optional[Send] = send
 
     def __getattr__(self, name: str) -> t.Any:
-        """Proxy the request's unknown attributes to scope."""
+        """Proxy the request's unknown attributes to the scope."""
         return self[name]
 
     @property
@@ -88,6 +79,7 @@ class Request(dict):
         """
         if self._headers is None:
             self._headers = parse_headers(self['headers'])
+
         return self._headers
 
     @property
@@ -190,7 +182,7 @@ class Request(dict):
         except (LookupError, ValueError):
             raise ASGIDecodeError('Invalid Encoding')
 
-    async def form(self, max_size: int = 0, upload_to: t.Union[str, Path] = '',
+    async def form(self, max_size: int = 0, upload_to: str = '',
                    file_memory_limit: int = 1024 * 1024) -> MultiDict:
         """Read and return the request's multipart formdata as a multidict.
 

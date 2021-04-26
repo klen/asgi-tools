@@ -1,4 +1,5 @@
 /.benchmarks
+/.vimrc
 /.vscode
 /_
 /asgi_tools/*.c

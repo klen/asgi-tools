@@ -1,7 +1,8 @@
+# cython: language_level=3
+
 """Work with multipart."""
 
 from io import BytesIO
-import typing as t
 from cgi import parse_header
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
@@ -9,15 +10,16 @@ from urllib.parse import unquote_to_bytes
 
 from multidict import MultiDict
 
-from .multipart import QueryStringParser, MultipartParser, BaseParser
-from .request import Request
+from .multipart cimport QueryStringParser, MultipartParser, BaseParser
+from .request cimport Request
 
 
-async def read_formdata(request: Request, max_size: int, upload_to: t.Union[str, Path],
-                        file_memory_limit: int = 1024 * 1024) -> MultiDict:
+async def read_formdata(Request request, int max_size, object upload_to,
+                        int file_memory_limit=1024 * 1024) -> MultiDict:
     """Read formdata from the given request."""
-    if request.content_type == 'multipart/form-data':
-        reader: FormReader = MultipartReader(request.charset, upload_to, file_memory_limit)
+    cdef str content_type = request.content_type
+    if content_type == 'multipart/form-data':
+        reader = MultipartReader(request.charset, upload_to, file_memory_limit)
     else:
         reader = FormReader(request.charset)
 
@@ -29,54 +31,63 @@ async def read_formdata(request: Request, max_size: int, upload_to: t.Union[str,
     return reader.form
 
 
-class FormReader:
-    """Process querystring form data."""
+cdef class FormReader:
+    """Parse querystring form data."""
 
-    __slots__ = 'form', 'curname', 'curvalue', 'charset'
+    cdef str charset
+    cdef bytearray curname
+    cdef bytearray curvalue
+    cdef public object form
 
-    def __init__(self, charset: str):
+    def __init__(self, str charset):
         self.charset = charset
         self.curname = bytearray()
         self.curvalue = bytearray()
         self.form: MultiDict = MultiDict()
 
-    def init_parser(self, request: Request, max_size: int) -> BaseParser:
+    cpdef BaseParser init_parser(self, Request request, int max_size):
         return QueryStringParser({
             'field_name': self.on_field_name,
             'field_data': self.on_field_data,
             'field_end': self.on_field_end
         }, max_size=max_size)
 
-    def on_field_name(self, data: bytes, start: int, end: int):
+    def on_field_name(self, bytes data, int start, int end):
         self.curname += data[start:end]
 
-    def on_field_data(self, data: bytes, start: int, end: int):
+    def on_field_data(self, bytes data, int start, int end):
         self.curvalue += data[start:end]
 
-    def on_field_end(self, data: bytes, start: int, end: int):
+    def on_field_end(self, bytes data, int start, int end):
         self.form.add(
-            unquote_plus(self.curname).decode(self.charset),
-            unquote_plus(self.curvalue).decode(self.charset),
+            unquote_plus(bytes(self.curname)).decode(self.charset),
+            unquote_plus(bytes(self.curvalue)).decode(self.charset),
         )
         self.curname.clear()
         self.curvalue.clear()
 
 
-class MultipartReader(FormReader):
-    """Process multipart formdata."""
+cdef class MultipartReader(FormReader):
+    """Parse multipart formdata."""
 
-    __slots__ = ('form', 'curname', 'curvalue', 'charset', 'name',
-                 'partdata', 'headers', 'upload_to', 'file_memory_limit')
+    cdef str name
+    cdef dict headers
+    cdef object partdata
+    cdef object upload_to
+    cdef int file_memory_limit
 
-    def __init__(self, charset: str, upload_to: t.Union[str, Path], file_memory_limit: int):
-        super(MultipartReader, self).__init__(charset)
+    def __init__(self, str charset, object upload_to, int file_memory_limit):
+        self.curname = bytearray()
+        self.curvalue = bytearray()
+        self.form: MultiDict = MultiDict()
+        self.charset = charset
         self.name = ''
-        self.headers: t.Dict[bytes, bytes] = {}
+        self.headers = {}
         self.partdata = BytesIO()
         self.upload_to = upload_to
         self.file_memory_limit = file_memory_limit
 
-    def init_parser(self, request: Request, max_size: int) -> BaseParser:
+    cpdef BaseParser init_parser(self, Request request, int max_size):
         return MultipartParser(request.media.get('boundary'), {
             'header_end': self.on_header_end,
             'header_field': self.on_header_field,
@@ -100,17 +111,17 @@ class MultipartReader(FormReader):
     def on_headers_finished(self, data: bytes, start: int, end: int):
         _, options = parse_header(self.headers[b'content-disposition'].decode(self.charset))
         self.name = options['name']
+        upload_to = self.upload_to
         if 'filename' in options:
-            upload_to = self.upload_to
             if upload_to:
                 upload_to = Path(upload_to) / options['filename']
-                self.partdata = f = open(upload_to, 'wb+')  # type: ignore
+                self.partdata = open(upload_to, 'wb+')
 
             else:
-                self.partdata = f = SpooledTemporaryFile(self.file_memory_limit)  # type: ignore
+                self.partdata = SpooledTemporaryFile(self.file_memory_limit)
 
-            f.filename = options['filename']  # type: ignore
-            f.content_type = self.headers[b'content-type'].decode(self.charset)  # type: ignore
+            self.partdata.filename = options['filename']
+            self.partdata.content_type = self.headers[b'content-type'].decode(self.charset)
 
     def on_part_data(self, data: bytes, start: int, end: int):
         self.partdata.write(data[start:end])
@@ -128,8 +139,26 @@ class MultipartReader(FormReader):
         self.headers = {}
 
 
-def unquote_plus(value: bytearray) -> bytes:
+cdef dict _hextobyte = {
+    (a + b).encode(): bytes.fromhex(a + b)
+    for a in '0123456789ABCDEFabcdef' for b in '0123456789ABCDEFabcdef'
+}
+
+
+cdef bytes unquote_plus(value: bytes):
     value = value.replace(b'+', b' ')
-    return unquote_to_bytes(bytes(value))
+    bits = value.split(b'%')
+    if len(bits) == 1:
+        return value
+    res = bits[0]
+    for item in bits[1:]:
+        try:
+            res += _hextobyte[item[:2]]
+            res += item[2:]
+        except KeyError:
+            res += b'%'
+            res += item
+
+    return res
 
 # pylama: ignore=D

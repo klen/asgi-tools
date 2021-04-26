@@ -98,7 +98,7 @@ async def test_router_middleware(Client):
     async def page1(scope, receive, send):
         return 'page1'
 
-    @router.route('/page2/{mode}')
+    @router.route('/page2/{mode}', methods=['POST'])
     async def page2(scope, receive, send):
         mode = scope['path_params']['mode']
         return f'page2: {mode}'
@@ -113,6 +113,9 @@ async def test_router_middleware(Client):
     assert await res.text() == 'page1'
 
     res = await client.get('/page2/42')
+    assert res.status_code == 404  # Returns default application
+
+    res = await client.post('/page2/42')
     assert res.status_code == 200
     assert await res.text() == 'page2: 42'
 

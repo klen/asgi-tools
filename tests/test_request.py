@@ -7,7 +7,7 @@ async def test_request():
     from asgi_tools import Request
 
     # Request is lazy
-    request = Request([], None)
+    request = Request({}, None)
     assert request is not None
 
     scope = {
@@ -34,7 +34,7 @@ async def test_request():
     }
 
     async def receive():
-        return {'body': b'name=value'}
+        return {'body': b'name=test%20passed'}
 
     request = Request(scope, receive)
     assert request.url
@@ -50,7 +50,7 @@ async def test_request():
 
     formdata = await request.form()
     assert formdata
-    assert formdata['name'] == 'value'
+    assert formdata['name'] == 'test passed'
 
     with pytest.raises(RuntimeError):
         body = await request.body()
@@ -100,3 +100,27 @@ async def test_data(Client):
     res = await client.post('/', data='test passed')
     assert res.status_code == 200
     assert await res.text() == 'test passed'
+
+
+def test_benchmark_req_res(benchmark, GenRequest):
+    from asgi_tools import Request, parse_response
+
+    scope = dict(GenRequest(
+        '/test', query={'param': 'value'}, headers={'header': 'value'}, cookies={'cookie': 'value'}
+    ))
+
+    def run_benchmark():
+        request = Request(scope)
+        assert request.method
+        assert request.url.query['param']
+        assert request.headers['header']
+        assert request.cookies['cookie']
+
+        response = parse_response('body')
+        return response.msg_start()
+
+    msg = benchmark(run_benchmark)
+    assert msg == {
+        'type': 'http.response.start', 'status': 200,
+        'headers': [(b'content-type', b'text/html; charset=utf-8')]
+    }

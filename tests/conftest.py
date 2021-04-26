@@ -19,7 +19,6 @@ def Client():
 
 @pytest.fixture
 def app():
-
     from asgi_tools import App
 
     app = App(debug=True)
@@ -34,3 +33,25 @@ def app():
 @pytest.fixture
 def client(app, Client):
     return Client(app)
+
+
+@pytest.fixture
+def GenRequest(client):
+    from asgi_tools import Request
+
+    def gen_request(path='/', body=None, type='http', method='GET', **opts):
+        scope = client.build_scope(path, type=type, method=method, **opts)
+        request = Request(scope)
+        if not body:
+            return request
+
+        body = list(body)
+
+        async def receive():
+            chunk = body.pop(0)
+            return {'body': chunk, 'more_body': bool(len(body))}
+
+        request._receive = receive
+        return request
+
+    return gen_request
