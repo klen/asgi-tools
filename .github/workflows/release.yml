@@ -18,6 +18,10 @@ jobs:
       with:
         fetch-depth: 5
 
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
     - uses: actions/cache@v2.1.5
       id: cache-c
       with:
