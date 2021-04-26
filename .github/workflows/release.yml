@@ -8,12 +8,52 @@ on:
 
 jobs:
 
-  build:
+  # We have to repeat https://github.com/actions/toolkit/issues/501
+  cythonize:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
 
     steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 5
 
+    - uses: actions/cache@v2.1.5
+      id: cache-c
+      with:
+        path: asgi_tools/*.c
+        key: ${{ hashFiles('asgi_tools/forms.pyx', 'asgi_tools/multipart.pxd', 'asgi_tools/multipart.pyx', 'asgi_tools/request.pxd', 'asgi_tools/request.pyx') }}
+
+    - name: Cythonize the package
+      run: |
+        pip install cython --install-option="--no-cython-compile"
+        cython asgi_tools/forms.pyx
+        cython asgi_tools/multipart.pyx
+        cython asgi_tools/request.pyx
+      if: steps.cache-c.outputs.cache-hit != 'true'
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: asgi_tools
+        path: asgi_tools/*.c
+
+    - name: Build sdist
+      run: python3 setup.py sdist
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dist
+        path: dist
+
+  build:
+    runs-on: ${{ matrix.os }}
+    needs: cythonize
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+        os: [macos-latest, windows-latest, ubuntu-latest]
+
+    steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 5
@@ -22,11 +62,32 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Build package
-      run: |
-        pip install wheel
-        python setup.py bdist_wheel
-        python setup.py sdist
+    - name: Use Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: asgi_tools
+        path: asgi_tools
+
+    - name: Build wheels (macos, windows)
+      run: python3 setup.py bdist_wheel
+      if: matrix.os != 'ubuntu-latest'
+
+    - name: Build wheels (linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: docker://quay.io/pypa/manylinux1_x86_64
+      env:
+        PYTHON_VERSION: ${{ matrix.python-version }}
+      with:
+        entrypoint: /github/workspace/.github/workflows/build-manylinux.sh
+
+    - name: Test wheels
+      if: |
+        !startsWith(matrix.os, 'windows')
+      run: pip3 install --pre asgi_tools -f "file:///${GITHUB_WORKSPACE}/dist"
 
     - uses: actions/upload-artifact@v2
       with:
@@ -37,15 +98,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     steps:
-
-    - name: Download a distribution artifact
-      uses: actions/download-artifact@v2
-      with:
-        name: dist
-        path: dist
-
-    - name: Publish distribution 📦 to PyPI
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        user: __token__
-        password: ${{ secrets.pypy }}
+      - name: Download a distribution artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.pypy }}
