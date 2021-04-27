@@ -3,7 +3,6 @@
 from io import BytesIO
 import typing as t
 from cgi import parse_header
-from pathlib import Path
 from tempfile import SpooledTemporaryFile
 from urllib.parse import unquote_to_bytes
 
@@ -13,7 +12,7 @@ from .multipart import QueryStringParser, MultipartParser, BaseParser
 from .request import Request
 
 
-async def read_formdata(request: Request, max_size: int, upload_to: t.Union[str, Path],
+async def read_formdata(request: Request, max_size: int, upload_to: t.Callable,
                         file_memory_limit: int = 1024 * 1024) -> MultiDict:
     """Read formdata from the given request."""
     if request.content_type == 'multipart/form-data':
@@ -68,7 +67,7 @@ class MultipartReader(FormReader):
     __slots__ = ('form', 'curname', 'curvalue', 'charset', 'name',
                  'partdata', 'headers', 'upload_to', 'file_memory_limit')
 
-    def __init__(self, charset: str, upload_to: t.Union[str, Path], file_memory_limit: int):
+    def __init__(self, charset: str, upload_to: t.Callable, file_memory_limit: int):
         super(MultipartReader, self).__init__(charset)
         self.name = ''
         self.headers: t.Dict[bytes, bytes] = {}
@@ -106,9 +105,8 @@ class MultipartReader(FormReader):
         self.name = options['name']
         if 'filename' in options:
             upload_to = self.upload_to
-            if upload_to:
-                upload_to = Path(upload_to) / options['filename']
-                self.partdata = f = open(upload_to, 'wb+')  # type: ignore
+            if upload_to is not None:
+                self.partdata = f = open(upload_to(options['filename']), 'wb+')  # type: ignore
 
             else:
                 self.partdata = f = SpooledTemporaryFile(self.file_memory_limit)  # type: ignore

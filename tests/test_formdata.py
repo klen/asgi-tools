@@ -29,7 +29,8 @@ async def test_formdata(GenRequest, tmp_path):
     assert b'test_multipart_parser' in formdata['file2'].read()
 
     request = GenRequest(body=body, headers={'content-type': content_type})
-    formdata = await read_formdata(request, 0, tmp_path, 0)
+    upload_to = lambda f: f"{tmp_path}/{f}"
+    formdata = await read_formdata(request, 0, upload_to, 0)
     assert formdata['file1']
     assert formdata['file1'].filename == Path(__file__).name
     assert formdata['file1'].content_type == 'text/x-python'

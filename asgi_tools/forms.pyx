@@ -117,9 +117,8 @@ cdef class MultipartReader(FormReader):
         self.name = options['name']
         upload_to = self.upload_to
         if 'filename' in options:
-            if upload_to:
-                upload_to = Path(upload_to) / options['filename']
-                self.partdata = open(upload_to, 'wb+')
+            if upload_to is not None:
+                self.partdata = open(upload_to(options['filename']), 'wb+')
 
             else:
                 self.partdata = SpooledTemporaryFile(self.file_memory_limit)

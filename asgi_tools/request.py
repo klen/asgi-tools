@@ -5,7 +5,6 @@ incoming request.
 import typing as t
 from cgi import parse_header
 from http import cookies
-from pathlib import Path
 
 from multidict import MultiDict
 from yarl import URL
@@ -190,7 +189,7 @@ class Request(dict):
         except (LookupError, ValueError):
             raise ASGIDecodeError('Invalid Encoding')
 
-    async def form(self, max_size: int = 0, upload_to: t.Union[str, Path] = '',
+    async def form(self, max_size: int = 0, upload_to: t.Callable = None,
                    file_memory_limit: int = 1024 * 1024) -> MultiDict:
         """Read and return the request's multipart formdata as a multidict.
 

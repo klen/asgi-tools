@@ -182,7 +182,7 @@ cdef class Request(dict):
         except (LookupError, ValueError):
             raise ASGIDecodeError('Invalid Encoding')
 
-    async def form(self, max_size: int = 0, upload_to: str = '',
+    async def form(self, max_size: int = 0, upload_to: t.Callable = None,
                    file_memory_limit: int = 1024 * 1024) -> MultiDict:
         """Read and return the request's multipart formdata as a multidict.
 
