@@ -235,16 +235,15 @@ class ASGITestClient:
             headers.setdefault('Cookie', self.cookies.output(header='', sep=';'))
 
         url = URL(path)
-        query = query or url.query_string
-
-        if isinstance(query, dict):
-            query = urlencode(query, doseq=True)
+        if query:
+            url = url.with_query(query)
 
         return dict({
             'asgi': {'version': '3.0'},
             'http_version': '1.1',
             'path': url.path,
-            'query_string': query.encode(),
+            'query_string': url.query_string.encode('latin-1'),
+            'raw_path': url.raw_path_qs.encode('latin-1'),
             'root_path': '',
             'scheme': scope.get('type') == 'http' and self.base_url.scheme or 'ws',
             'headers': [

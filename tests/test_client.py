@@ -4,6 +4,22 @@ import io
 import pytest
 
 
+def test_build_scope(client):
+    scope = client.build_scope('/test', query={'value': 42})
+    assert scope == {
+        'asgi': {'version': '3.0'},
+        'headers': [(b'remote-addr', b'127.0.0.1'),
+                    (b'user-agent', b'ASGI-Tools-Test-Client'),
+                    (b'host', b'localhost')],
+        'http_version': '1.1',
+        'path': '/test',
+        'query_string': b'value=42',
+        'raw_path': b'/test?value=42',
+        'root_path': '',
+        'scheme': 'ws',
+        'server': ('127.0.0.1', 80)}
+
+
 async def test_client(app, client):
     res = await client.get('/')
     assert res
