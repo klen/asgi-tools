@@ -14,7 +14,7 @@ def test_build_scope(client):
         'http_version': '1.1',
         'path': '/test',
         'query_string': b'value=42',
-        'raw_path': b'/test?value=42',
+        'raw_path': b'/test',
         'root_path': '',
         'scheme': 'ws',
         'server': ('127.0.0.1', 80)}

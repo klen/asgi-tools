@@ -243,7 +243,7 @@ class ASGITestClient:
             'http_version': '1.1',
             'path': url.path,
             'query_string': url.query_string.encode('latin-1'),
-            'raw_path': url.raw_path_qs.encode('latin-1'),
+            'raw_path': url.raw_path.encode('latin-1'),
             'root_path': '',
             'scheme': scope.get('type') == 'http' and self.base_url.scheme or 'ws',
             'headers': [
