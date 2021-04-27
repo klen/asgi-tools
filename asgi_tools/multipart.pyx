@@ -44,7 +44,7 @@ cdef class BaseParser:
     def __init__(self, dict callbacks):
         self.callbacks = callbacks
 
-    cdef void callback(self, str name, bytes data, int start, int end):
+    cdef void callback(self, str name, bytes data, int start, int end) except *:
         if data is not None and start == end:
             return
 

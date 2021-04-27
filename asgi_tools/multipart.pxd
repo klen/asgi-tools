@@ -5,7 +5,7 @@ cdef class BaseParser:
 
     cdef dict callbacks
 
-    cdef void callback(self, str name, bytes data, int start, int end)
+    cdef void callback(self, str name, bytes data, int start, int end) except *
 
     cpdef void write(self, bytes data) except *
 
