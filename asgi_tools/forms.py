@@ -77,6 +77,10 @@ class MultipartReader(FormReader):
         self.file_memory_limit = file_memory_limit
 
     def init_parser(self, request: Request, max_size: int) -> BaseParser:
+        boundary = request.media.get('boundary', '')
+        if not len(boundary):
+            raise ValueError('Invalid content type boundary')
+
         return MultipartParser(request.media.get('boundary'), {
             'header_end': self.on_header_end,
             'header_field': self.on_header_field,

@@ -88,6 +88,10 @@ cdef class MultipartReader(FormReader):
         self.file_memory_limit = file_memory_limit
 
     cpdef BaseParser init_parser(self, Request request, int max_size):
+        cdef str boundary = request.media.get('boundary', '')
+        if not len(boundary):
+            raise ValueError('Invalid content type boundary')
+
         return MultipartParser(request.media.get('boundary'), {
             'header_end': self.on_header_end,
             'header_field': self.on_header_field,
