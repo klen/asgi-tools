@@ -106,12 +106,13 @@ class MultipartReader(FormReader):
         if 'filename' in options:
             upload_to = self.upload_to
             if upload_to is not None:
-                self.partdata = f = open(upload_to(options['filename']), 'wb+')  # type: ignore
+                filename = upload_to(options['filename'])
+                self.partdata = f = open(filename, 'wb+')  # type: ignore
 
             else:
                 self.partdata = f = SpooledTemporaryFile(self.file_memory_limit)  # type: ignore
+                f._file.name = options['filename']
 
-            f.filename = options['filename']  # type: ignore
             f.content_type = self.headers[b'content-type'].decode(self.charset)  # type: ignore
 
     def on_part_data(self, data: bytes, start: int, end: int):

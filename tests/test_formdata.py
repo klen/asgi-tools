@@ -23,16 +23,16 @@ async def test_formdata(GenRequest, tmp_path):
     request = GenRequest(body=body, headers={'content-type': content_type})
     formdata = await read_formdata(request, 0, None, 0)
     assert formdata['file1']
-    assert formdata['file1'].filename == Path(__file__).name
+    assert formdata['file1'].name == Path(__file__).name
     assert formdata['file1'].content_type == 'text/x-python'
     assert formdata['file2']
     assert b'test_multipart_parser' in formdata['file2'].read()
 
     request = GenRequest(body=body, headers={'content-type': content_type})
-    upload_to = lambda f: f"{tmp_path}/{f}"
+    upload_to = lambda f: f"{tmp_path}/{f}"  # noqa
     formdata = await read_formdata(request, 0, upload_to, 0)
     assert formdata['file1']
-    assert formdata['file1'].filename == Path(__file__).name
+    assert formdata['file1'].name == str(tmp_path / Path(__file__).name)
     assert formdata['file1'].content_type == 'text/x-python'
     assert formdata['file2']
     assert formdata['file2'].name.startswith(str(tmp_path))
@@ -112,7 +112,7 @@ def test_multipart(basename, GenRequest):
 
         else:
             assert isinstance(data, tempfile.SpooledTemporaryFile)
-            assert data.filename == expected['file_name']
+            assert data.name == expected['file_name']
             data = data.read()
             assert data == expected['data']
 
