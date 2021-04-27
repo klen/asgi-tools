@@ -7,6 +7,7 @@ import pytest
 async def test_client(app, client):
     res = await client.get('/')
     assert res
+    assert res.content_type == 'text/html; charset=utf-8'
     assert res.status_code == 200
     assert res.headers
     assert res.headers['content-type']
