@@ -120,11 +120,10 @@ cdef class MultipartReader(FormReader):
             if upload_to is not None:
                 filename = upload_to(options['filename'])
                 self.partdata = f = open(filename, 'wb+')
-                f.filename = filename
 
             else:
                 self.partdata = f = SpooledTemporaryFile(self.file_memory_limit)
-                f.filename = options['filename']
+                f._file.name = options['filename']
 
             f.content_type = self.headers[b'content-type'].decode(self.charset)
 
