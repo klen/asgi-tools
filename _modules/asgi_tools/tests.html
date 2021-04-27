@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.tests &#8212; asgi-tools 0.49.4 documentation</title>
+    <title>asgi_tools.tests &#8212; asgi-tools 0.49.5 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -128,7 +128,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.49.4
+    Version: 0.49.5
 </div>
 
             </div>
@@ -387,16 +387,15 @@
             <span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;Cookie&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="n">header</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">))</span>
 
         <span class="n">url</span> <span class="o">=</span> <span class="n">URL</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="n">query</span> <span class="ow">or</span> <span class="n">url</span><span class="o">.</span><span class="n">query_string</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="n">query</span> <span class="o">=</span> <span class="n">urlencode</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">doseq</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">query</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">with_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="nb">dict</span><span class="p">({</span>
             <span class="s1">&#39;asgi&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;3.0&#39;</span><span class="p">},</span>
             <span class="s1">&#39;http_version&#39;</span><span class="p">:</span> <span class="s1">&#39;1.1&#39;</span><span class="p">,</span>
             <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="n">url</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-            <span class="s1">&#39;query_string&#39;</span><span class="p">:</span> <span class="n">query</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span>
+            <span class="s1">&#39;query_string&#39;</span><span class="p">:</span> <span class="n">url</span><span class="o">.</span><span class="n">query_string</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;latin-1&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;raw_path&#39;</span><span class="p">:</span> <span class="n">url</span><span class="o">.</span><span class="n">raw_path_qs</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;latin-1&#39;</span><span class="p">),</span>
             <span class="s1">&#39;root_path&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
             <span class="s1">&#39;scheme&#39;</span><span class="p">:</span> <span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;http&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="o">.</span><span class="n">scheme</span> <span class="ow">or</span> <span class="s1">&#39;ws&#39;</span><span class="p">,</span>
             <span class="s1">&#39;headers&#39;</span><span class="p">:</span> <span class="p">[</span>
