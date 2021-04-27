@@ -12,7 +12,7 @@ from .multipart import QueryStringParser, MultipartParser, BaseParser
 from .request import Request
 
 
-async def read_formdata(request: Request, max_size: int, upload_to: t.Callable,
+async def read_formdata(request: Request, max_size: int, upload_to: t.Optional[t.Callable],
                         file_memory_limit: int = 1024 * 1024) -> MultiDict:
     """Read formdata from the given request."""
     if request.content_type == 'multipart/form-data':
@@ -67,7 +67,7 @@ class MultipartReader(FormReader):
     __slots__ = ('form', 'curname', 'curvalue', 'charset', 'name',
                  'partdata', 'headers', 'upload_to', 'file_memory_limit')
 
-    def __init__(self, charset: str, upload_to: t.Callable, file_memory_limit: int):
+    def __init__(self, charset: str, upload_to: t.Optional[t.Callable], file_memory_limit: int):
         super(MultipartReader, self).__init__(charset)
         self.name = ''
         self.headers: t.Dict[bytes, bytes] = {}
