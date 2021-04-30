@@ -48,7 +48,7 @@ docs: $(VIRTUAL_ENV)
 
 
 LATEST_BENCHMARK = $(shell ls -t .benchmarks/* | head -1 | head -c4)
-test t: $(VIRTUAL_ENV)
+test t: cyt $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/pytest tests --benchmark-autosave --benchmark-compare=$(LATEST_BENCHMARK)
 
 
