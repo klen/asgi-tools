@@ -374,10 +374,11 @@ class StaticFilesMiddleware(BaseMiddeware):
     async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Serve static files for self url prefix."""
         path = scope['path']
-        if not path.startswith(self.url_prefix):
+        url_prefix = self.url_prefix
+        if not path.startswith(url_prefix):
             return await self.app(scope, receive, send)
 
-        filename = path[len(self.url_prefix):].strip('/')
+        filename = path[len(url_prefix):].strip('/')
         for folder in self.folders:
             filepath = folder.joinpath(filename).resolve()
             try:

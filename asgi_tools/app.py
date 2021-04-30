@@ -144,8 +144,8 @@ class App:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Convert the given scope into a request and process."""
+        scope['app'] = self
         request = Request(scope, receive, send)
-        request['app'] = self
         try:
             await self.lifespan(request, receive, send)
 
@@ -161,9 +161,10 @@ class App:
             self, request: Request, receive: Receive, send: Send) -> t.Optional[Response]:
         """Find and call a callback, parse a response, handle exceptions."""
         try:
-            path = f"{ request.get('root_path', '') }{ request['path'] }"
-            match = self.router(path, request.get('method', 'GET'))
-            request['path_params'] = {} if match.params is None else match.params
+            scope = request.scope
+            path = f"{ scope.get('root_path', '') }{ scope['path'] }"
+            match = self.router(path, scope.get('method', 'GET'))
+            scope['path_params'] = {} if match.params is None else match.params
             response = await match.target(request)  # type: ignore
             if response is None and request['type'] == 'websocket':
                 return None

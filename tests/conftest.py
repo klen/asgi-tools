@@ -51,7 +51,7 @@ def GenRequest(client):
             chunk = body.pop(0)
             return {'body': chunk, 'more_body': bool(len(body))}
 
-        request._receive = receive
+        request.receive = receive
         return request
 
     return gen_request

@@ -11,10 +11,9 @@ from urllib.parse import unquote_to_bytes
 from multidict import MultiDict
 
 from .multipart cimport QueryStringParser, MultipartParser, BaseParser
-from .request cimport Request
 
 
-async def read_formdata(Request request, int max_size, object upload_to,
+async def read_formdata(object request, int max_size, object upload_to,
                         int file_memory_limit=1024 * 1024) -> MultiDict:
     """Read formdata from the given request."""
     cdef str content_type = request.content_type
@@ -45,7 +44,7 @@ cdef class FormReader:
         self.curvalue = bytearray()
         self.form: MultiDict = MultiDict()
 
-    cpdef BaseParser init_parser(self, Request request, int max_size):
+    cpdef BaseParser init_parser(self, object request, int max_size):
         return QueryStringParser({
             'field_name': self.on_field_name,
             'field_data': self.on_field_data,
@@ -87,7 +86,7 @@ cdef class MultipartReader(FormReader):
         self.upload_to = upload_to
         self.file_memory_limit = file_memory_limit
 
-    cpdef BaseParser init_parser(self, Request request, int max_size):
+    cpdef BaseParser init_parser(self, object request, int max_size):
         cdef str boundary = request.media.get('boundary', '')
         if not len(boundary):
             raise ValueError('Invalid content type boundary')

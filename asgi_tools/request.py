@@ -15,7 +15,7 @@ from .typing import Scope, Receive, Send, JSONType
 from .utils import parse_headers, CIMultiDict
 
 
-class Request(dict):
+class Request(t.MutableMapping):
     """Represent a HTTP Request.
 
     :param scope: HTTP ASGI Scope
@@ -34,13 +34,33 @@ class Request(dict):
 
     def __init__(self, scope: Scope, receive: Receive = None, send: Send = None) -> None:
         """Create a request based on the given scope."""
-        super(Request, self).__init__(scope)
-        self._receive = receive
-        self._send = send
+        self.scope = scope
+        self.receive = receive
+        self.send = send
+
+    def __getitem__(self, key: str) -> t.Any:
+        """Proxy the method to the scope."""
+        return self.scope[key]
+
+    def __setitem__(self, key: str, value: t.Any) -> None:
+        """Proxy the method to the scope."""
+        self.scope[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        """Proxy the method to the scope."""
+        del self.scope[key]
+
+    def __iter__(self) -> t.Iterator[str]:
+        """Proxy the method to the scope."""
+        return iter(self.scope)
+
+    def __len__(self) -> int:
+        """Proxy the method to the scope."""
+        return len(self.scope)
 
     def __getattr__(self, name: str) -> t.Any:
         """Proxy the request's unknown attributes to scope."""
-        return self[name]
+        return self.scope[name]
 
     @property
     def url(self) -> URL:
@@ -59,13 +79,18 @@ class Request(dict):
 
         """
         if self._url is None:
-            host, port = self.get('server') or (None, None)
-            host = self.headers.get('host') or host or ''
-            host, _, _ = host.partition(':')
+            scope = self.scope
+            host = self.headers.get('host')
+            if host is None and ('server' in scope):
+                host, port = scope['server']
+                if port:
+                    host = f"{host}:{port}"
+
             self._url = URL.build(
-                scheme=self.get('scheme', 'http'), host=host, port=port, encoded=True,
-                path=f"{ self.get('root_path', '') }{ self['path'] }",
-                query_string=self.get("query_string", b"").decode("latin-1"),
+                host=host,  # type: ignore
+                scheme=scope.get('scheme', 'http'),
+                encoded=True, path=f"{ scope.get('root_path', '') }{ scope['path'] }",
+                query_string=scope['query_string'].decode("latin-1"),
             )
 
         return self._url
@@ -86,7 +111,7 @@ class Request(dict):
 
         """
         if self._headers is None:
-            self._headers = parse_headers(self['headers'])
+            self._headers = parse_headers(self.scope['headers'])
         return self._headers
 
     @property
@@ -140,17 +165,17 @@ class Request(dict):
             variable if you need.
 
         """
-        if not self._receive:
+        if not self.receive:
             raise RuntimeError('Request doesnt have a receive coroutine')
 
         if self._is_read:
             raise RuntimeError('Stream has been read')
 
         self._is_read = True
-        message = await self._receive()
+        message = await self.receive()
         yield message.get('body', b'')
         while message.get('more_body'):
-            message = await self._receive()
+            message = await self.receive()
             yield message.get('body', b'')
 
     async def body(self) -> bytes:

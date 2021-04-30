@@ -44,7 +44,7 @@ async def test_readme_request_response(Client):
     res = await client.get('/test?var=42')
     assert res.status_code == 200
     data = await res.json()
-    assert data['url'] == 'http://localhost:80/test?var=42'
+    assert data['url'] == 'http://localhost/test?var=42'
     assert data['query'] == {'var': '42'}
 
 

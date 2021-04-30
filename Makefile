@@ -64,7 +64,7 @@ example: $(VIRTUAL_ENV)
 $(PACKAGE)/%.c: $(PACKAGE)/%.pyx
 	$(VIRTUAL_ENV)/bin/cython -a $<
 
-cyt: $(PACKAGE)/request.c $(PACKAGE)/multipart.c $(PACKAGE)/forms.c
+cyt: $(PACKAGE)/multipart.c $(PACKAGE)/forms.c
 
 compile: cyt
 	$(VIRTUAL_ENV)/bin/python setup.py build_ext --inplace

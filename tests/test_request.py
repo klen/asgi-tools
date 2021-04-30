@@ -37,14 +37,15 @@ async def test_request():
         return {'body': b'name=test%20passed'}
 
     request = Request(scope, receive)
+    assert request.method == 'GET'
+    assert request.headers
+    assert request.headers['User-Agent'] == 'python-httpx/0.16.1'
     assert request.url
     assert str(request.url) == 'http://testserver:8000/testurl?a=1%202'
     assert request.client == ('127.0.0.1', 123)
     assert request.cookies
     assert request.cookies['session'] == 'test-session'
-    assert request.headers['User-Agent'] == 'python-httpx/0.16.1'
     assert request.http_version == '1.1'
-    assert request.method == 'GET'
     assert request.type == 'http'
     assert request['type'] == 'http'
 

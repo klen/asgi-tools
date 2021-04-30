@@ -26,14 +26,13 @@ jobs:
       id: cache-c
       with:
         path: asgi_tools/*.c
-        key: ${{ hashFiles('asgi_tools/forms.pyx', 'asgi_tools/multipart.pxd', 'asgi_tools/multipart.pyx', 'asgi_tools/request.pxd', 'asgi_tools/request.pyx') }}
+        key: ${{ hashFiles('asgi_tools/forms.pyx', 'asgi_tools/multipart.pxd', 'asgi_tools/multipart.pyx') }}
 
     - name: Cythonize the package
       run: |
         pip install cython --install-option="--no-cython-compile"
         cython asgi_tools/forms.pyx
         cython asgi_tools/multipart.pyx
-        cython asgi_tools/request.pyx
       if: steps.cache-c.outputs.cache-hit != 'true'
 
     - uses: actions/upload-artifact@v2

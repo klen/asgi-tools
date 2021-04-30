@@ -259,7 +259,7 @@ class ResponseWebSocket(Response):
     def __init__(self, scope: Scope, receive: Receive = None, send: Send = None) -> None:
         """Initialize the websocket response."""
         if isinstance(scope, Request):
-            receive, send = scope._receive, scope._send
+            receive, send = scope.receive, scope.send
 
         super(ResponseWebSocket, self).__init__()
         assert receive and send, 'Invalid initialization'

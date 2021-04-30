@@ -5,9 +5,12 @@ import pytest
 def test_benchmark_req_res(benchmark, GenRequest):
     from asgi_tools import Request, parse_response
 
-    scope = dict(GenRequest(
+    scope = GenRequest(
         '/test', query={'param': 'value'}, headers={'header': 'value'}, cookies={'cookie': 'value'}
-    ))
+    ).scope
+
+    async def send(msg):
+        pass
 
     def run_benchmark():
         request = Request(scope)
@@ -17,13 +20,13 @@ def test_benchmark_req_res(benchmark, GenRequest):
         assert request.cookies['cookie']
 
         response = parse_response('body')
-        return response.msg_start()
+        coro = response(None, None, send)
+        try:
+            coro.send(None)
+        except StopIteration:
+            pass
 
-    msg = benchmark(run_benchmark)
-    assert msg == {
-        'type': 'http.response.start', 'status': 200,
-        'headers': [(b'content-type', b'text/html; charset=utf-8')]
-    }
+    benchmark(run_benchmark)
 
 
 @pytest.mark.benchmark(group="formdata", disable_gc=True)
