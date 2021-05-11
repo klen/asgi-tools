@@ -27,9 +27,11 @@ except ImportError:
             """Emulate orjson."""
             return dumps(content, ensure_ascii=False, separators=(',', ':')).encode('utf-8')  # type: ignore # noqa
 
-    def json_loads(bytes_) -> t.Any:  # type: ignore
+    def json_loads(obj: t.Union[bytes, str]) -> t.Any:  # type: ignore
         """Emulate orjson."""
-        return loads(bytes_.decode('utf-8'))
+        if isinstance(obj, bytes):
+            obj = obj.decode('utf-8')
+        return loads(obj)
 
 
 # Python 3.8+
