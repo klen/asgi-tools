@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.request &#8212; asgi-tools 0.50.2 documentation</title>
+    <title>asgi_tools.request &#8212; asgi-tools 0.51.0 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -128,7 +128,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.50.2
+    Version: 0.51.0
 </div>
 
             </div>
@@ -150,7 +150,7 @@
               <div>
                 
   <h1>Source code for asgi_tools.request</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot; ASGI-Tools includes a `asgi_tools.Request` class that gives you a nicer interface onto the</span>
+<span></span><span class="sd">&quot;&quot;&quot;ASGI-Tools includes a `asgi_tools.Request` class that gives you a nicer interface onto the</span>
 <span class="sd">incoming request.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
@@ -299,6 +299,14 @@
     <span class="k">def</span> <span class="nf">charset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Get an encoding charset for the current scope.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">media</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;charset&#39;</span><span class="p">,</span> <span class="n">DEFAULT_CHARSET</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MultiDict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;A lazy property that parse the current query string and returns it as a</span>
+<span class="sd">        :py:class:`multidict.MultiDict`.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">query</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">content_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
