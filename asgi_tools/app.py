@@ -34,7 +34,31 @@ class Router(HTTPRouter):
 
 
 class HTTPView:
-    """Class Based Views."""
+    """Class-based view pattern for handling HTTP method dispatching.
+
+    .. code-block:: python
+
+        @app.route('/custom')
+        class CustomEndpoint(HTTPView):
+
+            async def get(self, request):
+                return 'Hello from GET'
+
+            async def post(self, request):
+                return 'Hello from POST'
+
+        # ...
+        async def test_my_endpoint(client):
+            response = await client.get('/custom')
+            assert await response.text() == 'Hello from GET'
+
+            response = await client.post('/custom')
+            assert await response.text() == 'Hello from POST'
+
+            response = await client.put('/custom')
+            assert response.status_code == 405
+
+    """
 
     def __new__(cls, request: Request, *args, **opts):
         """Init the class and call it."""

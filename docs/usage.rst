@@ -126,6 +126,8 @@ Use the :meth:`~asgi_tools.App.route` decorator to bind a function to a URL.
 You can do more! You can make parts of the URL dynamic.
 The everh routed callback should be awaitable and accept a :class:`~asgi_tools.Request`.
 
+See also: :py:class:`~asgi_tools.HTTPView`.
+
 Dynamic URLs
 ------------
 
