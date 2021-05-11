@@ -390,6 +390,12 @@ Application
 
             Any exception raised from an middleware wouldn't be catched by the app
 
+Class Based Views
+-----------------
+
+.. autoclass:: HTTPView
+
+
 TestClient
 -----------
 

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API &#8212; asgi-tools 0.50.0 documentation</title>
+    <title>API &#8212; asgi-tools 0.50.1 documentation</title>
     
   <link href="_static/css/theme.css" rel="stylesheet" />
   <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -22,12 +22,12 @@
       
 
     
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css" />
     
   <link rel="preload" as="script" href="_static/js/index.1c5a1a01449ed65a7b51.js">
 
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -129,7 +129,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.50.0
+    Version: 0.50.1
 </div>
 
             </div>
@@ -243,6 +243,11 @@
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#class-based-views">
+   Class Based Views
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#testclient">
    TestClient
   </a>
@@ -281,16 +286,20 @@
 <div class="section" id="request">
 <h2>Request<a class="headerlink" href="#request" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="asgi_tools.Request">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">Request</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Request">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">Request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Represent a HTTP Request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>scope</strong> – HTTP ASGI Scope</p></li>
-<li><p><strong>receive</strong> – an asynchronous callable which lets the application
+<li><p><strong>scope</strong> (<em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em>) – HTTP ASGI Scope</p></li>
+<li><p><strong>receive</strong> (<em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em>) – an asynchronous callable which lets the application
 receive event messages from the client</p></li>
+<li><p><strong>send</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em>) – </p></li>
 </ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
 </dd>
 </dl>
 <p>The class gives you an nicer interface to incoming HTTP request.</p>
@@ -320,8 +329,8 @@ receive event messages from the client</p></li>
 </pre></div>
 </div>
 <dl class="py attribute">
-<dt id="asgi_tools.Request.url">
-<code class="sig-name descname"><span class="pre">url</span></code><a class="headerlink" href="#asgi_tools.Request.url" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Request.url">
+<span class="sig-name descname"><span class="pre">url</span></span><a class="headerlink" href="#asgi_tools.Request.url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A lazy property that parses the current URL and returns <a class="reference external" href="https://yarl.readthedocs.io/en/stable/api.html#yarl.URL" title="(in yarl v1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">yarl.URL</span></code></a> object.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
 <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;... the full http URL ..&#39;</span>
@@ -335,8 +344,8 @@ receive event messages from the client</p></li>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="asgi_tools.Request.headers">
-<code class="sig-name descname"><span class="pre">headers</span></code><a class="headerlink" href="#asgi_tools.Request.headers" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Request.headers">
+<span class="sig-name descname"><span class="pre">headers</span></span><a class="headerlink" href="#asgi_tools.Request.headers" title="Permalink to this definition">¶</a></dt>
 <dd><p>A lazy property that parses the current scope’s headers, decodes them as strings and
 returns case-insensitive multi-dict <a class="reference external" href="https://multidict.readthedocs.io/en/stable/multidict.html#multidict.CIMultiDict" title="(in multidict v5.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">multidict.CIMultiDict</span></code></a>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
@@ -349,8 +358,8 @@ returns case-insensitive multi-dict <a class="reference external" href="https://
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="asgi_tools.Request.cookies">
-<code class="sig-name descname"><span class="pre">cookies</span></code><a class="headerlink" href="#asgi_tools.Request.cookies" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Request.cookies">
+<span class="sig-name descname"><span class="pre">cookies</span></span><a class="headerlink" href="#asgi_tools.Request.cookies" title="Permalink to this definition">¶</a></dt>
 <dd><p>A lazy property that parses the current scope’s cookies and returns a dictionary.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
 <span class="n">ses</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;session&#39;</span><span class="p">)</span>
@@ -359,20 +368,20 @@ returns case-insensitive multi-dict <a class="reference external" href="https://
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="asgi_tools.Request.charset">
-<code class="sig-name descname"><span class="pre">charset</span></code><a class="headerlink" href="#asgi_tools.Request.charset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Request.charset">
+<span class="sig-name descname"><span class="pre">charset</span></span><a class="headerlink" href="#asgi_tools.Request.charset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get an encoding charset for the current scope.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="asgi_tools.Request.content_type">
-<code class="sig-name descname"><span class="pre">content_type</span></code><a class="headerlink" href="#asgi_tools.Request.content_type" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Request.content_type">
+<span class="sig-name descname"><span class="pre">content_type</span></span><a class="headerlink" href="#asgi_tools.Request.content_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a content type for the current scope.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.Request.stream">
-<code class="sig-name descname"><span class="pre">stream</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.stream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.stream" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Request.stream">
+<span class="sig-name descname"><span class="pre">stream</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.stream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Stream the request’s body.</p>
 <p>The method provides byte chunks without storing the entire body to memory.
 Any subsequent calls to <a class="reference internal" href="#asgi_tools.Request.body" title="asgi_tools.Request.body"><code class="xref py py-meth docutils literal notranslate"><span class="pre">body()</span></code></a>, <a class="reference internal" href="#asgi_tools.Request.form" title="asgi_tools.Request.form"><code class="xref py py-meth docutils literal notranslate"><span class="pre">form()</span></code></a>, <a class="reference internal" href="#asgi_tools.Request.json" title="asgi_tools.Request.json"><code class="xref py py-meth docutils literal notranslate"><span class="pre">json()</span></code></a>
@@ -402,8 +411,8 @@ variable if you need.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.Request.body">
-<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">body</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.body"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.body" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Request.body">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">body</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.body"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.body" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read and return the request’s body as bytes.</p>
 <p><cite>body = await request.body()</cite></p>
 <dl class="field-list simple">
@@ -414,8 +423,8 @@ variable if you need.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.Request.text">
-<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">text</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.text" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Request.text">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">text</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.text" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read and return the request’s body as a string.</p>
 <p><cite>text = await request.text()</cite></p>
 <dl class="field-list simple">
@@ -426,8 +435,8 @@ variable if you need.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.Request.form">
-<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">form</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upload_to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_memory_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1048576</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.form"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.form" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Request.form">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">form</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upload_to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_memory_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1048576</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.form"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.form" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read and return the request’s multipart formdata as a multidict.</p>
 <p>The method reads the request’s stream stright into memory formdata.
 Any subsequent calls to <a class="reference internal" href="#asgi_tools.Request.body" title="asgi_tools.Request.body"><code class="xref py py-meth docutils literal notranslate"><span class="pre">body()</span></code></a>, <a class="reference internal" href="#asgi_tools.Request.json" title="asgi_tools.Request.json"><code class="xref py py-meth docutils literal notranslate"><span class="pre">json()</span></code></a> will raise an error.</p>
@@ -447,8 +456,8 @@ Any subsequent calls to <a class="reference internal" href="#asgi_tools.Request.
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.Request.json">
-<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">json</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.json" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Request.json">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">json</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read and return the request’s body as a JSON.</p>
 <p><cite>json = await request.json()</cite></p>
 <dl class="field-list simple">
@@ -459,8 +468,8 @@ Any subsequent calls to <a class="reference internal" href="#asgi_tools.Request.
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.Request.data">
-<code class="sig-name descname"><span class="pre">data</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.data" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Request.data">
+<span class="sig-name descname"><span class="pre">data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/request.html#Request.data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Request.data" title="Permalink to this definition">¶</a></dt>
 <dd><p>The method checks Content-Type Header and parse the request’s data automatically.</p>
 <p><cite>data = await request.data()</cite></p>
 <p>Returns data from <a class="reference internal" href="#asgi_tools.Request.json" title="asgi_tools.Request.json"><code class="xref py py-meth docutils literal notranslate"><span class="pre">json()</span></code></a> for <cite>application/json</cite>, <a class="reference internal" href="#asgi_tools.Request.form" title="asgi_tools.Request.form"><code class="xref py py-meth docutils literal notranslate"><span class="pre">form()</span></code></a> for
@@ -478,8 +487,8 @@ Any subsequent calls to <a class="reference internal" href="#asgi_tools.Request.
 <div class="section" id="responses">
 <h2>Responses<a class="headerlink" href="#responses" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="asgi_tools.Response">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">Response</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#Response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Response" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Response">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">Response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#Response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Response" title="Permalink to this definition">¶</a></dt>
 <dd><p>A base class to make <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> responses.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -500,14 +509,14 @@ Any subsequent calls to <a class="reference internal" href="#asgi_tools.Request.
 </pre></div>
 </div>
 <dl class="py attribute">
-<dt id="asgi_tools.Response.headers">
-<code class="sig-name descname"><span class="pre">headers</span></code><em class="property"><span class="pre">:</span> <span class="pre">multidict._multidict.MultiDict</span></em><a class="headerlink" href="#asgi_tools.Response.headers" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Response.headers">
+<span class="sig-name descname"><span class="pre">headers</span></span><em class="property"><span class="pre">:</span> <span class="pre">multidict._multidict.MultiDict</span></em><a class="headerlink" href="#asgi_tools.Response.headers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Multidict of response’s headers</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="asgi_tools.Response.cookies">
-<code class="sig-name descname"><span class="pre">cookies</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/http.cookies.html#http.cookies.SimpleCookie" title="(in Python v3.9)"><span class="pre">http.cookies.SimpleCookie</span></a></em><a class="headerlink" href="#asgi_tools.Response.cookies" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Response.cookies">
+<span class="sig-name descname"><span class="pre">cookies</span></span><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/http.cookies.html#http.cookies.SimpleCookie" title="(in Python v3.9)"><span class="pre">http.cookies.SimpleCookie</span></a></em><a class="headerlink" href="#asgi_tools.Response.cookies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set/Update cookies</p>
 <ul class="simple">
 <li><p><cite>response.cookies[name] = value</cite> <code class="docutils literal notranslate"><span class="pre">str</span></code> – set a cookie’s value</p></li>
@@ -531,8 +540,8 @@ Any subsequent calls to <a class="reference internal" href="#asgi_tools.Request.
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.Response.__call__">
-<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receive</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#Response.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Response.__call__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.Response.__call__">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receive</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#Response.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Response.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Behave as an ASGI application.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -553,8 +562,8 @@ Any subsequent calls to <a class="reference internal" href="#asgi_tools.Request.
 <div class="section" id="responsetext">
 <h3>ResponseText<a class="headerlink" href="#responsetext" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.ResponseText">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">ResponseText</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseText"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseText" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseText">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">ResponseText</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseText"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseText" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to return plain text responses (text/plain).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseText</span>
 
@@ -563,14 +572,24 @@ Any subsequent calls to <a class="reference internal" href="#asgi_tools.Request.
     <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>content</strong> (<em>ResponseContent</em>) – </p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>headers</strong> (<em>multidict._multidict.MultiDict</em>) – </p></li>
+<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
 <div class="section" id="responsehtml">
 <h3>ResponseHTML<a class="headerlink" href="#responsehtml" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.ResponseHTML">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">ResponseHTML</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseHTML"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseHTML" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseHTML">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">ResponseHTML</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseHTML"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseHTML" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to return HTML responses (text/html).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseHTML</span>
 
@@ -579,14 +598,24 @@ Any subsequent calls to <a class="reference internal" href="#asgi_tools.Request.
     <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>content</strong> (<em>ResponseContent</em>) – </p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>headers</strong> (<em>multidict._multidict.MultiDict</em>) – </p></li>
+<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
 <div class="section" id="responsejson">
 <h3>ResponseJSON<a class="headerlink" href="#responsejson" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.ResponseJSON">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">ResponseJSON</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseJSON" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseJSON">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">ResponseJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseJSON" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to return JSON responses (application/json).</p>
 <p>The class optionally supports <a class="reference external" href="https://pypi.org/project/ujson/">ujson</a> and <a class="reference external" href="https://pypi.org/project/orjson/">orjson</a> JSON libraries. Install one of them to use instead
 the standard library.</p>
@@ -597,18 +626,34 @@ the standard library.</p>
     <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>content</strong> (<em>ResponseContent</em>) – </p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>headers</strong> (<em>multidict._multidict.MultiDict</em>) – </p></li>
+<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
 <div class="section" id="responseredirect">
 <h3>ResponseRedirect<a class="headerlink" href="#responseredirect" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.ResponseRedirect">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">ResponseRedirect</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseRedirect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseRedirect" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseRedirect">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">ResponseRedirect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseRedirect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseRedirect" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to return HTTP redirects. Uses a 307 status code by default.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A string with the new location</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A string with the new location</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
 </dd>
 </dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseRedirect</span>
@@ -638,8 +683,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseRe
 <div class="section" id="responseerror">
 <h3>ResponseError<a class="headerlink" href="#responseerror" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.ResponseError">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">ResponseError</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseError" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseError">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">ResponseError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseError" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to return HTTP errors. Uses a 500 status code by default.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -680,12 +725,17 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <div class="section" id="responsestream">
 <h3>ResponseStream<a class="headerlink" href="#responsestream" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.ResponseStream">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">ResponseStream</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseStream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseStream" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseStream">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">ResponseStream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseStream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseStream" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to stream a response’s body.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>content</strong> (<em>AsyncGenerator</em>) – An async generator to stream the response’s body</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>content</strong> (<em>AsyncGenerator</em>) – An async generator to stream the response’s body</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>headers</strong> (<em>multidict._multidict.MultiDict</em>) – </p></li>
+<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – </p></li>
+</ul>
 </dd>
 </dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseStream</span>
@@ -708,12 +758,17 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <div class="section" id="responsesse">
 <h3>ResponseSSE<a class="headerlink" href="#responsesse" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.ResponseSSE">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">ResponseSSE</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseSSE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseSSE" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseSSE">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">ResponseSSE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseSSE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseSSE" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to stream SSE (server side events).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>content</strong> (<em>AsyncGenerator</em>) – An async generator to stream the events</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>content</strong> (<em>AsyncGenerator</em>) – An async generator to stream the events</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>headers</strong> (<em>multidict._multidict.MultiDict</em>) – </p></li>
+<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – </p></li>
+</ul>
 </dd>
 </dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseSSE</span>
@@ -743,8 +798,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <div class="section" id="responsefile">
 <h3>ResponseFile<a class="headerlink" href="#responsefile" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.ResponseFile">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">ResponseFile</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32768</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseFile" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseFile">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">ResponseFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32768</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to stream files as a response body.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseFile</span>
 
@@ -753,14 +808,26 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
     <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>t.Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Path</em><em>]</em>) – </p></li>
+<li><p><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>headers_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
 <div class="section" id="responsewebsocket">
 <h3>ResponseWebSocket<a class="headerlink" href="#responsewebsocket" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.ResponseWebSocket">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">ResponseWebSocket</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseWebSocket">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">ResponseWebSocket</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to work with websockets.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseWebsocket</span>
 
@@ -771,9 +838,21 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
         <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s1">&#39;pong&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scope</strong> (<em>Scope</em>) – </p></li>
+<li><p><strong>receive</strong> (<em>Receive</em>) – </p></li>
+<li><p><strong>send</strong> (<em>Send</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+</dd>
+</dl>
 <dl class="py method">
-<dt id="asgi_tools.ResponseWebSocket.accept">
-<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">accept</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket.accept"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket.accept" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseWebSocket.accept">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">accept</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket.accept"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket.accept" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accept a websocket connection.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
@@ -783,8 +862,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.ResponseWebSocket.close">
-<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket.close" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseWebSocket.close">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket.close" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sent by the application to tell the server to close the connection.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -797,8 +876,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.ResponseWebSocket.send">
-<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">send</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'websocket.send'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket.send"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket.send" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseWebSocket.send">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">send</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'websocket.send'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket.send"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket.send" title="Permalink to this definition">¶</a></dt>
 <dd><p>Send the given message to a client.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -811,8 +890,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.ResponseWebSocket.send_json">
-<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">send_json</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket.send_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket.send_json" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseWebSocket.send_json">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">send_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket.send_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket.send_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Serialize the given data to JSON and send to a client.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
@@ -822,8 +901,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.ResponseWebSocket.receive">
-<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">receive</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket.receive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket.receive" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseWebSocket.receive">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">receive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#ResponseWebSocket.receive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseWebSocket.receive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive messages from a client.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -844,8 +923,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <div class="section" id="requestmiddleware">
 <h3>RequestMiddleware<a class="headerlink" href="#requestmiddleware" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.RequestMiddleware">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">RequestMiddleware</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#RequestMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.RequestMiddleware" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.RequestMiddleware">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">RequestMiddleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#RequestMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.RequestMiddleware" title="Permalink to this definition">¶</a></dt>
 <dd><p>Automatically create <a class="reference internal" href="#asgi_tools.Request" title="asgi_tools.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">asgi_tools.Request</span></code></a> from the scope and pass it to <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> apps.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">RequestMiddleware</span><span class="p">,</span> <span class="n">Response</span>
 
@@ -857,14 +936,22 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <span class="n">app</span> <span class="o">=</span> <span class="n">RequestMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
 <div class="section" id="responsemiddleware">
 <h3>ResponseMiddleware<a class="headerlink" href="#responsemiddleware" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.ResponseMiddleware">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">ResponseMiddleware</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#ResponseMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseMiddleware" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.ResponseMiddleware">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">ResponseMiddleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#ResponseMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.ResponseMiddleware" title="Permalink to this definition">¶</a></dt>
 <dd><p>Automatically convert <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> apps results into responses <a class="reference internal" href="#asgi_tools.Response" title="asgi_tools.Response"><code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code></a> and
 send them to server as <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> messages.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseMiddleware</span><span class="p">,</span> <span class="n">ResponseText</span><span class="p">,</span> <span class="n">ResponseRedirect</span>
@@ -910,22 +997,34 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </pre></div>
 </div>
 <p>You are able to raise <a class="reference internal" href="#asgi_tools.ResponseError" title="asgi_tools.ResponseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseError</span></code></a> from yours <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> apps and it will be catched and returned as a response</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
 <div class="section" id="lifespanmiddleware">
 <h3>LifespanMiddleware<a class="headerlink" href="#lifespanmiddleware" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.LifespanMiddleware">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">LifespanMiddleware</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">app=None</span></em>, <em class="sig-param"><span class="pre">ignore_errors=False</span></em>, <em class="sig-param"><span class="pre">logger=&lt;Logger</span> <span class="pre">asgi-tools</span> <span class="pre">(WARNING)&gt;</span></em>, <em class="sig-param"><span class="pre">on_startup=None</span></em>, <em class="sig-param"><span class="pre">on_shutdown=None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#LifespanMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.LifespanMiddleware" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.LifespanMiddleware">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">LifespanMiddleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">app=None</span></em>, <em class="sig-param"><span class="pre">ignore_errors=False</span></em>, <em class="sig-param"><span class="pre">logger=&lt;Logger</span> <span class="pre">asgi-tools</span> <span class="pre">(WARNING)&gt;</span></em>, <em class="sig-param"><span class="pre">on_startup=None</span></em>, <em class="sig-param"><span class="pre">on_shutdown=None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#LifespanMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.LifespanMiddleware" title="Permalink to this definition">¶</a></dt>
 <dd><p>Manage <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> Lifespan events.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ignore_errors</strong> – Ignore errors from startup/shutdown handlers</p></li>
-<li><p><strong>on_startup</strong> – the list of callables to run when the app is starting</p></li>
-<li><p><strong>on_shutdown</strong> – the list of callables to run when the app is finishing</p></li>
+<li><p><strong>ignore_errors</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Ignore errors from startup/shutdown handlers</p></li>
+<li><p><strong>on_startup</strong> (<em>Union</em><em>[</em><em>Callable</em><em>, </em><em>List</em><em>[</em><em>Callable</em><em>]</em><em>]</em>) – the list of callables to run when the app is starting</p></li>
+<li><p><strong>on_shutdown</strong> (<em>Union</em><em>[</em><em>Callable</em><em>, </em><em>List</em><em>[</em><em>Callable</em><em>]</em><em>]</em>) – the list of callables to run when the app is finishing</p></li>
+<li><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p></li>
 </ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
 </dd>
 </dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">LifespanMiddleware</span><span class="p">,</span> <span class="n">Response</span>
@@ -947,8 +1046,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </div>
 <p>Lifespan middleware may be used as an async context manager for testing purposes</p>
 <dl class="py method">
-<dt id="asgi_tools.LifespanMiddleware.on_startup">
-<code class="sig-name descname"><span class="pre">on_startup</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#LifespanMiddleware.on_startup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.LifespanMiddleware.on_startup" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.LifespanMiddleware.on_startup">
+<span class="sig-name descname"><span class="pre">on_startup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#LifespanMiddleware.on_startup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.LifespanMiddleware.on_startup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a function to startup.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -961,8 +1060,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.LifespanMiddleware.on_shutdown">
-<code class="sig-name descname"><span class="pre">on_shutdown</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#LifespanMiddleware.on_shutdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.LifespanMiddleware.on_shutdown" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.LifespanMiddleware.on_shutdown">
+<span class="sig-name descname"><span class="pre">on_shutdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#LifespanMiddleware.on_shutdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.LifespanMiddleware.on_shutdown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a function to shutdown.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -980,8 +1079,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <div class="section" id="routermiddleware">
 <h3>RouterMiddleware<a class="headerlink" href="#routermiddleware" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.RouterMiddleware">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">RouterMiddleware</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">router</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#RouterMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.RouterMiddleware" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.RouterMiddleware">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">RouterMiddleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">router</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#RouterMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.RouterMiddleware" title="Permalink to this definition">¶</a></dt>
 <dd><p>Manage routing.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">RouterMiddleware</span><span class="p">,</span> <span class="n">ResponseHTML</span><span class="p">,</span> <span class="n">ResponseError</span>
 
@@ -1031,21 +1130,36 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </pre></div>
 </div>
 <p>Path parameters are made available in the request/scope, as the <code class="docutils literal notranslate"><span class="pre">path_params</span></code> dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p></li>
+<li><p><strong>router</strong> (<em>http_router.router.Router</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
 <div class="section" id="staticfilesmiddleware">
 <h3>StaticFilesMiddleware<a class="headerlink" href="#staticfilesmiddleware" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="asgi_tools.StaticFilesMiddleware">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">StaticFilesMiddleware</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url_prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/static'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folders</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#StaticFilesMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.StaticFilesMiddleware" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.StaticFilesMiddleware">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">StaticFilesMiddleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url_prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/static'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folders</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#StaticFilesMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.StaticFilesMiddleware" title="Permalink to this definition">¶</a></dt>
 <dd><p>Serve static files.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>url_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>&quot;/static&quot;</em>) – an URL prefix for static files</p></li>
 <li><p><strong>folders</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Paths to folders with static files</p></li>
+<li><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p></li>
 </ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
 </dd>
 </dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">StaticFilesMiddleware</span><span class="p">,</span> <span class="n">ResponseHTML</span>
@@ -1063,8 +1177,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <div class="section" id="application">
 <h2>Application<a class="headerlink" href="#application" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="asgi_tools.App">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.</span></code><code class="sig-name descname"><span class="pre">App</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">*</span></em>, <em class="sig-param"><span class="pre">debug=False</span></em>, <em class="sig-param"><span class="pre">logger=&lt;Logger</span> <span class="pre">asgi-tools</span> <span class="pre">(WARNING)&gt;</span></em>, <em class="sig-param"><span class="pre">static_url_prefix='/static'</span></em>, <em class="sig-param"><span class="pre">static_folders=None</span></em>, <em class="sig-param"><span class="pre">trim_last_slash=False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.App">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">App</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">*</span></em>, <em class="sig-param"><span class="pre">debug=False</span></em>, <em class="sig-param"><span class="pre">logger=&lt;Logger</span> <span class="pre">asgi-tools</span> <span class="pre">(WARNING)&gt;</span></em>, <em class="sig-param"><span class="pre">static_url_prefix='/static'</span></em>, <em class="sig-param"><span class="pre">static_folders=None</span></em>, <em class="sig-param"><span class="pre">trim_last_slash=False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to build ASGI Applications.</p>
 <p>Features:</p>
 <ul class="simple">
@@ -1087,8 +1201,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </dd>
 </dl>
 <dl class="py method">
-<dt id="asgi_tools.App.route">
-<code class="sig-name descname"><span class="pre">route</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.route"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App.route" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.App.route">
+<span class="sig-name descname"><span class="pre">route</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.route"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App.route" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a route.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
@@ -1098,8 +1212,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.App.on_startup">
-<code class="sig-name descname"><span class="pre">on_startup</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_startup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App.on_startup" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.App.on_startup">
+<span class="sig-name descname"><span class="pre">on_startup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_startup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App.on_startup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a startup handler.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1109,8 +1223,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.App.on_shutdown">
-<code class="sig-name descname"><span class="pre">on_shutdown</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_shutdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App.on_shutdown" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.App.on_shutdown">
+<span class="sig-name descname"><span class="pre">on_shutdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_shutdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App.on_shutdown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a shutdown handler.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1120,8 +1234,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.App.on_error">
-<code class="sig-name descname"><span class="pre">on_error</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">etype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App.on_error" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.App.on_error">
+<span class="sig-name descname"><span class="pre">on_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">etype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.on_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App.on_error" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register an exception handler.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1131,8 +1245,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.App.middleware">
-<code class="sig-name descname"><span class="pre">middleware</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">md</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.middleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App.middleware" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.App.middleware">
+<span class="sig-name descname"><span class="pre">middleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">md</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.middleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App.middleware" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a middleware.</p>
 <p>The <a class="reference internal" href="#asgi_tools.App.middleware" title="asgi_tools.App.middleware"><code class="xref py py-meth docutils literal notranslate"><span class="pre">App.middleware()</span></code></a> supports two types of middlewares, see below:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span><span class="p">,</span> <span class="n">Request</span><span class="p">,</span> <span class="n">ResponseError</span>
@@ -1169,10 +1283,10 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>md</strong> (<em>F</em>) – </p>
+<dd class="field-odd"><p><strong>md</strong> (<em>asgi_tools.typing.F</em>) – </p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>F</p>
+<dd class="field-even"><p>asgi_tools.typing.F</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1180,11 +1294,46 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </dd></dl>
 
 </div>
+<div class="section" id="class-based-views">
+<h2>Class Based Views<a class="headerlink" href="#class-based-views" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="asgi_tools.HTTPView">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">HTTPView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">opts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#HTTPView"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.HTTPView" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class-based view pattern for handling HTTP method dispatching.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/custom&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">CustomEndpoint</span><span class="p">(</span><span class="n">HTTPView</span><span class="p">):</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Hello from GET&#39;</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Hello from POST&#39;</span>
+
+<span class="c1"># ...</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">test_my_endpoint</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/custom&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="k">await</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Hello from GET&#39;</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/custom&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="k">await</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Hello from POST&#39;</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s1">&#39;/custom&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">405</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>request</strong> (<a class="reference internal" href="#asgi_tools.Request" title="asgi_tools.request.Request"><em>asgi_tools.request.Request</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
 <div class="section" id="testclient">
 <h2>TestClient<a class="headerlink" href="#testclient" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="asgi_tools.tests.ASGITestClient">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">asgi_tools.tests.</span></code><code class="sig-name descname"><span class="pre">ASGITestClient</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'http://localhost'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.tests.ASGITestClient">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.tests.</span></span><span class="sig-name descname"><span class="pre">ASGITestClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'http://localhost'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient" title="Permalink to this definition">¶</a></dt>
 <dd><p>The test client allows you to make requests against an ASGI application.</p>
 <p>Features:</p>
 <ul class="simple">
@@ -1196,9 +1345,17 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <li><p>websocket support</p></li>
 <li><p>lifespan management</p></li>
 </ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p></li>
+<li><p><strong>base_url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
-<dt id="asgi_tools.tests.ASGITestClient.request">
-<em class="property"><span class="pre">async</span> </em><code class="sig-name descname"><span class="pre">request</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GET'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cookies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">b''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_redirect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient.request"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient.request" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.tests.ASGITestClient.request">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GET'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cookies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">b''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_redirect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient.request"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a HTTP requests.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span>
 <span class="kn">from</span> <span class="nn">asgi_tools.tests</span> <span class="kn">import</span> <span class="n">ASGITestClient</span>
@@ -1268,8 +1425,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.tests.ASGITestClient.websocket">
-<code class="sig-name descname"><span class="pre">websocket</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cookies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient.websocket"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient.websocket" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.tests.ASGITestClient.websocket">
+<span class="sig-name descname"><span class="pre">websocket</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cookies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient.websocket"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient.websocket" title="Permalink to this definition">¶</a></dt>
 <dd><p>Connect to a websocket.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span><span class="p">,</span> <span class="n">ResponseWebSocket</span>
 <span class="kn">from</span> <span class="nn">asgi_tools.tests</span> <span class="kn">import</span> <span class="n">ASGITestClient</span>
@@ -1303,8 +1460,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </dd></dl>
 
 <dl class="py method">
-<dt id="asgi_tools.tests.ASGITestClient.lifespan">
-<code class="sig-name descname"><span class="pre">lifespan</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient.lifespan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient.lifespan" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="asgi_tools.tests.ASGITestClient.lifespan">
+<span class="sig-name descname"><span class="pre">lifespan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/tests.html#ASGITestClient.lifespan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.tests.ASGITestClient.lifespan" title="Permalink to this definition">¶</a></dt>
 <dd><p>Manage <a class="reference external" href="https://asgi.readthedocs.io/en/latest/specs/lifespan.html">Lifespan</a> protocol.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseHTML</span>
 <span class="kn">from</span> <span class="nn">asgi_tools.tests</span> <span class="kn">import</span> <span class="n">ASGITestClient</span>
@@ -1381,7 +1538,7 @@ send them to server as <a class="reference external" href="https://asgi.readthed
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.1.<br/>
 </p>
     </div>
     
