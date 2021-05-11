@@ -1,4 +1,4 @@
-""" ASGI-Tools includes a `asgi_tools.Request` class that gives you a nicer interface onto the
+"""ASGI-Tools includes a `asgi_tools.Request` class that gives you a nicer interface onto the
 incoming request.
 """
 
@@ -147,6 +147,14 @@ class Request(t.MutableMapping):
     def charset(self) -> str:
         """Get an encoding charset for the current scope."""
         return self.media.get('charset', DEFAULT_CHARSET)
+
+    @property
+    def query(self) -> MultiDict:
+        """A lazy property that parse the current query string and returns it as a
+        :py:class:`multidict.MultiDict`.
+
+        """
+        return self.url.query
 
     @property
     def content_type(self) -> str:

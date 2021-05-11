@@ -36,7 +36,7 @@ async def test_request_response_middlewares(Client):
     async def app(request, receive, send):
         data = await request.json()
         first_name = data.get('first_name', 'Anonymous')
-        last_name = request.url.query.get('last_name', 'Test')
+        last_name = request.query.get('last_name', 'Test')
         return f"Hello {first_name} {last_name} from '{ request.url.path }'"
 
     app = RequestMiddleware(ResponseMiddleware(app))

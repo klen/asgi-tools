@@ -38,7 +38,7 @@ async def test_client(app, client):
             data = dict(data)
 
         return {
-            'query': dict(request.url.query),
+            'query': dict(request.query),
             "headers": {**request.headers},
             "cookies": dict(request.cookies),
             "data": data,

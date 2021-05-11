@@ -24,7 +24,7 @@ async def test_readme_request_response(Client):
             "headers": {**request.headers},
 
             # Get query params
-            "query": dict(request.url.query),
+            "query": dict(request.query),
 
             # Get cookies
             "cookies": dict(request.cookies),

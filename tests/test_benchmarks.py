@@ -15,7 +15,7 @@ def test_benchmark_req_res(benchmark, GenRequest):
     def run_benchmark():
         request = Request(scope)
         assert request.method
-        assert request.url.query['param']
+        assert request.query['param']
         assert request.headers['header']
         assert request.cookies['cookie']
 
