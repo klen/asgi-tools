@@ -51,6 +51,14 @@ async def test_app(Client):
     assert res.status_code == 200
     assert await res.text() == '42'
 
+    @app.route('/sync')
+    def sync_fn(request):
+        return 'Sync is ok'
+
+    res = await client.get('/sync')
+    assert res.status_code == 200
+    assert await res.text() == 'Sync is ok'
+
 
 async def test_errors(Client):
     from asgi_tools.app import App, ResponseError

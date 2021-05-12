@@ -18,7 +18,7 @@ from .middleware import (
 )
 from .request import Request
 from .response import ResponseError, Response
-from .utils import to_awaitable, iscoroutinefunction, is_awaitable
+from .utils import to_awaitable, iscoroutinefunction
 from .typing import Scope, Receive, Send, F
 
 
@@ -146,7 +146,8 @@ class App:
         }
 
         # Setup routing
-        self.router = Router(trim_last_slash=trim_last_slash, validator=is_awaitable)
+        self.router = Router(
+            trim_last_slash=trim_last_slash, validator=callable, converter=to_awaitable)
 
         # Setup logging
         self.logger = logger
