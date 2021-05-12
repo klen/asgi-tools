@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Usage &#8212; asgi-tools 0.51.0 documentation</title>
+    <title>Usage &#8212; asgi-tools 0.52.1 documentation</title>
     
   <link href="_static/css/theme.css" rel="stylesheet" />
   <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -130,7 +130,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.51.0
+    Version: 0.52.1
 </div>
 
             </div>
@@ -321,7 +321,7 @@ likely to like a page and come back if the page uses a meaningful URL they can
 remember and use to directly visit a page.</p>
 <p>Use the <a class="reference internal" href="api.html#asgi_tools.App.route" title="asgi_tools.App.route"><code class="xref py py-meth docutils literal notranslate"><span class="pre">route()</span></code></a> decorator to bind a function to a URL.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+<span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
     <span class="k">return</span> <span class="s1">&#39;Index Page&#39;</span>
 
 <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/hello&#39;</span><span class="p">,</span> <span class="s1">&#39;/hello/world&#39;</span><span class="p">)</span>
@@ -333,8 +333,8 @@ remember and use to directly visit a page.</p>
     <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span>
 </pre></div>
 </div>
-<p>You can do more! You can make parts of the URL dynamic.
-The everh routed callback should be awaitable and accept a <a class="reference internal" href="api.html#asgi_tools.Request" title="asgi_tools.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>.</p>
+<p>You can do more! You can make parts of the URL dynamic. The every routed
+callback should be callable and accepts a <a class="reference internal" href="api.html#asgi_tools.Request" title="asgi_tools.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>.</p>
 <p>See also: <a class="reference internal" href="api.html#asgi_tools.HTTPView" title="asgi_tools.HTTPView"><code class="xref py py-class docutils literal notranslate"><span class="pre">HTTPView</span></code></a>.</p>
 </div>
 <div class="section" id="dynamic-urls">

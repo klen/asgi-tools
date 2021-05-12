@@ -112,7 +112,7 @@ Use the :meth:`~asgi_tools.App.route` decorator to bind a function to a URL.
 .. code-block:: python
 
     @app.route('/')
-    async def index():
+    def index():
         return 'Index Page'
 
     @app.route('/hello', '/hello/world')
@@ -123,8 +123,8 @@ Use the :meth:`~asgi_tools.App.route` decorator to bind a function to a URL.
     async def only_post():
         return request.method
 
-You can do more! You can make parts of the URL dynamic.
-The everh routed callback should be awaitable and accept a :class:`~asgi_tools.Request`.
+You can do more! You can make parts of the URL dynamic. The every routed
+callback should be callable and accepts a :class:`~asgi_tools.Request`.
 
 See also: :py:class:`~asgi_tools.HTTPView`.
 
