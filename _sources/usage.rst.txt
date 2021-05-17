@@ -324,8 +324,8 @@ to define a chain of functions that handles every web requests.
         app = App()
         app.middleware(SentryMiddleware)
 
-3. For custom middlewares it's possible to use simpler interface which one
-   accepts a request and can return responses.
+3. Internal middlewares. For middlewares it's possible to use simpler interface
+   which one accepts a request and can return responses.
 
    .. code-block:: python
 
@@ -372,7 +372,8 @@ code base.
 
     # await client.get('/sub/route').text() == 'OK from subapp'
 
-Middlewares and signals from app and subapp are chained.
+Middlewares from app and subapp are chained (only internal middlewares are
+supported for nested apps).
 
 
 .. Links

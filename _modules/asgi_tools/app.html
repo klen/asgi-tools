@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.app &#8212; asgi-tools 0.53.0 documentation</title>
+    <title>asgi_tools.app &#8212; asgi-tools 0.54.1 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -128,7 +128,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.53.0
+    Version: 0.54.1
 </div>
 
             </div>
@@ -157,15 +157,13 @@
 <span class="kn">import</span> <span class="nn">typing</span> <span class="k">as</span> <span class="nn">t</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 
-<span class="kn">from</span> <span class="nn">http_router</span> <span class="kn">import</span> <span class="n">Router</span> <span class="k">as</span> <span class="n">HTTPRouter</span>
-<span class="kn">from</span> <span class="nn">http_router.routes</span> <span class="kn">import</span> <span class="n">Mount</span>
+<span class="kn">from</span> <span class="nn">http_router</span> <span class="kn">import</span> <span class="n">Router</span> <span class="k">as</span> <span class="n">HTTPRouter</span><span class="p">,</span> <span class="n">PrefixedRoute</span>
 <span class="kn">from</span> <span class="nn">http_router.typing</span> <span class="kn">import</span> <span class="n">TYPE_METHODS</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">ASGIError</span><span class="p">,</span> <span class="n">ASGINotFound</span><span class="p">,</span> <span class="n">ASGIMethodNotAllowed</span><span class="p">,</span> <span class="n">ASGIConnectionClosed</span><span class="p">,</span> <span class="n">asgi_logger</span>
 <span class="kn">from</span> <span class="nn">.middleware</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">BaseMiddeware</span><span class="p">,</span>
     <span class="n">LifespanMiddleware</span><span class="p">,</span>
-    <span class="n">ResponseMiddleware</span><span class="p">,</span>
     <span class="n">StaticFilesMiddleware</span><span class="p">,</span>
     <span class="n">parse_response</span>
 <span class="p">)</span>
@@ -232,14 +230,6 @@
         <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span></div>
 
 
-<span class="k">class</span> <span class="nc">AppResponseMiddleware</span><span class="p">(</span><span class="n">ResponseMiddleware</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Convert app results into a response but not send ASGI messages.&quot;&quot;&quot;</span>
-
-    <span class="n">scopes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;http&#39;</span><span class="p">}</span>
-
-    <span class="fm">__call__</span> <span class="o">=</span> <span class="n">ResponseMiddleware</span><span class="o">.</span><span class="n">__process__</span>
-
-
 <span class="k">class</span> <span class="nc">AppInternalMiddleware</span><span class="p">(</span><span class="n">BaseMiddeware</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Process responses.&quot;&quot;&quot;</span>
 
@@ -290,7 +280,6 @@
                  <span class="n">static_url_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;/static&#39;</span><span class="p">,</span>
                  <span class="n">static_folders</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">trim_last_slash</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize router and lifespan middleware.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__internal__</span> <span class="o">=</span> <span class="n">AppInternalMiddleware</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__process__</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 
         <span class="c1"># Register base exception handlers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span> <span class="o">=</span> <span class="p">{</span>
@@ -299,11 +288,31 @@
         <span class="p">}</span>
 
         <span class="c1"># Setup routing</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="p">(</span>
             <span class="n">trim_last_slash</span><span class="o">=</span><span class="n">trim_last_slash</span><span class="p">,</span> <span class="n">validator</span><span class="o">=</span><span class="n">callable</span><span class="p">,</span> <span class="n">converter</span><span class="o">=</span><span class="n">to_awaitable</span><span class="p">)</span>
 
         <span class="c1"># Setup logging</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
+
+        <span class="k">async</span> <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">Response</span><span class="p">]:</span>
+            <span class="sd">&quot;&quot;&quot;Find and call a callback, parse a response, handle exceptions.&quot;&quot;&quot;</span>
+            <span class="n">scope</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">scope</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span> <span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;root_path&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="si">}{</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">match</span> <span class="o">=</span> <span class="n">router</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;method&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">))</span>
+            <span class="k">except</span> <span class="n">ASGINotFound</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">NOT_FOUND</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">ASGIMethodNotAllowed</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">METHOD_NOT_ALLOWED</span><span class="p">()</span>
+
+            <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path_params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">match</span><span class="o">.</span><span class="n">params</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">match</span><span class="o">.</span><span class="n">target</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;websocket&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+            <span class="k">return</span> <span class="n">parse_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__internal__</span> <span class="o">=</span> <span class="n">AppInternalMiddleware</span><span class="p">(</span><span class="n">process</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 
         <span class="c1"># Setup lifespan</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lifespan</span> <span class="o">=</span> <span class="n">LifespanMiddleware</span><span class="p">(</span>
@@ -320,47 +329,27 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">)</span>
             <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]</span>
 
+    <span class="k">def</span> <span class="nf">__route__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">router</span><span class="p">:</span> <span class="n">Router</span><span class="p">,</span> <span class="o">*</span><span class="n">prefixes</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">methods</span><span class="p">:</span> <span class="n">TYPE_METHODS</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mount self as a nested application.&quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">target</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal__</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">receive</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">send</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">prefixes</span><span class="p">:</span>
+            <span class="n">route</span> <span class="o">=</span> <span class="n">RouteApp</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="nb">set</span><span class="p">(),</span> <span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">router</span><span class="o">.</span><span class="n">dynamic</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">route</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
     <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Convert the given scope into a request and process.&quot;&quot;&quot;</span>
         <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;app&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
-        <span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifespan</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
-
-        <span class="c1"># Handle exceptions</span>
-        <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifespan</span><span class="p">(</span><span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">),</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># Handle exceptions</span>
             <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_exc</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="o">...</span><span class="p">:</span>
                 <span class="k">raise</span>
 
             <span class="k">await</span> <span class="n">parse_response</span><span class="p">(</span><span class="n">response</span><span class="p">)(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
-
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">Response</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Find and call a callback, parse a response, handle exceptions.&quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">scope</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">scope</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span> <span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;root_path&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="si">}{</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;method&#39;</span><span class="p">,</span> <span class="s1">&#39;GET&#39;</span><span class="p">))</span>
-            <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path_params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">match</span><span class="o">.</span><span class="n">params</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">match</span><span class="o">.</span><span class="n">target</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
-            <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;websocket&#39;</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">None</span>
-
-            <span class="k">return</span> <span class="n">parse_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-
-        <span class="k">except</span> <span class="n">ASGINotFound</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">NOT_FOUND</span><span class="p">()</span>
-
-        <span class="k">except</span> <span class="n">ASGIMethodNotAllowed</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">METHOD_NOT_ALLOWED</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">__route__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">router</span><span class="p">:</span> <span class="n">Router</span><span class="p">,</span> <span class="o">*</span><span class="n">prefixes</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">methods</span><span class="p">:</span> <span class="n">TYPE_METHODS</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Mount self as a subapplication.&quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">prefixes</span><span class="p">:</span>
-            <span class="n">route</span> <span class="o">=</span> <span class="n">Mount</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">router</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="p">)</span>
-            <span class="n">router</span><span class="o">.</span><span class="n">dynamic</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">route</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">handle_exc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Look for a handler for the given exception.&quot;&quot;&quot;</span>
@@ -402,6 +391,22 @@
             <span class="k">return</span> <span class="n">handler</span>
 
         <span class="k">return</span> <span class="n">recorder</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">RouteApp</span><span class="p">(</span><span class="n">PrefixedRoute</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Custom route to submount an application.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">methods</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Set</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">App</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create app callable.&quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">):</span>
+            <span class="n">subrequest</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">__copy__</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">):])</span>
+            <span class="n">receive</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Receive</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">receive</span><span class="p">)</span>
+            <span class="n">send</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">Send</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">send</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">target</span><span class="o">.</span><span class="n">__internal__</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">subrequest</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">RouteApp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
 </pre></div>
 
               </div>

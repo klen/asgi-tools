@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API Reference &#8212; asgi-tools 0.53.0 documentation</title>
+    <title>API Reference &#8212; asgi-tools 0.54.1 documentation</title>
     
   <link href="_static/css/theme.css" rel="stylesheet" />
   <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -129,7 +129,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.53.0
+    Version: 0.54.1
 </div>
 
             </div>
@@ -292,10 +292,10 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>scope</strong> (<em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em>) – HTTP ASGI Scope</p></li>
-<li><p><strong>receive</strong> (<em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em>) – an asynchronous callable which lets the application
+<li><p><strong>scope</strong> (<em>Scope</em>) – HTTP ASGI Scope</p></li>
+<li><p><strong>receive</strong> (<em>Receive</em>) – an asynchronous callable which lets the application
 receive event messages from the client</p></li>
-<li><p><strong>send</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>send</strong> (<em>Send</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
