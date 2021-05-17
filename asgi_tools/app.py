@@ -250,6 +250,8 @@ class RouteApp(PrefixedRoute):
 
         def app(request: Request):
             subrequest = request.__copy__(path=request.path[len(path):])
-            return target.__internal__.app(subrequest, request.receive, request.send)
+            receive = t.cast(Receive, request.receive)
+            send = t.cast(Send, request.send)
+            return target.__internal__.app(subrequest, receive, send)
 
         super(RouteApp, self).__init__(path, methods, app)
