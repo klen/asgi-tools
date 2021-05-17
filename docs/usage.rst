@@ -296,6 +296,53 @@ applies to converting return values into response objects is as follows:
         return 418, 'Im a teapot'
 
 
+.. _middlewares:
+
+Middlewares
+-----------
+
+:py:class:`asgi_tools.App` supports middlewares, which provide a flexible way
+to define a chain of functions that handles every web requests.
+
+1. As an ASGI_ application `asgi_tools.App` can be proxied with any ASGI_ middlewares:
+
+   .. code-block:: python
+
+        from asgi_tools import App
+        from sentry_asgi import SentryMiddleware
+
+        app = App()
+        app = SentryMiddleware(app)
+
+2. Alternatively you can decorate any ASGI_ middleware to connect it to an app:
+
+   .. code-block:: python
+
+        from asgi_tools import App
+        from sentry_asgi import SentryMiddleware
+
+        app = App()
+        app.middleware(SentryMiddleware)
+
+3. For custom middlewares it's possible to use simpler interface which one
+   accepts a request and can return responses.
+
+   .. code-block:: python
+
+        from asgi_tools import App
+
+
+        app = App()
+
+        @app.middleware
+        async def simple_md(app, request, receive, send):
+            try:
+                response = await app(request, receive, send)
+                response.headers['x-simple-md'] = 'passed'
+                return response
+            except RuntimeError:
+                return ResponseHTML('Middleware Exception')
+
 .. Links
 
 .. _ASGI: https://asgi.readthedocs.io/en/latest/
