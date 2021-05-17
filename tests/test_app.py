@@ -333,3 +333,19 @@ async def test_app_lifespan(app, client):
         assert res.status_code == 200
 
     assert SIDE_EFFECTS['finished']
+
+
+async def test_subapps(app, client):
+    from asgi_tools.app import App
+
+    subapp = App()
+
+    @subapp.route('/route')
+    async def route(request):
+        return 'OK from subapp'
+
+    app.route('/sub')(subapp)
+
+    res = await client.get('/sub/route')
+    assert res.status_code == 200
+    assert await res.text() == 'OK from subapp'

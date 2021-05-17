@@ -343,6 +343,38 @@ to define a chain of functions that handles every web requests.
             except RuntimeError:
                 return ResponseHTML('Middleware Exception')
 
+Nested applications
+-------------------
+
+Sub applications are designed for solving the problem of the big monolithic
+code base.
+
+.. code-block:: python
+
+    from asgi_tools import App
+
+    # Main application
+    app = App()
+
+    @app.route('/')
+    def index(request):
+        return 'OK'
+
+    # Sub application
+    subapp = App()
+
+    @subapp.route('/route')
+    def subpage(request):
+        return 'OK from subapp'
+
+    # Connect the subapplication with an URL prefix
+    app.route('/sub')(subapp)
+
+    # await client.get('/sub/route').text() == 'OK from subapp'
+
+Middlewares and signals from app and subapp are chained.
+
+
 .. Links
 
 .. _ASGI: https://asgi.readthedocs.io/en/latest/

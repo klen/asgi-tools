@@ -6,6 +6,7 @@ import typing as t
 from functools import partial
 
 from http_router import Router as HTTPRouter
+from http_router.routes import Mount
 from http_router.typing import TYPE_METHODS
 
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed, asgi_logger
@@ -201,6 +202,13 @@ class App:
 
         except ASGIMethodNotAllowed:
             raise ResponseError.METHOD_NOT_ALLOWED()
+
+    def __route__(self, router: Router, *prefixes: str, methods: TYPE_METHODS = None, **params):
+        """Mount self as a subapplication."""
+        for prefix in prefixes:
+            route = Mount(prefix, router=self.router)
+            router.dynamic.insert(0, route)
+        return self
 
     async def handle_exc(self, exc: BaseException) -> t.Any:
         """Look for a handler for the given exception."""
