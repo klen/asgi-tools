@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Usage &#8212; asgi-tools 0.52.1 documentation</title>
+    <title>Usage &#8212; asgi-tools 0.52.2 documentation</title>
     
   <link href="_static/css/theme.css" rel="stylesheet" />
   <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -33,7 +33,7 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API" href="api.html" />
+    <link rel="next" title="API Reference" href="api.html" />
     <link rel="prev" title="Installation" href="installation.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
@@ -82,7 +82,7 @@
 
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="api.html">
-  API
+  API Reference
  </a>
 </li>
 
@@ -130,7 +130,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.52.1
+    Version: 0.52.2
 </div>
 
             </div>
@@ -203,6 +203,11 @@
    About Responses
   </a>
  </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#middlewares">
+   Middlewares
+  </a>
+ </li>
 </ul>
 
 </nav>
@@ -241,7 +246,7 @@ components independently. Dispite this ASGI-Tools contains
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If you are looking more for a toolkit for your <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> apps go straight to the
-<a class="reference internal" href="api.html"><span class="doc">API</span></a> docs.</p>
+<a class="reference internal" href="api.html"><span class="doc">API Reference</span></a> docs.</p>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span>
 
@@ -492,6 +497,49 @@ and return as html.</p></li>
 </pre></div>
 </div>
 </div>
+<div class="section" id="middlewares">
+<span id="id2"></span><h2>Middlewares<a class="headerlink" href="#middlewares" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="api.html#asgi_tools.App" title="asgi_tools.App"><code class="xref py py-class docutils literal notranslate"><span class="pre">asgi_tools.App</span></code></a> supports middlewares, which provide a flexible way
+to define a chain of functions that handles every web requests.</p>
+<ol class="arabic">
+<li><p>As an <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> application <cite>asgi_tools.App</cite> can be proxied with any <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> middlewares:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span>
+<span class="kn">from</span> <span class="nn">sentry_asgi</span> <span class="kn">import</span> <span class="n">SentryMiddleware</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">SentryMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>Alternatively you can decorate any <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> middleware to connect it to an app:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span>
+<span class="kn">from</span> <span class="nn">sentry_asgi</span> <span class="kn">import</span> <span class="n">SentryMiddleware</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
+<span class="n">app</span><span class="o">.</span><span class="n">middleware</span><span class="p">(</span><span class="n">SentryMiddleware</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>For custom middlewares it’s possible to use simpler interface which one
+accepts a request and can return responses.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span>
+
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">middleware</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">simple_md</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">app</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;x-simple-md&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;passed&#39;</span>
+        <span class="k">return</span> <span class="n">response</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="s1">&#39;Middleware Exception&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
 </div>
 
 
@@ -501,7 +549,7 @@ and return as html.</p></li>
               <div class='prev-next-bottom'>
                 
     <a class='left-prev' id="prev-link" href="installation.html" title="previous page">Installation</a>
-    <a class='right-next' id="next-link" href="api.html" title="next page">API</a>
+    <a class='right-next' id="next-link" href="api.html" title="next page">API Reference</a>
 
               </div>
               
