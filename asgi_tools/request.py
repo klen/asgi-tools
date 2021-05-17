@@ -2,6 +2,8 @@
 incoming request.
 """
 
+from __future__ import annotations
+
 import typing as t
 from cgi import parse_header
 from http import cookies
@@ -61,6 +63,10 @@ class Request(t.MutableMapping):
     def __getattr__(self, name: str) -> t.Any:
         """Proxy the request's unknown attributes to scope."""
         return self.scope[name]
+
+    def __copy__(self, **mutations) -> Request:
+        """Copy the request to a new one."""
+        return Request(dict(self.scope, **mutations), self.receive, self.send)
 
     @property
     def url(self) -> URL:

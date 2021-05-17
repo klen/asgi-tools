@@ -9,7 +9,7 @@ async def test_response_middleware(Client):
     client = Client(app)
     res = await client.get('/')
     assert res.status_code == 404
-    assert await res.text() == 'Not Found'
+    assert await res.text() == 'Nothing matches the given URI'
 
     async def app(*args):
         return False
@@ -106,7 +106,7 @@ async def test_router_middleware(Client):
     client = Client(app)
     res = await client.get('/')
     assert res.status_code == 404
-    assert await res.text() == 'Not Found'
+    assert await res.text() == 'Nothing matches the given URI'
 
     res = await client.get('/page1')
     assert res.status_code == 200

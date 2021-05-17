@@ -1,6 +1,7 @@
 """Test Request."""
 
 import pytest
+from copy import copy
 
 
 async def test_request():
@@ -56,6 +57,9 @@ async def test_request():
     with pytest.raises(RuntimeError):
         body = await request.body()
         assert body
+
+    r2 = copy(request)
+    assert r2 is not request
 
 
 async def test_multipart(Client):

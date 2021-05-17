@@ -10,7 +10,7 @@ from http_router import Router
 
 from . import ASGIError, asgi_logger
 from .request import Request
-from .response import ResponseHTML, parse_response, ResponseError, ResponseFile, Response, ResponseRedirect
+from .response import parse_response, ResponseError, ResponseFile, Response, ResponseRedirect
 from .typing import Scope, Receive, Send, ASGIApp
 
 
@@ -45,7 +45,7 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
 
     def bind(self, app: ASGIApp = None):
         """Rebind the middleware to an ASGI application if it has been inited already."""
-        self.app = app or ResponseHTML("Not Found", status_code=404)
+        self.app = app or ResponseError.NOT_FOUND()
         return self
 
 

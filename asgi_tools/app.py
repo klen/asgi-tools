@@ -5,15 +5,13 @@ import logging
 import typing as t
 from functools import partial
 
-from http_router import Router as HTTPRouter
-from http_router.routes import Mount
+from http_router import Router as HTTPRouter, PrefixedRoute
 from http_router.typing import TYPE_METHODS
 
 from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed, asgi_logger
 from .middleware import (
     BaseMiddeware,
     LifespanMiddleware,
-    ResponseMiddleware,
     StaticFilesMiddleware,
     parse_response
 )
@@ -80,14 +78,6 @@ class HTTPView:
         return method(request, **opts)
 
 
-class AppResponseMiddleware(ResponseMiddleware):
-    """Convert app results into a response but not send ASGI messages."""
-
-    scopes = {'http'}
-
-    __call__ = ResponseMiddleware.__process__
-
-
 class AppInternalMiddleware(BaseMiddeware):
     """Process responses."""
 
@@ -138,7 +128,6 @@ class App:
                  static_url_prefix: str = '/static',
                  static_folders: t.Union[str, t.List[str]] = None, trim_last_slash: bool = False):
         """Initialize router and lifespan middleware."""
-        self.__internal__ = AppInternalMiddleware(self.__process__)  # type: ignore
 
         # Register base exception handlers
         self.exception_handlers = {
@@ -147,11 +136,31 @@ class App:
         }
 
         # Setup routing
-        self.router = Router(
+        self.router = router = Router(
             trim_last_slash=trim_last_slash, validator=callable, converter=to_awaitable)
 
         # Setup logging
         self.logger = logger
+
+        async def process(request: Request, receive: Receive, send: Send) -> t.Optional[Response]:
+            """Find and call a callback, parse a response, handle exceptions."""
+            scope = request.scope
+            path = f"{ scope.get('root_path', '') }{ scope['path'] }"
+            try:
+                match = router(path, scope.get('method', 'GET'))
+            except ASGINotFound:
+                raise ResponseError.NOT_FOUND()
+            except ASGIMethodNotAllowed:
+                raise ResponseError.METHOD_NOT_ALLOWED()
+
+            scope['path_params'] = {} if match.params is None else match.params
+            response = await match.target(request)  # type: ignore
+            if response is None and request['type'] == 'websocket':
+                return None
+
+            return parse_response(response)
+
+        self.__internal__ = AppInternalMiddleware(process)  # type: ignore
 
         # Setup lifespan
         self.lifespan = LifespanMiddleware(
@@ -168,47 +177,27 @@ class App:
             self.logger.setLevel('DEBUG')
             del self.exception_handlers[Exception]
 
+    def __route__(self, router: Router, *prefixes: str, methods: TYPE_METHODS = None, **params):
+        """Mount self as a nested application."""
+        def target(request):
+            return self.__internal__(request, request.receive, request.send)
+
+        for prefix in prefixes:
+            route = RouteApp(prefix, set(), target=self)
+            router.dynamic.insert(0, route)
+        return self
+
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Convert the given scope into a request and process."""
         scope['app'] = self
-        request = Request(scope, receive, send)
         try:
-            await self.lifespan(request, receive, send)
-
-        # Handle exceptions
-        except BaseException as exc:
+            await self.lifespan(Request(scope, receive, send), receive, send)
+        except BaseException as exc:  # Handle exceptions
             response = await self.handle_exc(exc)
             if response is ...:
                 raise
 
             await parse_response(response)(scope, receive, send)
-
-    async def __process__(
-            self, request: Request, receive: Receive, send: Send) -> t.Optional[Response]:
-        """Find and call a callback, parse a response, handle exceptions."""
-        try:
-            scope = request.scope
-            path = f"{ scope.get('root_path', '') }{ scope['path'] }"
-            match = self.router(path, scope.get('method', 'GET'))
-            scope['path_params'] = {} if match.params is None else match.params
-            response = await match.target(request)  # type: ignore
-            if response is None and request['type'] == 'websocket':
-                return None
-
-            return parse_response(response)
-
-        except ASGINotFound:
-            raise ResponseError.NOT_FOUND()
-
-        except ASGIMethodNotAllowed:
-            raise ResponseError.METHOD_NOT_ALLOWED()
-
-    def __route__(self, router: Router, *prefixes: str, methods: TYPE_METHODS = None, **params):
-        """Mount self as a subapplication."""
-        for prefix in prefixes:
-            route = Mount(prefix, router=self.router)
-            router.dynamic.insert(0, route)
-        return self
 
     async def handle_exc(self, exc: BaseException) -> t.Any:
         """Look for a handler for the given exception."""
@@ -250,3 +239,17 @@ class App:
             return handler
 
         return recorder
+
+
+class RouteApp(PrefixedRoute):
+    """Custom route to submount an application."""
+
+    def __init__(self, path: str, methods: t.Set, target: App):
+        """Create app callable."""
+        path = path.rstrip('/')
+
+        def app(request: Request):
+            subrequest = request.__copy__(path=request.path[len(path):])
+            return target.__internal__.app(subrequest, request.receive, request.send)
+
+        super(RouteApp, self).__init__(path, methods, app)

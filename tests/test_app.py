@@ -335,10 +335,22 @@ async def test_app_lifespan(app, client):
     assert SIDE_EFFECTS['finished']
 
 
-async def test_subapps(app, client):
+async def test_nested(app, client):
     from asgi_tools.app import App
 
+    @app.middleware
+    async def mid(app, request, receive, send):
+        response = await app(request, receive, send)
+        response.headers['x-app'] = 'OK'
+        return response
+
     subapp = App()
+
+    @subapp.middleware
+    async def submid(app, request, receive, send):
+        response = await app(request, receive, send)
+        response.headers['x-subapp'] = 'OK'
+        return response
 
     @subapp.route('/route')
     async def route(request):
@@ -346,6 +358,13 @@ async def test_subapps(app, client):
 
     app.route('/sub')(subapp)
 
+    res = await client.get('/')
+    assert res.status_code == 200
+    assert await res.text() == 'OK'
+    assert res.headers['x-app'] == 'OK'
+
     res = await client.get('/sub/route')
     assert res.status_code == 200
     assert await res.text() == 'OK from subapp'
+    assert res.headers['x-subapp'] == 'OK'
+    assert res.headers['x-app'] == 'OK'
