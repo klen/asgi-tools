@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Usage &#8212; asgi-tools 0.52.2 documentation</title>
+    <title>Usage &#8212; asgi-tools 0.53.0 documentation</title>
     
   <link href="_static/css/theme.css" rel="stylesheet" />
   <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -130,7 +130,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.52.2
+    Version: 0.53.0
 </div>
 
             </div>
@@ -206,6 +206,11 @@
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#middlewares">
    Middlewares
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#nested-applications">
+   Nested applications
   </a>
  </li>
 </ul>
@@ -539,6 +544,34 @@ accepts a request and can return responses.</p>
 </div>
 </li>
 </ol>
+</div>
+<div class="section" id="nested-applications">
+<h2>Nested applications<a class="headerlink" href="#nested-applications" title="Permalink to this headline">¶</a></h2>
+<p>Sub applications are designed for solving the problem of the big monolithic
+code base.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">App</span>
+
+<span class="c1"># Main application</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;OK&#39;</span>
+
+<span class="c1"># Sub application</span>
+<span class="n">subapp</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
+
+<span class="nd">@subapp</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/route&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">subpage</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;OK from subapp&#39;</span>
+
+<span class="c1"># Connect the subapplication with an URL prefix</span>
+<span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/sub&#39;</span><span class="p">)(</span><span class="n">subapp</span><span class="p">)</span>
+
+<span class="c1"># await client.get(&#39;/sub/route&#39;).text() == &#39;OK from subapp&#39;</span>
+</pre></div>
+</div>
+<p>Middlewares and signals from app and subapp are chained.</p>
 </div>
 </div>
 
