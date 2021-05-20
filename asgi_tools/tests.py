@@ -188,35 +188,10 @@ class ASGITestClient:
             yield ws
             await ws.disconnect()
 
-    @asynccontextmanager
-    async def lifespan(self, timeout: float = 3e-2):
+    def lifespan(self, timeout: float = 3e-2):
         """Manage `Lifespan <https://asgi.readthedocs.io/en/latest/specs/lifespan.html>`_ protocol.
         """
-        receive_from_client, send_to_app = simple_stream()
-        receive_from_app, send_to_client = simple_stream()
-
-        async def safe_spawn():
-            try:
-                await self.app({'type': 'lifespan'}, receive_from_client, send_to_client)
-            except BaseException:
-                pass
-
-        async with aio_spawn(safe_spawn) as task:
-            await send_to_app({'type': 'lifespan.startup'})
-            msg = await aio_wait(
-                receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED)
-            if msg and isinstance(msg, t.Mapping):
-                if msg['type'] == 'lifespan.startup.failed':
-                    await aio_cancel(task)
-                else:
-                    assert msg['type'] == 'lifespan.startup.complete'
-
-            yield
-
-            await send_to_app({'type': 'lifespan.shutdown'})
-            msg = await aio_wait(receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED)
-            if msg and isinstance(msg, t.Mapping):
-                assert msg['type'] == 'lifespan.shutdown.complete'
+        return manage_lifespan(self.app, timeout=timeout)
 
     def build_scope(
             self, path: str, headers: t.Dict = None, query: t.Union[str, t.Dict] = None,
@@ -305,6 +280,37 @@ async def stream_data(data: t.Union[bytes, t.AsyncGenerator[t.Any, bytes]],
     async for chunk in data:
         await send({'type': 'http.request', 'body': chunk, 'more_body': True})
     await send({'type': 'http.request', 'body': b'', 'more_body': False})
+
+
+@asynccontextmanager
+async def manage_lifespan(app, timeout: float = 3e-2):
+    """Manage `Lifespan <https://asgi.readthedocs.io/en/latest/specs/lifespan.html>`_ protocol.
+    """
+    receive_from_client, send_to_app = simple_stream()
+    receive_from_app, send_to_client = simple_stream()
+
+    async def safe_spawn():
+        try:
+            await app({'type': 'lifespan'}, receive_from_client, send_to_client)
+        except BaseException:
+            pass
+
+    async with aio_spawn(safe_spawn) as task:
+        await send_to_app({'type': 'lifespan.startup'})
+        msg = await aio_wait(
+            receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED)
+        if msg and isinstance(msg, t.Mapping):
+            if msg['type'] == 'lifespan.startup.failed':
+                await aio_cancel(task)
+            else:
+                assert msg['type'] == 'lifespan.startup.complete'
+
+        yield
+
+        await send_to_app({'type': 'lifespan.shutdown'})
+        msg = await aio_wait(receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED)
+        if msg and isinstance(msg, t.Mapping):
+            assert msg['type'] == 'lifespan.shutdown.complete'
 
 
 # pylama:ignore=D
