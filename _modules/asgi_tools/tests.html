@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.tests &#8212; asgi-tools 0.54.1 documentation</title>
+    <title>asgi_tools.tests &#8212; asgi-tools 0.55.0 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -128,7 +128,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.54.1
+    Version: 0.55.0
 </div>
 
             </div>
@@ -340,35 +340,10 @@
             <span class="k">yield</span> <span class="n">ws</span>
             <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="ASGITestClient.lifespan"><a class="viewcode-back" href="../../api.html#asgi_tools.tests.ASGITestClient.lifespan">[docs]</a>    <span class="nd">@asynccontextmanager</span>
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">lifespan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3e-2</span><span class="p">):</span>
+<div class="viewcode-block" id="ASGITestClient.lifespan"><a class="viewcode-back" href="../../api.html#asgi_tools.tests.ASGITestClient.lifespan">[docs]</a>    <span class="k">def</span> <span class="nf">lifespan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3e-2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Manage `Lifespan &lt;https://asgi.readthedocs.io/en/latest/specs/lifespan.html&gt;`_ protocol.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">receive_from_client</span><span class="p">,</span> <span class="n">send_to_app</span> <span class="o">=</span> <span class="n">simple_stream</span><span class="p">()</span>
-        <span class="n">receive_from_app</span><span class="p">,</span> <span class="n">send_to_client</span> <span class="o">=</span> <span class="n">simple_stream</span><span class="p">()</span>
-
-        <span class="k">async</span> <span class="k">def</span> <span class="nf">safe_spawn</span><span class="p">():</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan&#39;</span><span class="p">},</span> <span class="n">receive_from_client</span><span class="p">,</span> <span class="n">send_to_client</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
-                <span class="k">pass</span>
-
-        <span class="k">async</span> <span class="k">with</span> <span class="n">aio_spawn</span><span class="p">(</span><span class="n">safe_spawn</span><span class="p">)</span> <span class="k">as</span> <span class="n">task</span><span class="p">:</span>
-            <span class="k">await</span> <span class="n">send_to_app</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan.startup&#39;</span><span class="p">})</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span>
-                <span class="n">receive_from_app</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">msg</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.startup.failed&#39;</span><span class="p">:</span>
-                    <span class="k">await</span> <span class="n">aio_cancel</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">assert</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.startup.complete&#39;</span>
-
-            <span class="k">yield</span>
-
-            <span class="k">await</span> <span class="n">send_to_app</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan.shutdown&#39;</span><span class="p">})</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span><span class="n">receive_from_app</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">msg</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
-                <span class="k">assert</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.shutdown.complete&#39;</span></div>
+        <span class="k">return</span> <span class="n">manage_lifespan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">build_scope</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -457,6 +432,37 @@
     <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;http.request&#39;</span><span class="p">,</span> <span class="s1">&#39;body&#39;</span><span class="p">:</span> <span class="n">chunk</span><span class="p">,</span> <span class="s1">&#39;more_body&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
     <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;http.request&#39;</span><span class="p">,</span> <span class="s1">&#39;body&#39;</span><span class="p">:</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;more_body&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+
+
+<span class="nd">@asynccontextmanager</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">manage_lifespan</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3e-2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Manage `Lifespan &lt;https://asgi.readthedocs.io/en/latest/specs/lifespan.html&gt;`_ protocol.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">receive_from_client</span><span class="p">,</span> <span class="n">send_to_app</span> <span class="o">=</span> <span class="n">simple_stream</span><span class="p">()</span>
+    <span class="n">receive_from_app</span><span class="p">,</span> <span class="n">send_to_client</span> <span class="o">=</span> <span class="n">simple_stream</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">safe_spawn</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">app</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan&#39;</span><span class="p">},</span> <span class="n">receive_from_client</span><span class="p">,</span> <span class="n">send_to_client</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">async</span> <span class="k">with</span> <span class="n">aio_spawn</span><span class="p">(</span><span class="n">safe_spawn</span><span class="p">)</span> <span class="k">as</span> <span class="n">task</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">send_to_app</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan.startup&#39;</span><span class="p">})</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span>
+            <span class="n">receive_from_app</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">msg</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.startup.failed&#39;</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">aio_cancel</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.startup.complete&#39;</span>
+
+        <span class="k">yield</span>
+
+        <span class="k">await</span> <span class="n">send_to_app</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;lifespan.shutdown&#39;</span><span class="p">})</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span><span class="n">receive_from_app</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">msg</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lifespan.shutdown.complete&#39;</span>
 
 
 <span class="c1"># pylama:ignore=D</span>
