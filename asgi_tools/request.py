@@ -40,6 +40,10 @@ class Request(t.MutableMapping):
         self.receive = receive
         self.send = send
 
+    def __repr__(self):
+        """Represent the request."""
+        return f"<Request {self.content_type} {self.method} {self.url.path}>"
+
     def __getitem__(self, key: str) -> t.Any:
         """Proxy the method to the scope."""
         return self.scope[key]
@@ -248,18 +252,24 @@ class Request(t.MutableMapping):
 
         return self._form
 
-    def data(self) -> t.Awaitable[t.Union[str, JSONType, MultiDict]]:
+    async def data(self) -> t.Union[str, JSONType, MultiDict]:
         """The method checks Content-Type Header and parse the request's data automatically.
 
         `data = await request.data()`
 
+        If data is invalid (ex. invalid json) the request's body would be returned.
+
         Returns data from :py:meth:`json` for `application/json`, :py:meth:`form` for
         `application/x-www-form-urlencoded`,  `multipart/form-data` and :py:meth:`text` otherwise.
         """
-        if self.content_type in {'application/x-www-form-urlencoded', 'multipart/form-data'}:
-            return self.form()
+        try:
+            if self.content_type in {'application/x-www-form-urlencoded', 'multipart/form-data'}:
+                return await self.form()
 
-        if self.content_type == 'application/json':
-            return self.json()
+            if self.content_type == 'application/json':
+                return await self.json()
 
-        return self.text()
+            return await self.text()
+
+        except ASGIDecodeError:
+            return await self.body()

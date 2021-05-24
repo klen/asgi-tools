@@ -80,6 +80,18 @@ async def test_multipart(Client):
     assert res.headers['content-length'] == str(len('"""Test Request."""'))
 
 
+async def test_media(GenRequest):
+    req = GenRequest()
+    assert req.media
+    assert req.content_type == ''
+
+    req = GenRequest(headers={'content-type': 'text/html; charset=iso-8859-1'})
+    assert req.media
+    assert req.media['charset']
+    assert req.media['content_type']
+    assert req.content_type == 'text/html'
+
+
 async def test_json(GenRequest):
     from asgi_tools import ASGIError
 
@@ -100,7 +112,7 @@ async def test_data(Client):
     async def app(scope, receive, send):
         request = Request(scope, receive)
         data = await request.data()
-        return isinstance(data, str) and data or dict(data)
+        return isinstance(data, (str, bytes)) and data or dict(data)
 
     app = ResponseMiddleware(app)
     client = Client(app)
@@ -119,3 +131,8 @@ async def test_data(Client):
     res = await client.post('/', data='test passed')
     assert res.status_code == 200
     assert await res.text() == 'test passed'
+
+    # Invalid data
+    res = await client.post('/', data='invalid', headers={'content-type': 'application/json'})
+    assert res.status_code == 200
+    assert await res.text() == 'invalid'
