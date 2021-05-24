@@ -226,7 +226,7 @@ class Request(t.MutableMapping):
         try:
             return json_loads(await self.body())
         except (LookupError, ValueError):
-            raise ASGIDecodeError('Invalid Encoding')
+            raise ASGIDecodeError('Invalid JSON')
 
     async def form(self, max_size: int = 0, upload_to: t.Callable = None,
                    file_memory_limit: int = 1024 * 1024) -> MultiDict:

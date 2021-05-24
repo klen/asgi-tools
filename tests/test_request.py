@@ -80,6 +80,20 @@ async def test_multipart(Client):
     assert res.headers['content-length'] == str(len('"""Test Request."""'))
 
 
+async def test_json(GenRequest):
+    from asgi_tools import ASGIError
+
+    req = GenRequest(body=[b'invalid'])
+    try:
+        await req.json()
+    except ASGIError as exc:
+        assert exc.args[0] == 'Invalid JSON'
+
+    req = GenRequest(body=[b'{"test": 42}'])
+    json = await req.json()
+    assert json == {'test': 42}
+
+
 async def test_data(Client):
     from asgi_tools import ResponseMiddleware, Request
 
