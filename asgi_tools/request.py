@@ -252,7 +252,7 @@ class Request(t.MutableMapping):
 
         return self._form
 
-    async def data(self) -> t.Union[str, JSONType, MultiDict]:
+    async def data(self) -> t.Union[str, bytes, JSONType, MultiDict]:
         """The method checks Content-Type Header and parse the request's data automatically.
 
         `data = await request.data()`
