@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.request &#8212; asgi-tools 0.55.2 documentation</title>
+    <title>asgi_tools.request &#8212; asgi-tools 0.55.4 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -128,7 +128,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.55.2
+    Version: 0.55.4
 </div>
 
             </div>
@@ -191,6 +191,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="n">scope</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">receive</span> <span class="o">=</span> <span class="n">receive</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">send</span> <span class="o">=</span> <span class="n">send</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Represent the request.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;Request </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">content_type</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Proxy the method to the scope.&quot;&quot;&quot;</span>
@@ -400,21 +404,27 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_form</span></div>
 
-<div class="viewcode-block" id="Request.data"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.data">[docs]</a>    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Awaitable</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">JSONType</span><span class="p">,</span> <span class="n">MultiDict</span><span class="p">]]:</span>
+<div class="viewcode-block" id="Request.data"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.data">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">JSONType</span><span class="p">,</span> <span class="n">MultiDict</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The method checks Content-Type Header and parse the request&#39;s data automatically.</span>
 
 <span class="sd">        `data = await request.data()`</span>
 
+<span class="sd">        If data is invalid (ex. invalid json) the request&#39;s body would be returned.</span>
+
 <span class="sd">        Returns data from :py:meth:`json` for `application/json`, :py:meth:`form` for</span>
 <span class="sd">        `application/x-www-form-urlencoded`,  `multipart/form-data` and :py:meth:`text` otherwise.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;application/x-www-form-urlencoded&#39;</span><span class="p">,</span> <span class="s1">&#39;multipart/form-data&#39;</span><span class="p">}:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">form</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;application/x-www-form-urlencoded&#39;</span><span class="p">,</span> <span class="s1">&#39;multipart/form-data&#39;</span><span class="p">}:</span>
+                <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">form</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="s1">&#39;application/json&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="s1">&#39;application/json&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">()</span></div></div>
+            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+
+        <span class="k">except</span> <span class="n">ASGIDecodeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">()</span></div></div>
 </pre></div>
 
               </div>
