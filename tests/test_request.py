@@ -106,7 +106,7 @@ async def test_json(GenRequest):
     assert json == {'test': 42}
 
 
-async def test_data(Client):
+async def test_data(Client, GenRequest):
     from asgi_tools import ResponseMiddleware, Request
 
     async def app(scope, receive, send):
@@ -136,3 +136,9 @@ async def test_data(Client):
     res = await client.post('/', data='invalid', headers={'content-type': 'application/json'})
     assert res.status_code == 200
     assert await res.text() == 'invalid'
+
+    req = GenRequest(body=[b'invalid'], headers={'content-type': 'application/json'})
+    await req.data() == 'invalid'
+
+    with pytest.raises(ValueError):
+        await req.data(True)

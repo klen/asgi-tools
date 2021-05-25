@@ -252,12 +252,13 @@ class Request(t.MutableMapping):
 
         return self._form
 
-    async def data(self) -> t.Union[str, bytes, JSONType, MultiDict]:
+    async def data(self, raise_errors: bool = False) -> t.Union[str, bytes, JSONType, MultiDict]:
         """The method checks Content-Type Header and parse the request's data automatically.
 
         `data = await request.data()`
 
-        If data is invalid (ex. invalid json) the request's body would be returned.
+        If `raise_errors` is false (by default) and the given data is invalid (ex. invalid json)
+        the request's body would be returned.
 
         Returns data from :py:meth:`json` for `application/json`, :py:meth:`form` for
         `application/x-www-form-urlencoded`,  `multipart/form-data` and :py:meth:`text` otherwise.
@@ -272,4 +273,6 @@ class Request(t.MutableMapping):
             return await self.text()
 
         except ASGIDecodeError:
+            if raise_errors:
+                raise
             return await self.body()
