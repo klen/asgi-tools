@@ -131,8 +131,8 @@ class App:
 
         # Register base exception handlers
         self.exception_handlers = {
-            ASGIConnectionClosed: to_awaitable(lambda exc: None),
-            Exception: to_awaitable(lambda exc: ResponseError.INTERNAL_SERVER_ERROR()),
+            ASGIConnectionClosed: to_awaitable(lambda req, exc: None),
+            Exception: to_awaitable(lambda req, exc: ResponseError.INTERNAL_SERVER_ERROR()),
         }
 
         # Setup routing
@@ -190,23 +190,24 @@ class App:
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Convert the given scope into a request and process."""
         scope['app'] = self
+        request = Request(scope, receive, send)
         try:
-            await self.lifespan(Request(scope, receive, send), receive, send)
+            await self.lifespan(request, receive, send)
         except BaseException as exc:  # Handle exceptions
-            response = await self.handle_exc(exc)
+            response = await self.handle_exc(request, exc)
             if response is ...:
                 raise
 
             await parse_response(response)(scope, receive, send)
 
-    async def handle_exc(self, exc: BaseException) -> t.Any:
+    async def handle_exc(self, request: Request, exc: BaseException) -> t.Any:
         """Look for a handler for the given exception."""
         if isinstance(exc, Response) and exc.status_code in self.exception_handlers:
-            return await self.exception_handlers[exc.status_code](exc)
+            return await self.exception_handlers[exc.status_code](request, exc)
 
         for etype in type(exc).mro():
             if etype in self.exception_handlers:
-                return await self.exception_handlers[etype](exc)
+                return await self.exception_handlers[etype](request, exc)
 
         return exc if isinstance(exc, Response) else ...
 
@@ -233,7 +234,19 @@ class App:
         return self.lifespan.on_shutdown(fn)
 
     def on_error(self, etype: t.Union[int, t.Type[BaseException]]):
-        """Register an exception handler."""
+        """Register an exception handler.
+
+        .. code-block::
+
+            @app.on_error(TimeoutError)
+            async def timeout(request, error):
+                return 'Something bad happens'
+
+            @app.on_error(404)
+            async def page_not_found(request, error):
+                return render_template('page_not_found.html'), 404
+
+        """
         def recorder(handler: F) -> F:
             self.exception_handlers[etype] = to_awaitable(handler)
             return handler

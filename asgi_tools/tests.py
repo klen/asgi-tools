@@ -123,7 +123,7 @@ class ASGITestClient:
             self, path: str, method: str = 'GET', query: t.Union[str, t.Dict] = '',
             headers: t.Dict[str, str] = None, cookies: t.Dict = None,
             data: t.Union[bytes, str, t.Dict, t.AsyncGenerator] = b'', json: JSONType = None,
-            follow_redirect: bool = True, timeout: float = 3.0) -> TestResponse:
+            follow_redirect: bool = True, timeout: float = 10.0) -> TestResponse:
         """Make a HTTP requests."""
 
         res = TestResponse()

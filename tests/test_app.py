@@ -167,15 +167,15 @@ async def test_app_handle_exception(Client):
     assert await res.text() == 'Server got itself in trouble'
 
     @app.on_error(Exception)
-    async def handle_unknown(exc):
+    async def handle_unknown(request, exc):
         return 'UNKNOWN: %s' % exc
 
     @app.on_error(404)
-    async def handle_response_error(exc):
+    async def handle_response_error(request, exc):
         return 'Response 404'
 
     @app.on_error(ResponseError)
-    async def handler(exc):
+    async def handler(request, exc):
         return 'Custom Server Error'
 
     async with client.lifespan():
@@ -201,7 +201,7 @@ async def test_app_middleware_simple(client, app):
         raise RuntimeError('Handle me')
 
     @app.on_error(Exception)
-    async def custom_exc(exc):
+    async def custom_exc(request, exc):
         return ResponseHTML('App Exception')
 
     res = await client.get('/err')
