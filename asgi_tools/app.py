@@ -120,7 +120,7 @@ class App:
 
     exception_handlers: t.Dict[
         t.Union[int, t.Type[BaseException]],
-        t.Callable[[BaseException], t.Awaitable]
+        t.Callable[[Request, BaseException], t.Awaitable]
     ]
 
     def __init__(self, *, debug: bool = False,
