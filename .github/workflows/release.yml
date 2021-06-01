@@ -22,7 +22,7 @@ jobs:
       with:
         python-version: 3.9
 
-    - uses: actions/cache@v2.1.5
+    - uses: actions/cache@v2.1.6
       id: cache-c
       with:
         path: asgi_tools/*.c

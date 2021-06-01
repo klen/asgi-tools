@@ -20,7 +20,7 @@ jobs:
       with:
         fetch-depth: 5
 
-    - uses: actions/cache@v2.1.5
+    - uses: actions/cache@v2.1.6
       id: cache-c
       with:
         path: asgi_tools/*.c
@@ -57,7 +57,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Cache pip
-      uses: actions/cache@v2.1.5
+      uses: actions/cache@v2.1.6
       with:
         path: ~/.cache/pip
         key: ${{ hashFiles('setup.cfg') }}
