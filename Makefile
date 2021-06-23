@@ -6,7 +6,7 @@ all: $(VIRTUAL_ENV)
 $(VIRTUAL_ENV): setup.cfg
 	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
 	@$(VIRTUAL_ENV)/bin/pip install -e .[build,tests,examples,docs]
-	@$(VIRTUAL_ENV)/bin/mypy --install-types --non-interactive
+	@$(VIRTUAL_ENV)/bin/mypy --install-types --non-interactive asgi_tools
 	@touch $(VIRTUAL_ENV)
 
 VERSION	?= minor

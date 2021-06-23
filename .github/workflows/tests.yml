@@ -72,7 +72,7 @@ jobs:
     - name: Setup requirements
       run: |
         pip install .[tests]
-        mypy --install-types --non-interactive
+        mypy --install-types --non-interactive asgi_tools
 
     - name: Check typing
       run: mypy asgi_tools
