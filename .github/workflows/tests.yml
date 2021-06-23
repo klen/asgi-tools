@@ -70,12 +70,10 @@ jobs:
       if: matrix.python-version != 'pypy-3.7'
 
     - name: Setup requirements
-      run: |
-        pip install .[tests]
-        mypy --install-types --non-interactive asgi_tools
+      run: pip install .[tests]
 
     - name: Check typing
-      run: mypy asgi_tools
+      run: mypy --install-types --non-interactive asgi_tools
       if: ${{ matrix.python-version != 'pypy-3.7' }}
 
     - name: Test with pytest
