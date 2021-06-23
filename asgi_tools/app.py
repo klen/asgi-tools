@@ -130,10 +130,7 @@ class App:
         """Initialize router and lifespan middleware."""
 
         # Register base exception handlers
-        self.exception_handlers = {
-            ASGIConnectionClosed: to_awaitable(lambda req, exc: None),
-            Exception: to_awaitable(lambda req, exc: ResponseError.INTERNAL_SERVER_ERROR()),
-        }
+        self.exception_handlers = {ASGIConnectionClosed: to_awaitable(lambda req, exc: None)}
 
         # Setup routing
         self.router = router = Router(
@@ -173,9 +170,15 @@ class App:
 
         # Debug mode
         self.debug = debug
-        if self.debug:
-            self.logger.setLevel('DEBUG')
-            del self.exception_handlers[Exception]
+
+        # Handle unknown exceptions
+        if not debug:
+
+            async def handle_unknown_exception(request: Request, exc: BaseException) -> Response:
+                self.logger.exception(exc)
+                return ResponseError.INTERNAL_SERVER_ERROR()
+
+            self.exception_handlers[Exception] = handle_unknown_exception
 
     def __route__(self, router: Router, *prefixes: str, methods: TYPE_METHODS = None, **params):
         """Mount self as a nested application."""
