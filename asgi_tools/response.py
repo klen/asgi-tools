@@ -10,7 +10,7 @@ from http import cookies, HTTPStatus
 from mimetypes import guess_type
 from multidict import MultiDict
 from pathlib import Path
-from urllib.parse import quote_plus
+from urllib.parse import quote, quote_plus
 import os
 import typing as t
 
@@ -223,12 +223,22 @@ class ResponseSSE(ResponseStream):
 
 
 class ResponseFile(ResponseStream):
-    """A helper to stream files as a response body."""
+    """A helper to stream files as a response body.
 
-    def __init__(self, filename: t.Union[str, Path], chunk_size: int = 32 * 1024,
-                 headers_only: bool = False, **kwargs) -> None:
+    :param filepath: The filepath to the file
+    :type filepath: str | Path
+    :param chunk_size: Default chunk size (32768)
+    :type chunk_size: int
+    :param filename: If set, `Content-Disposition` header will be generated
+    :type filename: str
+    :param headers_only: Return only file headers
+    :type headers_only: bool
+
+    """
+
+    def __init__(self, filepath: t.Union[str, Path], *, chunk_size: int = 32 * 1024,
+                 filename: str = None, headers_only: bool = False, **kwargs) -> None:
         """Store filepath to self."""
-        filepath: Path = Path(filename)
         try:
             stat = os.stat(filepath)
         except FileNotFoundError as exc:
@@ -236,18 +246,28 @@ class ResponseFile(ResponseStream):
 
         stream = aio_stream_file(filepath, chunk_size) if not headers_only else None
         super(ResponseFile, self).__init__(stream, **kwargs)  # type: ignore
-        self.headers_only = headers_only
-        self.headers.setdefault(
-            'content-disposition', f'attachment; filename="{filepath.name}"')
-        self.headers.setdefault('content-type', guess_type(str(filepath))[0] or "text/plain")
-        self.headers.setdefault('content-length', str(stat.st_size))
-        self.headers.setdefault('last-modified', formatdate(stat.st_mtime, usegmt=True))
+
+        headers = self.headers
+        if filename and 'content-disposition' not in headers:
+            headers['content-disposition'] = f'attachment; filename="{quote(filename)}"'
+
+        if 'content-type' not in headers:
+            headers['content-type'] = guess_type(filename or str(filepath))[0] or "text/plain"
+
+        headers.setdefault('content-length', str(stat.st_size))
+        headers.setdefault('last-modified', formatdate(stat.st_mtime, usegmt=True))
         etag = str(stat.st_mtime) + "-" + str(stat.st_size)
-        self.headers.setdefault('etag', md5(etag.encode()).hexdigest())
+        headers.setdefault('etag', md5(etag.encode()).hexdigest())
 
 
 class ResponseWebSocket(Response):
-    """A helper to work with websockets."""
+    """A helper to work with websockets.
+
+    :param scope: Request info (ASGI Scope | ASGI-Tools Request)
+    :type scope: dict
+    :param receive: ASGI receive function
+    :param send: ASGI send function
+    """
 
     class STATES(Enum):
         """Represent websocket states."""

@@ -162,7 +162,10 @@ async def test_file_response():
     assert response.headers['content-type'] == 'text/x-python'
     assert response.headers['last-modified']
     assert response.headers['etag']
-    assert response.headers['content-disposition'] == 'attachment; filename="test_responses.py"'
+    assert 'content-disposition' not in response.headers
+
+    response = ResponseFile(__file__, filename='tests.py')
+    assert response.headers['content-disposition'] == 'attachment; filename="tests.py"'
 
     messages = await read_response(response)
     assert len(messages) >= 3

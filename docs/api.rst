@@ -281,7 +281,15 @@ ResponseFile
         from asgi_tools import ResponseFile
 
         async def app(scope, receive, send):
-            response = ResponseFile('/storage/my_best_selfie.jpeg')
+
+            # Return file
+            if scope['path'] == '/selfie':
+                response = ResponseFile('/storage/my_best_selfie.jpeg')
+
+            # Download file
+            else:
+                response = ResponseFile('/storage/video-2020-01-01.mp4', filename='movie.mp4')
+
             await response(scope, receive, send)
 
 ResponseWebSocket
