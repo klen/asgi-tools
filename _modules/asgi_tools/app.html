@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.app &#8212; asgi-tools 0.58.3 documentation</title>
+    <title>asgi_tools.app &#8212; asgi-tools 0.59.0 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -128,7 +128,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.58.3
+    Version: 0.59.0
 </div>
 
             </div>
@@ -282,10 +282,7 @@
         <span class="sd">&quot;&quot;&quot;Initialize router and lifespan middleware.&quot;&quot;&quot;</span>
 
         <span class="c1"># Register base exception handlers</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">ASGIConnectionClosed</span><span class="p">:</span> <span class="n">to_awaitable</span><span class="p">(</span><span class="k">lambda</span> <span class="n">req</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="kc">None</span><span class="p">),</span>
-            <span class="ne">Exception</span><span class="p">:</span> <span class="n">to_awaitable</span><span class="p">(</span><span class="k">lambda</span> <span class="n">req</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="p">()),</span>
-        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span> <span class="o">=</span> <span class="p">{</span><span class="n">ASGIConnectionClosed</span><span class="p">:</span> <span class="n">to_awaitable</span><span class="p">(</span><span class="k">lambda</span> <span class="n">req</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="kc">None</span><span class="p">)}</span>
 
         <span class="c1"># Setup routing</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="p">(</span>
@@ -325,9 +322,15 @@
 
         <span class="c1"># Debug mode</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">)</span>
-            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]</span>
+
+        <span class="c1"># Handle unknown exceptions</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">debug</span><span class="p">:</span>
+
+            <span class="k">async</span> <span class="k">def</span> <span class="nf">handle_unknown_exception</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]</span> <span class="o">=</span> <span class="n">handle_unknown_exception</span>
 
     <span class="k">def</span> <span class="nf">__route__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">router</span><span class="p">:</span> <span class="n">Router</span><span class="p">,</span> <span class="o">*</span><span class="n">prefixes</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">methods</span><span class="p">:</span> <span class="n">TYPE_METHODS</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Mount self as a nested application.&quot;&quot;&quot;</span>
