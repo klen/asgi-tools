@@ -373,7 +373,10 @@ Application
 
             app = App()
 
-            # Register a "classic" middleware, you able to use any ASGI middleware
+            # Classic (any ASGI middleware)
+            app = classic_middleware(app)
+
+            # As an alternative, register a "classic" middleware
             @app.middleware
             def classic_middleware(app):
                 async def handler(scope, receive, send):
@@ -385,11 +388,8 @@ Application
 
                 return handler
 
-            # You also are able to register the middleware as: `app.middleware(classic_middleware)`
-
-            # Register a "simplier" middleware
-            # The middlewares is guaranted to get a response from app and should return a response
-            # also
+            # Register an internal middleware (the middleware function is async)
+            # The middlewares is guaranted to get a response from app and have to return a response
             @app.middleware
             async def simple_middleware(app, request, receive, send):
                 response = await app(request, receive, send)

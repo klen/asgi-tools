@@ -1,6 +1,7 @@
 """Application Tests."""
 
 from pathlib import Path
+from unittest import mock
 
 
 async def test_app(Client):
@@ -196,6 +197,8 @@ async def test_app_handle_exception(Client):
 async def test_app_middleware_simple(client, app):
     from asgi_tools import ResponseHTML
 
+    md_mock = mock.MagicMock()
+
     @app.route('/err')
     async def err(request):
         raise RuntimeError('Handle me')
@@ -209,21 +212,39 @@ async def test_app_middleware_simple(client, app):
     assert await res.text() == 'App Exception'
 
     @app.middleware
-    async def simple_md(app, request, receive, send):
+    async def first_md(app, request, receive, send):
+        md_mock('first start')
         try:
             response = await app(request, receive, send)
-            response.headers['x-simple-md'] = 'passed'
+            if 'x-second-md' in response.headers:
+                response.headers['x-first-md'] = response.headers['x-second-md']
             return response
         except RuntimeError:
             return ResponseHTML('Middleware Exception')
+        finally:
+            md_mock('first exit')
+
+    @app.middleware
+    async def second_md(app, request, receive, send):
+        md_mock('second start')
+        try:
+            response = await app(request, receive, send)
+            response.headers['x-second-md'] = 'passed'
+            return response
+        finally:
+            md_mock('second exit')
 
     res = await client.get('/')
     assert res.status_code == 200
-    assert res.headers['x-simple-md'] == 'passed'
+    assert res.headers['x-first-md'] == 'passed'
+    assert res.headers['x-second-md'] == 'passed'
+    assert [args[0][0] for args in md_mock.call_args_list] == [
+        'first start', 'second start', 'second exit', 'first exit']
 
     res = await client.get('/404')
     assert res.status_code == 404
-    assert 'x-simple-md' not in res.headers
+    assert 'x-first-md' not in res.headers
+    assert 'x-second-md' not in res.headers
 
     res = await client.get('/err')
     assert res.status_code == 200

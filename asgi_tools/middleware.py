@@ -21,7 +21,6 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
 
     def __init__(self, app: ASGIApp = None) -> None:
         """Save ASGI App."""
-
         self.bind(app)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):

@@ -158,6 +158,7 @@ class App:
             return parse_response(response)
 
         self.__internal__ = AppInternalMiddleware(process)  # type: ignore
+        self.__process__ = self.__internal__.app
 
         # Setup lifespan
         self.lifespan = LifespanMiddleware(
@@ -179,6 +180,8 @@ class App:
                 return ResponseError.INTERNAL_SERVER_ERROR()
 
             self.exception_handlers[Exception] = handle_unknown_exception
+
+        self.internal_middlewares: t.List = []
 
     def __route__(self, router: Router, *prefixes: str, methods: TYPE_METHODS = None, **params):
         """Mount self as a nested application."""
@@ -218,7 +221,16 @@ class App:
         """Register a middleware."""
         # Register as a simple middleware
         if iscoroutinefunction(md):
-            self.__internal__.bind(partial(md, self.__internal__.app))
+
+            if md not in self.internal_middlewares:
+                self.internal_middlewares.append(md)
+
+            app = self.__process__
+            for md in reversed(self.internal_middlewares):
+                app = partial(md, app)
+
+            self.__internal__.bind(app)
+
         else:
             self.lifespan.bind(md(self.lifespan.app))
 
