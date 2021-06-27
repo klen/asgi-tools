@@ -217,13 +217,16 @@ class App:
 
         return exc if isinstance(exc, Response) else ...
 
-    def middleware(self, md: F) -> F:
+    def middleware(self, md: F, insert_first: bool = False) -> F:
         """Register a middleware."""
         # Register as a simple middleware
         if iscoroutinefunction(md):
 
             if md not in self.internal_middlewares:
-                self.internal_middlewares.append(md)
+                if insert_first:
+                    self.internal_middlewares.insert(0, md)
+                else:
+                    self.internal_middlewares.append(md)
 
             app = self.__process__
             for md in reversed(self.internal_middlewares):
