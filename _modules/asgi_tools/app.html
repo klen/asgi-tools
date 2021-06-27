@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.app &#8212; asgi-tools 0.59.0 documentation</title>
+    <title>asgi_tools.app &#8212; asgi-tools 0.60.0 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -128,7 +128,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.59.0
+    Version: 0.60.0
 </div>
 
             </div>
@@ -310,6 +310,7 @@
             <span class="k">return</span> <span class="n">parse_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__internal__</span> <span class="o">=</span> <span class="n">AppInternalMiddleware</span><span class="p">(</span><span class="n">process</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__process__</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal__</span><span class="o">.</span><span class="n">app</span>
 
         <span class="c1"># Setup lifespan</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lifespan</span> <span class="o">=</span> <span class="n">LifespanMiddleware</span><span class="p">(</span>
@@ -331,6 +332,8 @@
                 <span class="k">return</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="p">()</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]</span> <span class="o">=</span> <span class="n">handle_unknown_exception</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">List</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span> <span class="nf">__route__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">router</span><span class="p">:</span> <span class="n">Router</span><span class="p">,</span> <span class="o">*</span><span class="n">prefixes</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">methods</span><span class="p">:</span> <span class="n">TYPE_METHODS</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Mount self as a nested application.&quot;&quot;&quot;</span>
@@ -370,7 +373,16 @@
         <span class="sd">&quot;&quot;&quot;Register a middleware.&quot;&quot;&quot;</span>
         <span class="c1"># Register as a simple middleware</span>
         <span class="k">if</span> <span class="n">iscoroutinefunction</span><span class="p">(</span><span class="n">md</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__internal__</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">md</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal__</span><span class="o">.</span><span class="n">app</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">md</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="p">)</span>
+
+            <span class="n">app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__process__</span>
+            <span class="k">for</span> <span class="n">md</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="p">):</span>
+                <span class="n">app</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">md</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">__internal__</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lifespan</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">md</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lifespan</span><span class="o">.</span><span class="n">app</span><span class="p">))</span>
 

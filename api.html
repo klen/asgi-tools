@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API Reference &#8212; asgi-tools 0.59.0 documentation</title>
+    <title>API Reference &#8212; asgi-tools 0.60.0 documentation</title>
     
   <link href="_static/css/theme.css" rel="stylesheet" />
   <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -129,7 +129,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.59.0
+    Version: 0.60.0
 </div>
 
             </div>
@@ -1283,7 +1283,10 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
 
-<span class="c1"># Register a &quot;classic&quot; middleware, you able to use any ASGI middleware</span>
+<span class="c1"># Classic (any ASGI middleware)</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">classic_middleware</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+<span class="c1"># As an alternative, register a &quot;classic&quot; middleware</span>
 <span class="nd">@app</span><span class="o">.</span><span class="n">middleware</span>
 <span class="k">def</span> <span class="nf">classic_middleware</span><span class="p">(</span><span class="n">app</span><span class="p">):</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">handler</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
@@ -1295,11 +1298,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 
     <span class="k">return</span> <span class="n">handler</span>
 
-<span class="c1"># You also are able to register the middleware as: `app.middleware(classic_middleware)`</span>
-
-<span class="c1"># Register a &quot;simplier&quot; middleware</span>
-<span class="c1"># The middlewares is guaranted to get a response from app and should return a response</span>
-<span class="c1"># also</span>
+<span class="c1"># Register an internal middleware (the middleware function is async)</span>
+<span class="c1"># The middlewares is guaranted to get a response from app and have to return a response</span>
 <span class="nd">@app</span><span class="o">.</span><span class="n">middleware</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">simple_middleware</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
     <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">app</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
