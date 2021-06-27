@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.app &#8212; asgi-tools 0.60.0 documentation</title>
+    <title>asgi_tools.app &#8212; asgi-tools 0.61.0 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -128,7 +128,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.60.0
+    Version: 0.61.0
 </div>
 
             </div>
@@ -369,13 +369,16 @@
 
         <span class="k">return</span> <span class="n">exc</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="n">Response</span><span class="p">)</span> <span class="k">else</span> <span class="o">...</span>
 
-<div class="viewcode-block" id="App.middleware"><a class="viewcode-back" href="../../api.html#asgi_tools.App.middleware">[docs]</a>    <span class="k">def</span> <span class="nf">middleware</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">md</span><span class="p">:</span> <span class="n">F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">F</span><span class="p">:</span>
+<div class="viewcode-block" id="App.middleware"><a class="viewcode-back" href="../../api.html#asgi_tools.App.middleware">[docs]</a>    <span class="k">def</span> <span class="nf">middleware</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">md</span><span class="p">:</span> <span class="n">F</span><span class="p">,</span> <span class="n">insert_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">F</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Register a middleware.&quot;&quot;&quot;</span>
         <span class="c1"># Register as a simple middleware</span>
         <span class="k">if</span> <span class="n">iscoroutinefunction</span><span class="p">(</span><span class="n">md</span><span class="p">):</span>
 
             <span class="k">if</span> <span class="n">md</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">insert_first</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">md</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="p">)</span>
 
             <span class="n">app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__process__</span>
             <span class="k">for</span> <span class="n">md</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="p">):</span>
