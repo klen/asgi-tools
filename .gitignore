@@ -1,4 +1,5 @@
 /.benchmarks
+/.eggs
 /.vimrc
 /.vscode
 /_
@@ -9,6 +10,6 @@
 /dist
 /docs/_build
 /env
+/tests/test_zoo.py
 /todo.txt
 /zoo.py
-/tests/test_zoo.py
