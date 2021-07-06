@@ -11,6 +11,7 @@ from mimetypes import guess_type
 from multidict import MultiDict
 from pathlib import Path
 from urllib.parse import quote, quote_plus
+from stat import S_ISDIR
 import os
 import typing as t
 
@@ -243,6 +244,9 @@ class ResponseFile(ResponseStream):
             stat = os.stat(filepath)
         except FileNotFoundError as exc:
             raise ASGIError(*exc.args)
+
+        if S_ISDIR(stat.st_mode):
+            raise ASGIError(f"It's a directory: {filepath}")
 
         stream = aio_stream_file(filepath, chunk_size) if not headers_only else None
         super(ResponseFile, self).__init__(stream, **kwargs)  # type: ignore

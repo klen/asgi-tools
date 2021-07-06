@@ -142,3 +142,6 @@ async def test_staticfiles_middleware(Client, app):
 
     res = await client.get('/static/unknown')
     assert res.status_code == 404
+
+    res = await client.get('/static')
+    assert res.status_code == 404
