@@ -82,6 +82,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     needs: tests
+    steps:
 
     - name: Notify Success
       if: ${{ success() }}
