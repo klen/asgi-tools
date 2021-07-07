@@ -79,6 +79,10 @@ jobs:
     - name: Test with pytest
       run: pytest tests
 
+  notify:
+    runs-on: ubuntu-latest
+    needs: tests
+
     - name: Notify Success
       if: ${{ success() }}
       uses: archive/github-actions-slack@master
