@@ -85,7 +85,6 @@ jobs:
     steps:
 
     - name: Notify Success
-      if: ${{ success() }}
       uses: archive/github-actions-slack@master
       with:
           slack-channel: C2CRL4C4V
@@ -93,13 +92,3 @@ jobs:
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_BOT_TOKEN }}
           slack-optional-as_user: false
           slack-optional-icon_emoji: ":white_check_mark:"
-
-    - name: Notify Failure
-      if: ${{ failure() }}
-      uses: archive/github-actions-slack@master
-      with:
-          slack-channel: C2CRL4C4V
-          slack-text: Tests are failed *[${{ github.ref }}]* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_BOT_TOKEN }}
-          slack-optional-as_user: false
-          slack-optional-icon_emoji: ":red_circle:"
