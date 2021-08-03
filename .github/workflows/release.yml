@@ -130,12 +130,16 @@ jobs:
           user: __token__
           password: ${{ secrets.pypy }}
 
+  notify:
+    runs-on: ubuntu-latest
+    needs: publish
+    steps:
+
     - name: Notify Success
-      if: ${{ success() }}
       uses: archive/github-actions-slack@master
       with:
           slack-channel: C2CRL4C4V
-          slack-text: Build is success *[${{ github.ref }}]* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          slack-text: "*[${{ github.repository }}]* package is published *(${{ github.ref }})* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_BOT_TOKEN }}
           slack-optional-as_user: false
           slack-optional-icon_emoji: ":white_check_mark:"
