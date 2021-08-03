@@ -46,7 +46,8 @@ version = release
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    "sphinx.ext.intersphinx",
+    'sphinx.ext.intersphinx',
+    'sphinx_copybutton',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
