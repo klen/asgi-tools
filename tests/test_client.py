@@ -206,12 +206,14 @@ async def test_websocket(app, Client):
 
     @app.route('/websocket')
     async def websocket(request):
+        assert request.subprotocols == ['ship', 'done']
         async with ResponseWebSocket(request) as ws:
             msg = await ws.receive()
             assert msg == 'ping'
             await ws.send('pong')
 
-    async with Client(app).websocket('/websocket') as ws:
+    async with Client(app).websocket(
+            '/websocket', headers={'sec-websocket-protocol': 'ship,done'}) as ws:
         await ws.send('ping')
         msg = await ws.receive()
         assert msg == 'pong'

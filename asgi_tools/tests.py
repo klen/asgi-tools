@@ -16,7 +16,7 @@ from yarl import URL
 from . import ASGIConnectionClosed
 from ._compat import aio_sleep, aio_spawn, aio_wait, aio_cancel, FIRST_COMPLETED
 from .response import Response, ResponseWebSocket, parse_websocket_msg
-from .utils import to_awaitable, parse_headers
+from .utils import to_awaitable, parse_headers, CIMultiDict
 from .typing import JSONType, Scope, Receive, Send, Message, ASGIApp
 
 
@@ -179,8 +179,11 @@ class ASGITestClient:
         receive_from_client, send_to_app = simple_stream()
         receive_from_app, send_to_client = simple_stream()
 
+        headers = CIMultiDict(headers or {})
+
         scope = self.build_scope(
-            path, headers=headers, query=query, cookies=cookies, type='websocket', subprotocols=[],
+            path, headers=headers, query=query, cookies=cookies, type='websocket',
+            subprotocols=headers.get('Sec-WebSocket-Protocol', '').split(','),
         )
         ws = TestWebSocketResponse(scope, receive_from_app, send_to_app)
         async with aio_spawn(self.app, scope, receive_from_client, send_to_client):
