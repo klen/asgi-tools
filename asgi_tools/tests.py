@@ -180,7 +180,7 @@ class ASGITestClient:
         receive_from_app, send_to_client = simple_stream()
 
         scope = self.build_scope(
-            path, headers=headers, query=query, cookies=cookies, type='websocket'
+            path, headers=headers, query=query, cookies=cookies, type='websocket', subprotocols=[],
         )
         ws = TestWebSocketResponse(scope, receive_from_app, send_to_app)
         async with aio_spawn(self.app, scope, receive_from_client, send_to_client):

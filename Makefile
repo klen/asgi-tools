@@ -60,7 +60,7 @@ mypy: $(VIRTUAL_ENV)
 EXAMPLE = rates
 
 example: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/uvicorn --port 5000 --reload examples.$(EXAMPLE):app
+	$(VIRTUAL_ENV)/bin/uvicorn --loop asyncio --port 5000 --reload examples.$(EXAMPLE):app
 
 $(PACKAGE)/%.c: $(PACKAGE)/%.pyx
 	$(VIRTUAL_ENV)/bin/cython -a $<
