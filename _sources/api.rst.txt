@@ -485,9 +485,10 @@ TestClient
 
             async def test_app():
                 client = ASGITestClient(app)
-                await ws.send('ping')
-                msg = await ws.receive()
-                assert msg == 'pong'
+                async with client.websocket('/websocket') as ws:
+                    await ws.send('ping')
+                    msg = await ws.receive()
+                    assert msg == 'pong'
 
    .. automethod:: lifespan
 
