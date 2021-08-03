@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.tests &#8212; asgi-tools 0.61.2 documentation</title>
+    <title>asgi_tools.tests &#8212; asgi-tools 0.61.4 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
   <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -131,7 +131,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.61.2
+    Version: 0.61.4
 </div>
 
             </div>
@@ -171,7 +171,7 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">ASGIConnectionClosed</span>
 <span class="kn">from</span> <span class="nn">._compat</span> <span class="kn">import</span> <span class="n">aio_sleep</span><span class="p">,</span> <span class="n">aio_spawn</span><span class="p">,</span> <span class="n">aio_wait</span><span class="p">,</span> <span class="n">aio_cancel</span><span class="p">,</span> <span class="n">FIRST_COMPLETED</span>
 <span class="kn">from</span> <span class="nn">.response</span> <span class="kn">import</span> <span class="n">Response</span><span class="p">,</span> <span class="n">ResponseWebSocket</span><span class="p">,</span> <span class="n">parse_websocket_msg</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">to_awaitable</span><span class="p">,</span> <span class="n">parse_headers</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">to_awaitable</span><span class="p">,</span> <span class="n">parse_headers</span><span class="p">,</span> <span class="n">CIMultiDict</span>
 <span class="kn">from</span> <span class="nn">.typing</span> <span class="kn">import</span> <span class="n">JSONType</span><span class="p">,</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Send</span><span class="p">,</span> <span class="n">Message</span><span class="p">,</span> <span class="n">ASGIApp</span>
 
 
@@ -334,8 +334,11 @@
         <span class="n">receive_from_client</span><span class="p">,</span> <span class="n">send_to_app</span> <span class="o">=</span> <span class="n">simple_stream</span><span class="p">()</span>
         <span class="n">receive_from_app</span><span class="p">,</span> <span class="n">send_to_client</span> <span class="o">=</span> <span class="n">simple_stream</span><span class="p">()</span>
 
+        <span class="n">ci_headers</span> <span class="o">=</span> <span class="n">CIMultiDict</span><span class="p">(</span><span class="n">headers</span> <span class="ow">or</span> <span class="p">{})</span>
+
         <span class="n">scope</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_scope</span><span class="p">(</span>
-            <span class="n">path</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">cookies</span><span class="o">=</span><span class="n">cookies</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;websocket&#39;</span><span class="p">,</span> <span class="n">subprotocols</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">path</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">ci_headers</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">cookies</span><span class="o">=</span><span class="n">cookies</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;websocket&#39;</span><span class="p">,</span>
+            <span class="n">subprotocols</span><span class="o">=</span><span class="n">ci_headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Sec-WebSocket-Protocol&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="n">ws</span> <span class="o">=</span> <span class="n">TestWebSocketResponse</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive_from_app</span><span class="p">,</span> <span class="n">send_to_app</span><span class="p">)</span>
         <span class="k">async</span> <span class="k">with</span> <span class="n">aio_spawn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">receive_from_client</span><span class="p">,</span> <span class="n">send_to_client</span><span class="p">):</span>
@@ -349,8 +352,8 @@
         <span class="k">return</span> <span class="n">manage_lifespan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">build_scope</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">cookies</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">scope</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scope</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">,</span> <span class="n">CIMultiDict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">query</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cookies</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">Dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">scope</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Scope</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Prepare a request scope.&quot;&quot;&quot;</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;Remote-Addr&#39;</span><span class="p">,</span> <span class="s1">&#39;127.0.0.1&#39;</span><span class="p">)</span>
