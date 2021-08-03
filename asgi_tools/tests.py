@@ -179,11 +179,11 @@ class ASGITestClient:
         receive_from_client, send_to_app = simple_stream()
         receive_from_app, send_to_client = simple_stream()
 
-        headers = CIMultiDict(headers or {})
+        ci_headers = CIMultiDict(headers or {})
 
         scope = self.build_scope(
-            path, headers=headers, query=query, cookies=cookies, type='websocket',
-            subprotocols=headers.get('Sec-WebSocket-Protocol', '').split(','),
+            path, headers=ci_headers, query=query, cookies=cookies, type='websocket',
+            subprotocols=ci_headers.get('Sec-WebSocket-Protocol', '').split(','),
         )
         ws = TestWebSocketResponse(scope, receive_from_app, send_to_app)
         async with aio_spawn(self.app, scope, receive_from_client, send_to_client):
@@ -197,8 +197,8 @@ class ASGITestClient:
         return manage_lifespan(self.app, timeout=timeout)
 
     def build_scope(
-            self, path: str, headers: t.Dict = None, query: t.Union[str, t.Dict] = None,
-            cookies: t.Dict = None, **scope) -> Scope:
+            self, path: str, headers: t.Union[t.Dict, CIMultiDict] = None,
+            query: t.Union[str, t.Dict] = None, cookies: t.Dict = None, **scope) -> Scope:
         """Prepare a request scope."""
         headers = headers or {}
         headers.setdefault('Remote-Addr', '127.0.0.1')
