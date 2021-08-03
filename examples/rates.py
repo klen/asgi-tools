@@ -3,6 +3,8 @@
 The example requires httpx to be installed.
 """
 
+import datetime
+
 from httpx import AsyncClient
 
 from asgi_tools import App
@@ -31,31 +33,34 @@ async def rates(request):
     """Load currency rates and render a template."""
     currency = request.path_params.get('currency', 'USD')
     response = await client.request(
-        'GET', f"https://api.exchangeratesapi.io/latest?base={ currency }")
+        'GET', f"http://www.floatrates.com/daily/{currency.lower()}.json")
 
-    status, data = 200, response.json()
-    if data.get('error'):
+    if response.status_code != 200:
         status = 404
         content = f"""
             <h1>{currency} not found</h1>
             <a href="/">Go home</a>
         """
+
     else:
-        data['rates'].setdefault(currency, 1.0)
+        status, data = 200, response.json()
         table = ""
-        for cur, rate in sorted(data['rates'].items()):
+        date = datetime.datetime.utcnow().isoformat()
+        data[currency.lower()] = {'code': currency, 'rate': 1.0}
+        for _, info in sorted(data.items()):
+            code, rate = info['code'], info['rate']
             table += f"""
-                <tr class="{data['base'] == cur and 'bg-primary'}"
-                    onclick="window.location='/base/{cur}'" role="button">
+                <tr class="{code == currency and 'bg-primary'}"
+                    onclick="window.location='/base/{code}'" role="button">
                     <td>
-                        <a href="/base/{cur}" class="{ data['base'] == cur and 'text-light'}">{cur}</a>
+                        <a href="/base/{code}" class="{ code == currency and 'text-light'}">{code}</a>
                     </td>
-                    <td>{ round(rate, 3) } { data['base'] }</td>
+                    <td>{ round(rate, 3) } { currency }</td>
                 </tr>
             """
         content = f"""
-            <h1>Currency rates: { data['base'] }
-                <span class="badge badge-secondary">{data['date']}</span></h1>
+            <h1>Currency rates: { currency }
+                <span class="badge badge-secondary">{date}</span></h1>
             <table class="table table-hover table-dark">
                 <tr> <th>Currency</th> <th>Rate</th> </tr>
                 {table}
