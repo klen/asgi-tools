@@ -68,7 +68,7 @@ class TestWebSocketResponse(ResponseWebSocket):
         return self.send({'type': 'websocket.connect'})
 
     async def disconnect(self):
-        await self.send({'type': 'websocket.disconnect'})
+        await self.send({'type': 'websocket.disconnect', 'code': 1005})
         self.state = self.STATES.disconnected
 
     def send(self, msg, type='websocket.receive'):

@@ -217,8 +217,22 @@ async def test_websocket(app, Client):
         await ws.send('ping')
         msg = await ws.receive()
         assert msg == 'pong'
+
         with pytest.raises(ASGIConnectionClosed):
             await ws.receive()
+
+
+async def test_websocket_disconnect(app, Client):
+    from asgi_tools import ResponseWebSocket
+
+    @app.route('/websocket')
+    async def websocket(request):
+        async with ResponseWebSocket(request) as ws:
+            msg = await ws.receive()
+            assert msg == {'type': 'websocket.disconnect', 'code': 1005}
+
+    async with Client(app).websocket('/websocket') as ws:
+        pass
 
 
 async def test_timeouts(app, client):
