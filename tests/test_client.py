@@ -203,6 +203,7 @@ async def test_stream_request(app, client):
 
 async def test_websocket(app, Client):
     from asgi_tools import ResponseWebSocket, ASGIConnectionClosed
+    from asgi_tools._compat import aio_sleep
 
     @app.route('/websocket')
     async def websocket(request):

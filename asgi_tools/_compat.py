@@ -89,7 +89,9 @@ async def aio_spawn(fn: t.Callable[..., t.Awaitable], *args, **kwargs):
         await task.join()
 
     else:
-        yield create_task(fn(*args, **kwargs))
+        task = create_task(fn(*args, **kwargs))
+        yield task
+        await asyncio.gather(task)
 
 
 async def aio_wait(*aws: t.Awaitable, strategy: str = ALL_COMPLETED) -> t.Any:
