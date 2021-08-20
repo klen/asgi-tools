@@ -21,14 +21,14 @@ cdef class QueryStringParser(BaseParser):
 
 cdef class MultipartParser(BaseParser):
 
-    cdef int cursize
-    cdef int max_size
+    cdef unsigned int cursize
+    cdef unsigned int max_size
     cdef unsigned char state
-    cdef int index
+    cdef unsigned int index
     cdef short flags
-    cdef short header_field_pos
-    cdef short header_value_pos
-    cdef short part_data_pos
+    cdef int header_field_pos
+    cdef int header_value_pos
+    cdef int part_data_pos
     cdef bytes boundary
     cdef frozenset boundary_chars
     cdef list lookbehind

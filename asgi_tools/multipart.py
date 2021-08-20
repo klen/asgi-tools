@@ -18,9 +18,9 @@ CR = b'\r'[0]
 EQUAL = b'='[0]
 HYPHEN = b'-'[0]
 LF = b'\n'[0]
-NULL = b'\x00'[0]
 SEMICOLON = b';'[0]
 SPACE = b' '[0]
+EMPTY = b'\x00'[0]
 
 
 class BaseParser:
@@ -43,13 +43,12 @@ class BaseParser:
 
     """
 
+    __slots__ = 'callbacks',
+
     def __init__(self, callbacks: t.Dict):
-        self.callbacks = callbacks or {}
+        self.callbacks = callbacks
 
-    def callback(self, name: str, data: bytes = None, start: int = 0, end: int = 0):
-        if data is not None and start == end:
-            return
-
+    def callback(self, name: str, data: bytes, start: int, end: int):
         try:
             func = self.callbacks[name]
             func(data, start, end)
@@ -101,6 +100,8 @@ class QueryStringParser(BaseParser):
     :param max_size: the maximum size of body to parse.  defaults to 0
     """
 
+    __slots__ = 'callbacks', 'cursize', 'max_size', 'state'
+
     def __init__(self, callbacks: t.Dict, max_size: int = 0):
         self.callbacks = callbacks
         self.cursize = 0
@@ -119,7 +120,7 @@ class QueryStringParser(BaseParser):
             if state == STATE_BEFORE_FIELD:
 
                 if not (ch == AMPERSAND or ch == SEMICOLON):
-                    self.callback('field_start')
+                    self.callback('field_start', b'', 0, 0)
                     idx -= 1
                     state = STATE_FIELD_NAME
 
@@ -145,7 +146,7 @@ class QueryStringParser(BaseParser):
 
                     else:
                         self.callback('field_name', data, idx, sep_pos)
-                        self.callback('field_end')
+                        self.callback('field_end', b'', 0, 0)
                         idx = sep_pos - 1
                         state = STATE_BEFORE_FIELD
 
@@ -160,7 +161,7 @@ class QueryStringParser(BaseParser):
 
                 else:
                     self.callback('field_data', data, idx, sep_pos)
-                    self.callback('field_end')
+                    self.callback('field_end', b'', 0, 0)
 
                     idx = sep_pos - 1
                     state = STATE_BEFORE_FIELD
@@ -180,8 +181,8 @@ class QueryStringParser(BaseParser):
         """
         # If we're currently in the middle of a field, we finish it.
         if self.state == STATE_FIELD_DATA:
-            self.callback('field_end')
-        self.callback('end')
+            self.callback('field_end', b'', 0, 0)
+        self.callback('end', b'', 0, 0)
 
 
 STATE_START                     = 0
@@ -250,9 +251,14 @@ class MultipartParser(BaseParser):
                       :class:`BaseParser`.
 
     :param max_size: The maximum size of body to parse.  Defaults to 0
+
     """
 
-    def __init__(self, boundary, callbacks={}, max_size=0):
+    __slots__ = (
+        'callbacks', 'cursize', 'max_size', 'state', 'index', 'flags', 'header_field_pos',
+        'header_value_pos', 'part_data_pos', 'boundary', 'boundary_chars', 'lookbehind')
+
+    def __init__(self, boundary, callbacks: t.Dict, max_size: int = 0):
         self.callbacks = callbacks
         self.cursize = 0
         self.max_size = max_size
@@ -275,7 +281,7 @@ class MultipartParser(BaseParser):
         # Note: the +8 is since we can have, at maximum, "\r\n--" + boundary +
         # "--\r\n" at the final boundary, and the length of '\r\n--' and
         # '--\r\n' is 8 bytes.
-        self.lookbehind = [NULL for x in range(len(boundary) + 8)]
+        self.lookbehind = [EMPTY for x in range(len(boundary) + 8)]
 
     def write(self, data):  # noqa
         data_len = prune_data(len(data), self.cursize, self.max_size)
@@ -293,17 +299,17 @@ class MultipartParser(BaseParser):
             if state == STATE_START_BOUNDARY:
                 # Check to ensure that the last 2 characters in our boundary
                 # are CRLF.
-                if index == len(boundary) - 2:
+                if index == boundary_len - 2:
                     if ch != CR:
                         raise ValueError(f"Did not find \\r at end of boundary ({idx})")
                     index += 1
 
-                elif index == len(boundary) - 2 + 1:
+                elif index == boundary_len - 2 + 1:
                     if ch != LF:
                         raise ValueError(f"Did not find \\n at end of boundary ({idx})")
 
                     state = STATE_HEADER_FIELD_START
-                    self.callback('part_begin')
+                    self.callback('part_begin', b'', 0, 0)
 
                 # Check to ensure our boundary matches
                 elif ch == boundary[index + 2]:
@@ -364,7 +370,7 @@ class MultipartParser(BaseParser):
                         self.callback('header_value', data, self.header_value_pos, idx)
                         self.header_value_pos = -1
 
-                    self.callback('header_end')
+                    self.callback('header_end', b'', 0, 0)
                     state = STATE_HEADER_VALUE_ALMOST_DONE
 
             elif state == STATE_HEADER_VALUE_ALMOST_DONE:
@@ -384,7 +390,7 @@ class MultipartParser(BaseParser):
                 if ch != LF:
                     raise ValueError(f"Did not find \\n at end of headers (found {chr(ch)})")
 
-                self.callback('headers_finished')
+                self.callback('headers_finished', b'', 0, 0)
                 # Mark the start of our part data.
                 self.part_data_pos = idx + 1
                 state = STATE_PART_DATA
@@ -470,8 +476,8 @@ class MultipartParser(BaseParser):
 
                             # Callback indicating that we've reached the end of
                             # a part, and are starting a new one.
-                            self.callback('part_end')
-                            self.callback('part_begin')
+                            self.callback('part_end', b'', 0, 0)
+                            self.callback('part_begin', b'', 0, 0)
 
                             # Move to parsing new headers.
                             index = 0
@@ -491,8 +497,8 @@ class MultipartParser(BaseParser):
                         if ch == HYPHEN:
                             # Callback to end the current part, and then the
                             # message.
-                            self.callback('part_end')
-                            self.callback('end')
+                            self.callback('part_end', b'', 0, 0)
+                            self.callback('end', b'', 0, 0)
                             state = STATE_END
                         else:
                             # No match, so reset index.

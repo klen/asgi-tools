@@ -16,9 +16,9 @@ cdef char CR = b'\r'
 cdef char EQUAL = b'='
 cdef char HYPHEN = b'-'
 cdef char LF = b'\n'
-cdef char NULL = b'\x00'
 cdef char SEMICOLON = b';'
 cdef char SPACE = b' '
+cdef char EMPTY = b'\x00'
 
 
 cdef class BaseParser:
@@ -45,9 +45,6 @@ cdef class BaseParser:
         self.callbacks = callbacks
 
     cdef void callback(self, str name, bytes data, int start, int end) except *:
-        if data is not None and start == end:
-            return
-
         try:
             func = self.callbacks[name]
             func(data, start, end)
@@ -117,7 +114,7 @@ cdef class QueryStringParser(BaseParser):
             if state == STATE_BEFORE_FIELD:
 
                 if not (ch == AMPERSAND or ch == SEMICOLON):
-                    self.callback('field_start', None, 0, 0)
+                    self.callback('field_start', b'', 0, 0)
                     idx -= 1
                     state = STATE_FIELD_NAME
 
@@ -143,7 +140,7 @@ cdef class QueryStringParser(BaseParser):
 
                     else:
                         self.callback('field_name', data, idx, sep_pos)
-                        self.callback('field_end', None, 0, 0)
+                        self.callback('field_end', b'', 0, 0)
                         idx = sep_pos - 1
                         state = STATE_BEFORE_FIELD
 
@@ -158,7 +155,7 @@ cdef class QueryStringParser(BaseParser):
 
                 else:
                     self.callback('field_data', data, idx, sep_pos)
-                    self.callback('field_end', None, 0, 0)
+                    self.callback('field_end', b'', 0, 0)
 
                     idx = sep_pos - 1
                     state = STATE_BEFORE_FIELD
@@ -178,8 +175,8 @@ cdef class QueryStringParser(BaseParser):
         """
         # If we're currently in the middle of a field, we finish it.
         if self.state == STATE_FIELD_DATA:
-            self.callback('field_end', None, 0, 0)
-        self.callback('end', None, 0, 0)
+            self.callback('field_end', b'', 0, 0)
+        self.callback('end', b'', 0, 0)
 
 
 cdef unsigned char STATE_START                     = 0
@@ -273,20 +270,19 @@ cdef class MultipartParser(BaseParser):
         # Note: the +8 is since we can have, at maximum, "\r\n--" + boundary +
         # "--\r\n" at the final boundary, and the length of '\r\n--' and
         # '--\r\n' is 8 bytes.
-        #  self.lookbehind = []
-        self.lookbehind = [None for x in range(len(boundary) + 8)]
+        self.lookbehind = [EMPTY for x in range(len(boundary) + 8)]
 
     cpdef void write(self, bytes data) except *:  # noqa
         cdef int data_len = prune_data(len(data), self.cursize, self.max_size)
 
         cdef int idx = 0
-        cdef int index = self.index, prev_index
+        cdef unsigned int index = self.index
         cdef unsigned char state = self.state
         cdef short flags = self.flags
         cdef bytes boundary = self.boundary
-        cdef int boundary_len = len(boundary)
+        cdef unsigned int boundary_len = len(boundary)
         cdef char ch
-        cdef int boundary_end
+        cdef int boundary_end, prev_index
 
         while idx < data_len:
             ch = data[idx]
@@ -304,7 +300,7 @@ cdef class MultipartParser(BaseParser):
                         raise ValueError(f"Did not find \\n at end of boundary ({idx})")
 
                     state = STATE_HEADER_FIELD_START
-                    self.callback('part_begin', None, 0, 0)
+                    self.callback('part_begin', b'', 0, 0)
 
                 # Check to ensure our boundary matches
                 elif ch == boundary[index + 2]:
@@ -365,7 +361,7 @@ cdef class MultipartParser(BaseParser):
                         self.callback('header_value', data, self.header_value_pos, idx)
                         self.header_value_pos = -1
 
-                    self.callback('header_end', None, 0, 0)
+                    self.callback('header_end', b'', 0, 0)
                     state = STATE_HEADER_VALUE_ALMOST_DONE
 
             elif state == STATE_HEADER_VALUE_ALMOST_DONE:
@@ -385,7 +381,7 @@ cdef class MultipartParser(BaseParser):
                 if ch != LF:
                     raise ValueError(f"Did not find \\n at end of headers (found {chr(ch)})")
 
-                self.callback('headers_finished', None, 0, 0)
+                self.callback('headers_finished', b'', 0, 0)
                 # Mark the start of our part data.
                 self.part_data_pos = idx + 1
                 state = STATE_PART_DATA
@@ -471,8 +467,8 @@ cdef class MultipartParser(BaseParser):
 
                             # Callback indicating that we've reached the end of
                             # a part, and are starting a new one.
-                            self.callback('part_end', None, 0, 0)
-                            self.callback('part_begin', None, 0, 0)
+                            self.callback('part_end', b'', 0, 0)
+                            self.callback('part_begin', b'', 0, 0)
 
                             # Move to parsing new headers.
                             index = 0
@@ -492,8 +488,8 @@ cdef class MultipartParser(BaseParser):
                         if ch == HYPHEN:
                             # Callback to end the current part, and then the
                             # message.
-                            self.callback('part_end', None, 0, 0)
-                            self.callback('end', None, 0, 0)
+                            self.callback('part_end', b'', 0, 0)
+                            self.callback('end', b'', 0, 0)
                             state = STATE_END
                         else:
                             # No match, so reset index.
@@ -510,7 +506,7 @@ cdef class MultipartParser(BaseParser):
                 # data.
                 elif prev_index > 0:
                     # Callback to write the saved data.
-                    lb_data = bytes(filter(None, self.lookbehind))
+                    lb_data = bytes(self.lookbehind)
                     self.callback('part_data', lb_data, 0, prev_index)
 
                     # Overwrite our previous index.

@@ -129,3 +129,26 @@ websockets = Template(
         </html>
     """
 )
+
+static = Template(
+    """
+    <html>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <body>
+            <div class="container">
+                <h1 class="mb-4"> ASGI Tools Static files example </h1>
+                <div class="mp-3">
+                    <img class="img-fluid" src="/image?{{salt}}" />
+                </div>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="upload" class="form-label"> Select an image </label>
+                        <input class="form-control" type="file" id="upload" name="upload" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </body>
+    </html>
+    """
+)
