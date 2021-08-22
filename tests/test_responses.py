@@ -27,27 +27,14 @@ async def test_response():
     }
     assert messages[1] == {'body': b'Content', 'type': 'http.response.body'}
 
-
-async def test_parse_response():
-    from asgi_tools import parse_response
-
-    response = parse_response({'test': 'passed'})
-    assert response.status_code == 200
-    assert response.headers['content-type'] == 'application/json'
-    _, body = await read_response(response)
-    assert body == {'body': b'{"test":"passed"}', 'type': 'http.response.body'}
-
-    response = parse_response((500, 'SERVER ERROR'))
-    assert response.status_code == 500
-    assert response.content == b'SERVER ERROR'
-
-    response = parse_response((302, {'location': 'https://google.com'}, 'go away'))
-    assert response.status_code == 302
-    assert response.content == b'go away'
-    assert response.headers['location'] == 'https://google.com'
-
-    with pytest.raises(AssertionError):
-        parse_response((None, 'SERVER ERROR'))
+    response = Response(b"image", content_type="image/png")
+    messages = await read_response(response)
+    assert messages == [
+        {
+            'type': 'http.response.start', 'status': 200,
+            'headers': [(b'content-type', b'image/png'), (b'content-length', b'5')]},
+        {'type': 'http.response.body', 'body': b'image'}
+    ]
 
 
 async def test_html_response():
@@ -58,6 +45,13 @@ async def test_html_response():
     assert response.headers['content-type'] == 'text/html; charset=utf-8'
     assert response.content == b"Content"
 
+    messages = await read_response(response)
+    assert messages == [
+        {'type': 'http.response.start', 'status': 200,
+         'headers': [(b'content-type', b'text/html; charset=utf-8'), (b'content-length', b'7')]},
+        {'type': 'http.response.body', 'body': b'Content'}
+    ]
+
 
 async def test_text_response():
     from asgi_tools import ResponseText
@@ -66,6 +60,13 @@ async def test_text_response():
     assert response.status_code == 200
     assert response.headers['content-type'] == 'text/plain; charset=utf-8'
     assert response.content == b"Content"
+
+    messages = await read_response(response)
+    assert messages == [
+        {'type': 'http.response.start', 'status': 200,
+         'headers': [(b'content-type', b'text/plain; charset=utf-8'), (b'content-length', b'7')]},
+        {'type': 'http.response.body', 'body': b'Content'}
+    ]
 
 
 async def test_json_response():
@@ -76,6 +77,21 @@ async def test_json_response():
     assert response.headers['content-type'] == 'application/json'
     assert response.content == b"[1,2,3]"
 
+    messages = await read_response(response)
+    assert messages == [
+        {
+            'type': 'http.response.start', 'status': 200,
+            'headers': [(b'content-type', b'application/json'), (b'content-length', b'7')]
+        }, {'type': 'http.response.body', 'body': b'[1,2,3]'}]
+
+    response = ResponseJSON(None)
+    messages = await read_response(response)
+    assert messages == [
+        {
+            'type': 'http.response.start', 'status': 200,
+            'headers': [(b'content-type', b'application/json'), (b'content-length', b'4')]
+        }, {'type': 'http.response.body', 'body': b'null'}]
+
 
 async def test_redirect_response():
     from asgi_tools import ResponseRedirect
@@ -84,6 +100,11 @@ async def test_redirect_response():
     assert response.status_code == 307
     assert response.headers['location'] == '/logout'
     assert response.content == b""
+    messages = await read_response(response)
+    assert messages == [
+        {'type': 'http.response.start', 'status': 307,
+         'headers': [(b'location', b'/logout'), (b'content-length', b'0')]},
+        {'type': 'http.response.body', 'body': b''}]
 
 
 async def test_error_response():
@@ -213,6 +234,28 @@ async def test_websocket_response(Client):
         assert msg == ['ping', 'pong']
         with pytest.raises(ASGIConnectionClosed):
             await ws.receive()
+
+
+async def test_parse_response():
+    from asgi_tools import parse_response
+
+    response = parse_response({'test': 'passed'})
+    assert response.status_code == 200
+    assert response.headers['content-type'] == 'application/json'
+    _, body = await read_response(response)
+    assert body == {'body': b'{"test":"passed"}', 'type': 'http.response.body'}
+
+    response = parse_response((500, 'SERVER ERROR'))
+    assert response.status_code == 500
+    assert response.content == b'SERVER ERROR'
+
+    response = parse_response((302, {'location': 'https://google.com'}, 'go away'))
+    assert response.status_code == 302
+    assert response.content == b'go away'
+    assert response.headers['location'] == 'https://google.com'
+
+    with pytest.raises(AssertionError):
+        parse_response((None, 'SERVER ERROR'))
 
 
 async def read_response(response):
