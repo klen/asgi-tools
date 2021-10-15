@@ -4,11 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API Reference &#8212; asgi-tools 0.61.7 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>API Reference &#8212; asgi-tools 0.62.0 documentation</title>
     
-  <link href="_static/css/theme.css" rel="stylesheet" />
-  <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+  <link href="_static/css/theme.css" rel="stylesheet">
+  <link href="_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
 
     
   <link rel="stylesheet"
@@ -23,10 +24,10 @@
 
     
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/basic.css" />
+    <link rel="stylesheet" type="text/css" href="_static/css/blank.css" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
     
-  <link rel="preload" as="script" href="_static/js/index.1c5a1a01449ed65a7b51.js">
+  <link rel="preload" as="script" href="_static/js/index.be7d3bbb2ef33a8344ce.js">
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
@@ -38,7 +39,10 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Usage" href="usage.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="en" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
     
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
@@ -132,7 +136,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.61.7
+    Version: 0.62.0
 </div>
 
             </div>
@@ -283,10 +287,10 @@
               
               <div>
                 
-  <div class="section" id="module-asgi_tools">
+  <section id="module-asgi_tools">
 <span id="api-reference"></span><h1>API Reference<a class="headerlink" href="#module-asgi_tools" title="Permalink to this headline">¶</a></h1>
 <p>This part of the documentation covers all the interfaces of ASGI-Tools.</p>
-<div class="section" id="request">
+<section id="request">
 <h2>Request<a class="headerlink" href="#request" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.Request">
@@ -302,7 +306,7 @@ receive event messages from the client</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 <p>The class gives you an nicer interface to incoming HTTP request.</p>
@@ -335,14 +339,14 @@ receive event messages from the client</p></li>
 <dt class="sig sig-object py" id="asgi_tools.Request.headers">
 <span class="sig-name descname"><span class="pre">headers</span></span><a class="headerlink" href="#asgi_tools.Request.headers" title="Permalink to this definition">¶</a></dt>
 <dd><p>A lazy property that parses the current scope’s headers, decodes them as strings and
-returns case-insensitive multi-dict <a class="reference external" href="https://multidict.readthedocs.io/en/stable/multidict.html#multidict.CIMultiDict" title="(in multidict v5.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">multidict.CIMultiDict</span></code></a>.</p>
+returns case-insensitive multi-dict <a class="reference external" href="https://multidict.readthedocs.io/en/stable/multidict.html#multidict.CIMultiDict" title="(in multidict v5.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">multidict.CIMultiDict</span></code></a>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;content-type&#39;</span><span class="p">]</span>
 <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;authorization&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>See <a class="reference external" href="https://multidict.readthedocs.io/en/stable/multidict.html#module-multidict" title="(in multidict v5.1)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">multidict</span></code></a> documentation for futher reference.</p>
+<p>See <a class="reference external" href="https://multidict.readthedocs.io/en/stable/multidict.html#module-multidict" title="(in multidict v5.2)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">multidict</span></code></a> documentation for futher reference.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -359,7 +363,7 @@ returns case-insensitive multi-dict <a class="reference external" href="https://
 <dt class="sig sig-object py" id="asgi_tools.Request.query">
 <span class="sig-name descname"><span class="pre">query</span></span><a class="headerlink" href="#asgi_tools.Request.query" title="Permalink to this definition">¶</a></dt>
 <dd><p>A lazy property that parse the current query string and returns it as a
-<a class="reference external" href="https://multidict.readthedocs.io/en/stable/multidict.html#multidict.MultiDict" title="(in multidict v5.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">multidict.MultiDict</span></code></a>.</p>
+<a class="reference external" href="https://multidict.readthedocs.io/en/stable/multidict.html#multidict.MultiDict" title="(in multidict v5.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">multidict.MultiDict</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -377,7 +381,7 @@ returns case-insensitive multi-dict <a class="reference external" href="https://
 <dl class="py attribute">
 <dt class="sig sig-object py" id="asgi_tools.Request.url">
 <span class="sig-name descname"><span class="pre">url</span></span><a class="headerlink" href="#asgi_tools.Request.url" title="Permalink to this definition">¶</a></dt>
-<dd><p>A lazy property that parses the current URL and returns <a class="reference external" href="https://yarl.readthedocs.io/en/stable/api.html#yarl.URL" title="(in yarl v1.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">yarl.URL</span></code></a> object.</p>
+<dd><p>A lazy property that parses the current URL and returns <a class="reference external" href="https://yarl.readthedocs.io/en/stable/api.html#yarl.URL" title="(in yarl v1.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">yarl.URL</span></code></a> object.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">)</span>
 <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;... the full http URL ..&#39;</span>
 <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">scheme</span>
@@ -386,7 +390,7 @@ returns case-insensitive multi-dict <a class="reference external" href="https://
 <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">query_string</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 </pre></div>
 </div>
-<p>See <a class="reference external" href="https://yarl.readthedocs.io/en/stable/api.html#module-yarl" title="(in yarl v1.6)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">yarl</span></code></a> documentation for further reference.</p>
+<p>See <a class="reference external" href="https://yarl.readthedocs.io/en/stable/api.html#module-yarl" title="(in yarl v1.7)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">yarl</span></code></a> documentation for further reference.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -427,7 +431,7 @@ variable if you need.</p>
 <p><cite>body = await request.body()</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.9)">bytes</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)">bytes</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -439,7 +443,7 @@ variable if you need.</p>
 <p><cite>text = await request.text()</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -454,9 +458,9 @@ Any subsequent calls to <a class="reference internal" href="#asgi_tools.Request.
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>max_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>max_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – </p></li>
 <li><p><strong>upload_to</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em>) – </p></li>
-<li><p><strong>file_memory_limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>file_memory_limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -472,7 +476,7 @@ Any subsequent calls to <a class="reference internal" href="#asgi_tools.Request.
 <p><cite>json = await request.json()</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Union[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a>, Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>, Any], List[Any]]</p>
+<dd class="field-odd"><p>Union[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a>, Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a>, Any], List[Any]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -488,18 +492,18 @@ the request’s body would be returned.</p>
 <cite>application/x-www-form-urlencoded</cite>,  <cite>multipart/form-data</cite> and <a class="reference internal" href="#asgi_tools.Request.text" title="asgi_tools.Request.text"><code class="xref py py-meth docutils literal notranslate"><span class="pre">text()</span></code></a> otherwise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>raise_errors</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – </p>
+<dd class="field-odd"><p><strong>raise_errors</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – </p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>Union[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.9)">bytes</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a>, Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>, Any], List[Any], multidict._multidict.MultiDict]</p>
+<dd class="field-even"><p>Union[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)">bytes</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a>, Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a>, Any], List[Any], multidict._multidict.MultiDict]</p>
 </dd>
 </dl>
 </dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="responses">
+</section>
+<section id="responses">
 <h2>Responses<a class="headerlink" href="#responses" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.Response">
@@ -508,10 +512,10 @@ the request’s body would be returned.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>content</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.9)"><em>bytes</em></a>) – A response’s body</p></li>
-<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – An HTTP status code</p></li>
-<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – A dictionary of HTTP headers</p></li>
-<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A string with the content-type</p></li>
+<li><p><strong>content</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)"><em>bytes</em></a>) – A response’s body</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – An HTTP status code</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – A dictionary of HTTP headers</p></li>
+<li><p><strong>content_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – A string with the content-type</p></li>
 </ul>
 </dd>
 </dl>
@@ -531,7 +535,7 @@ the request’s body would be returned.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="asgi_tools.Response.cookies">
-<span class="sig-name descname"><span class="pre">cookies</span></span><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/http.cookies.html#http.cookies.SimpleCookie" title="(in Python v3.9)"><span class="pre">http.cookies.SimpleCookie</span></a></em><a class="headerlink" href="#asgi_tools.Response.cookies" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">cookies</span></span><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/http.cookies.html#http.cookies.SimpleCookie" title="(in Python v3.10)"><span class="pre">http.cookies.SimpleCookie</span></a></em><a class="headerlink" href="#asgi_tools.Response.cookies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set/Update cookies</p>
 <ul class="simple">
 <li><p><cite>response.cookies[name] = value</cite> <code class="docutils literal notranslate"><span class="pre">str</span></code> – set a cookie’s value</p></li>
@@ -563,18 +567,18 @@ the request’s body would be returned.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>scope</strong> (<em>Any</em>) – </p></li>
 <li><p><strong>receive</strong> (<em>Any</em>) – </p></li>
-<li><p><strong>send</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>send</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 </dd></dl>
 
-<div class="section" id="responsetext">
+<section id="responsetext">
 <h3>ResponseText<a class="headerlink" href="#responsetext" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.ResponseText">
@@ -591,16 +595,16 @@ the request’s body would be returned.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>content</strong> (<em>ResponseContent</em>) – </p></li>
-<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – </p></li>
 <li><p><strong>headers</strong> (<em>multidict._multidict.MultiDict</em>) – </p></li>
-<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – </p></li>
+<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – </p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="responsehtml">
+</section>
+<section id="responsehtml">
 <h3>ResponseHTML<a class="headerlink" href="#responsehtml" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.ResponseHTML">
@@ -617,16 +621,16 @@ the request’s body would be returned.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>content</strong> (<em>ResponseContent</em>) – </p></li>
-<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – </p></li>
 <li><p><strong>headers</strong> (<em>multidict._multidict.MultiDict</em>) – </p></li>
-<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – </p></li>
+<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – </p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="responsejson">
+</section>
+<section id="responsejson">
 <h3>ResponseJSON<a class="headerlink" href="#responsejson" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.ResponseJSON">
@@ -645,16 +649,16 @@ the standard library.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>content</strong> (<em>ResponseContent</em>) – </p></li>
-<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – </p></li>
 <li><p><strong>headers</strong> (<em>multidict._multidict.MultiDict</em>) – </p></li>
-<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – </p></li>
+<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – </p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="responseredirect">
+</section>
+<section id="responseredirect">
 <h3>ResponseRedirect<a class="headerlink" href="#responseredirect" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.ResponseRedirect">
@@ -663,12 +667,12 @@ the standard library.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A string with the new location</p></li>
-<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – A string with the new location</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseRedirect</span>
@@ -694,8 +698,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseRe
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="responseerror">
+</section>
+<section id="responseerror">
 <h3>ResponseError<a class="headerlink" href="#responseerror" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.ResponseError">
@@ -727,7 +731,7 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <span class="n">app</span> <span class="o">=</span> <span class="n">ResponseMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>You able to use <a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">http.HTTPStatus</span></code></a> properties with the <cite>ResponseError</cite> class</p>
+<p>You able to use <a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">http.HTTPStatus</span></code></a> properties with the <cite>ResponseError</cite> class</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">BAD_REQUEST</span><span class="p">(</span><span class="s1">&#39;invalid data&#39;</span><span class="p">)</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">NOT_FOUND</span><span class="p">()</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">BAD_GATEWAY</span><span class="p">()</span>
@@ -736,8 +740,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="responsestream">
+</section>
+<section id="responsestream">
 <h3>ResponseStream<a class="headerlink" href="#responsestream" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.ResponseStream">
@@ -747,9 +751,9 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>content</strong> (<em>AsyncGenerator</em>) – An async generator to stream the response’s body</p></li>
-<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – </p></li>
 <li><p><strong>headers</strong> (<em>multidict._multidict.MultiDict</em>) – </p></li>
-<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – </p></li>
+<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -769,8 +773,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="responsesse">
+</section>
+<section id="responsesse">
 <h3>ResponseSSE<a class="headerlink" href="#responsesse" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.ResponseSSE">
@@ -780,9 +784,9 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>content</strong> (<em>AsyncGenerator</em>) – An async generator to stream the events</p></li>
-<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – </p></li>
 <li><p><strong>headers</strong> (<em>multidict._multidict.MultiDict</em>) – </p></li>
-<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – </p></li>
+<li><p><strong>content_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -809,8 +813,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="responsefile">
+</section>
+<section id="responsefile">
 <h3>ResponseFile<a class="headerlink" href="#responsefile" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.ResponseFile">
@@ -819,14 +823,14 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em> | </em><em>Path</em>) – The filepath to the file</p></li>
-<li><p><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Default chunk size (32768)</p></li>
-<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – If set, <cite>Content-Disposition</cite> header will be generated</p></li>
-<li><p><strong>headers_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Return only file headers</p></li>
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em> | </em><em>Path</em>) – The filepath to the file</p></li>
+<li><p><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Default chunk size (32768)</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – If set, <cite>Content-Disposition</cite> header will be generated</p></li>
+<li><p><strong>headers_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Return only file headers</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseFile</span>
@@ -846,8 +850,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="responsewebsocket">
+</section>
+<section id="responsewebsocket">
 <h3>ResponseWebSocket<a class="headerlink" href="#responsewebsocket" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.ResponseWebSocket">
@@ -856,13 +860,13 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>scope</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Request info (ASGI Scope | ASGI-Tools Request)</p></li>
+<li><p><strong>scope</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Request info (ASGI Scope | ASGI-Tools Request)</p></li>
 <li><p><strong>receive</strong> (<em>Receive</em>) – ASGI receive function</p></li>
 <li><p><strong>send</strong> (<em>Send</em>) – ASGI send function</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">ResponseWebsocket</span>
@@ -880,7 +884,7 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <dd><p>Accept a websocket connection.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -891,10 +895,10 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <dd><p>Sent by the application to tell the server to close the connection.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p>
+<dd class="field-odd"><p><strong>code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – </p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -905,10 +909,10 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <dd><p>Send the given message to a client.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>msg</strong> (<em>Union</em><em>[</em><em>Dict</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.9)"><em>bytes</em></a><em>]</em>) – </p>
+<dd class="field-odd"><p><strong>msg</strong> (<em>Union</em><em>[</em><em>Dict</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)"><em>bytes</em></a><em>]</em>) – </p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -919,7 +923,7 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <dd><p>Serialize the given data to JSON and send to a client.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -930,21 +934,21 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <dd><p>Receive messages from a client.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>raw</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Receive messages as is.</p>
+<dd class="field-odd"><p><strong>raw</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Receive messages as is.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>Union[MutableMapping[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>, Any], <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>]</p>
+<dd class="field-even"><p>Union[MutableMapping[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a>, Any], <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a>]</p>
 </dd>
 </dl>
 </dd></dl>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="middlewares">
+</section>
+</section>
+<section id="middlewares">
 <h2>Middlewares<a class="headerlink" href="#middlewares" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="requestmiddleware">
+<section id="requestmiddleware">
 <h3>RequestMiddleware<a class="headerlink" href="#requestmiddleware" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.RequestMiddleware">
@@ -962,16 +966,16 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p>
+<dd class="field-odd"><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="responsemiddleware">
+</section>
+<section id="responsemiddleware">
 <h3>ResponseMiddleware<a class="headerlink" href="#responsemiddleware" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.ResponseMiddleware">
@@ -1023,16 +1027,16 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <p>You are able to raise <a class="reference internal" href="#asgi_tools.ResponseError" title="asgi_tools.ResponseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseError</span></code></a> from yours <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> apps and it will be catched and returned as a response</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p>
+<dd class="field-odd"><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="lifespanmiddleware">
+</section>
+<section id="lifespanmiddleware">
 <h3>LifespanMiddleware<a class="headerlink" href="#lifespanmiddleware" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.LifespanMiddleware">
@@ -1041,14 +1045,14 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ignore_errors</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Ignore errors from startup/shutdown handlers</p></li>
+<li><p><strong>ignore_errors</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Ignore errors from startup/shutdown handlers</p></li>
 <li><p><strong>on_startup</strong> (<em>Union</em><em>[</em><em>Callable</em><em>, </em><em>List</em><em>[</em><em>Callable</em><em>]</em><em>]</em>) – the list of callables to run when the app is starting</p></li>
 <li><p><strong>on_shutdown</strong> (<em>Union</em><em>[</em><em>Callable</em><em>, </em><em>List</em><em>[</em><em>Callable</em><em>]</em><em>]</em>) – the list of callables to run when the app is finishing</p></li>
-<li><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p></li>
+<li><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">LifespanMiddleware</span><span class="p">,</span> <span class="n">Response</span>
@@ -1078,7 +1082,7 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <dd class="field-odd"><p><strong>fn</strong> (<em>Callable</em>) – </p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1092,15 +1096,15 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <dd class="field-odd"><p><strong>fn</strong> (<em>Callable</em>) – </p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="routermiddleware">
+</section>
+<section id="routermiddleware">
 <h3>RouterMiddleware<a class="headerlink" href="#routermiddleware" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.RouterMiddleware">
@@ -1157,18 +1161,18 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p></li>
+<li><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p></li>
 <li><p><strong>router</strong> (<em>http_router.router.Router</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="staticfilesmiddleware">
+</section>
+<section id="staticfilesmiddleware">
 <h3>StaticFilesMiddleware<a class="headerlink" href="#staticfilesmiddleware" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.StaticFilesMiddleware">
@@ -1177,13 +1181,13 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>url_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>&quot;/static&quot;</em>) – an URL prefix for static files</p></li>
-<li><p><strong>folders</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Paths to folders with static files</p></li>
-<li><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p></li>
+<li><p><strong>url_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>&quot;/static&quot;</em>) – an URL prefix for static files</p></li>
+<li><p><strong>folders</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – Paths to folders with static files</p></li>
+<li><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">StaticFilesMiddleware</span><span class="p">,</span> <span class="n">ResponseHTML</span>
@@ -1196,9 +1200,9 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </div>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="application">
+</section>
+</section>
+<section id="application">
 <h2>Application<a class="headerlink" href="#application" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.App">
@@ -1216,11 +1220,11 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>debug</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>False</em>) – Enable debug mode (more logging, raise unhandled exceptions)</p></li>
-<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.9)"><em>logging.Logger</em></a>) – Custom logger for the application</p></li>
-<li><p><strong>static_url_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>&quot;/static&quot;</em>) – A prefix for static files</p></li>
-<li><p><strong>static_folders</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – A list of folders to look static files</p></li>
-<li><p><strong>trim_last_slash</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>False</em>) – Consider “/path” and “/path/” as the same</p></li>
+<li><p><strong>debug</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>False</em>) – Enable debug mode (more logging, raise unhandled exceptions)</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.10)"><em>logging.Logger</em></a>) – Custom logger for the application</p></li>
+<li><p><strong>static_url_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>&quot;/static&quot;</em>) – A prefix for static files</p></li>
+<li><p><strong>static_folders</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – A list of folders to look static files</p></li>
+<li><p><strong>trim_last_slash</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>False</em>) – Consider “/path” and “/path/” as the same</p></li>
 </ul>
 </dd>
 </dl>
@@ -1272,7 +1276,7 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>etype</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>Type</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#BaseException" title="(in Python v3.9)"><em>BaseException</em></a><em>]</em><em>]</em>) – </p>
+<dd class="field-odd"><p><strong>etype</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>Type</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#BaseException" title="(in Python v3.10)"><em>BaseException</em></a><em>]</em><em>]</em>) – </p>
 </dd>
 </dl>
 </dd></dl>
@@ -1318,7 +1322,7 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>md</strong> (<em>asgi_tools.typing.F</em>) – </p></li>
-<li><p><strong>insert_first</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – </p></li>
+<li><p><strong>insert_first</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -1329,8 +1333,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 
 </dd></dl>
 
-</div>
-<div class="section" id="class-based-views">
+</section>
+<section id="class-based-views">
 <h2>Class Based Views<a class="headerlink" href="#class-based-views" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.HTTPView">
@@ -1364,8 +1368,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="testclient">
+</section>
+<section id="testclient">
 <h2>TestClient<a class="headerlink" href="#testclient" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.tests.ASGITestClient">
@@ -1384,8 +1388,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p></li>
-<li><p><strong>base_url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
+<li><p><strong>app</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>]</em>) – </p></li>
+<li><p><strong>base_url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -1443,15 +1447,15 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
-<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
-<li><p><strong>query</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Dict</em><em>]</em>) – </p></li>
-<li><p><strong>headers</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – </p></li>
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – </p></li>
+<li><p><strong>query</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Dict</em><em>]</em>) – </p></li>
+<li><p><strong>headers</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em><em>]</em>) – </p></li>
 <li><p><strong>cookies</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>]</em>) – </p></li>
-<li><p><strong>data</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.9)"><em>bytes</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Dict</em><em>, </em><em>AsyncGenerator</em><em>]</em>) – </p></li>
-<li><p><strong>json</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><em>None</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>List</em><em>[</em><em>Any</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>follow_redirect</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – </p></li>
-<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – </p></li>
+<li><p><strong>data</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)"><em>bytes</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Dict</em><em>, </em><em>AsyncGenerator</em><em>]</em>) – </p></li>
+<li><p><strong>json</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>, </em><em>List</em><em>[</em><em>Any</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>follow_redirect</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – </p></li>
+<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -1487,8 +1491,8 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
-<li><p><strong>query</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>Dict</em><em>]</em>) – </p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – </p></li>
+<li><p><strong>query</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Dict</em><em>]</em>) – </p></li>
 <li><p><strong>headers</strong> (<em>Dict</em>) – </p></li>
 <li><p><strong>cookies</strong> (<em>Dict</em>) – </p></li>
 </ul>
@@ -1536,25 +1540,30 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – </p>
+<dd class="field-odd"><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – </p>
 </dd>
 </dl>
 </dd></dl>
 
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
               </div>
               
               
-              <div class='prev-next-bottom'>
-                
-    <a class='left-prev' id="prev-link" href="usage.html" title="previous page">Usage</a>
-
-              </div>
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'> 
+    <a class='left-prev' id="prev-link" href="usage.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Usage</p>
+        </div>
+    </a>
+</div>
               
           </main>
           
@@ -1562,20 +1571,19 @@ send them to server as <a class="reference external" href="https://asgi.readthed
       </div>
     </div>
   
-  <script src="_static/js/index.1c5a1a01449ed65a7b51.js"></script>
-
-  <footer class="footer mt-5 mt-md-0">
+  <script src="_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+<footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">
       <p class="copyright">
-    &copy; Copyright 2021, Kirill Klenov.<br/>
+    &copy; Copyright 2021, Kirill Klenov.<br>
 </p>
     </div>
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br>
 </p>
     </div>
     
