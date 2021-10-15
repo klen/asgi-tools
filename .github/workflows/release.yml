@@ -18,10 +18,6 @@ jobs:
       with:
         fetch-depth: 5
 
-    - uses: actions/setup-python@v2.2.2
-      with:
-        python-version: 3.9
-
     - uses: actions/cache@v2.1.6
       id: cache-c
       with:
@@ -46,7 +42,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: dist
-        path: dist
+        path: dist/*.tar.*
 
     - name: Notify Failure
       if: ${{ failure() }}
@@ -59,44 +55,71 @@ jobs:
           slack-optional-icon_emoji: ":red_circle:"
 
   build:
-    runs-on: ${{ matrix.os }}
-    needs: cythonize
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
         os: [macos-latest, windows-latest, ubuntu-latest]
+        cibw_arch: ["auto64", "aarch64", "universal2"]
+        cibw_python:
+        - "cp37-*"
+        - "cp38-*"
+        - "cp39-*"
+        - "cp310-*"
+        exclude:
+        - os: ubuntu-latest
+          cibw_arch: universal2
+        - os: macos-latest
+          cibw_arch: aarch64
+        - os: macos-latest
+          cibw_python: "cp36-*"
+          cibw_arch: universal2
+        - os: macos-latest
+          cibw_python: "cp37-*"
+          cibw_arch: universal2
+        - os: windows-latest
+          cibw_arch: universal2
+        - os: windows-latest
+          cibw_arch: aarch64
+
+    runs-on: ${{ matrix.os }}
+    needs: cythonize
+
+    defaults:
+      run:
+        shell: bash
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: 1
 
     steps:
     - uses: actions/checkout@v2.3.4
       with:
         fetch-depth: 5
 
-    - name: Use Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+    - name: Set up QEMU
+      if: matrix.os == 'ubuntu-latest' && matrix.cibw_arch == 'aarch64'
+      uses: docker/setup-qemu-action@v1
       with:
-        python-version: ${{ matrix.python-version }}
+        platforms: arm64
 
     - uses: actions/download-artifact@v2
       with:
         name: asgi_tools
         path: asgi_tools
 
-    - name: Build wheels (macos, windows)
-      run: python3 setup.py bdist_wheel
-      if: matrix.os != 'ubuntu-latest'
-
-    - name: Build wheels (linux)
-      if: matrix.os == 'ubuntu-latest'
-      uses: docker://quay.io/pypa/manylinux1_x86_64
+    - uses: pypa/cibuildwheel@v2.1.1
       env:
-        PYTHON_VERSION: ${{ matrix.python-version }}
-      with:
-        entrypoint: /github/workspace/.github/workflows/build-manylinux.sh
+        CIBW_BUILD_VERBOSITY: 1
+        CIBW_BUILD: ${{ matrix.cibw_python }}
+        CIBW_ARCHS: ${{ matrix.cibw_arch }}
 
     - name: Test wheels
       if: |
         !startsWith(matrix.os, 'windows')
       run: pip3 install --pre asgi_tools -f "file:///${GITHUB_WORKSPACE}/dist"
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dist
+        path: wheelhouse/*.whl
 
     - uses: actions/upload-artifact@v2
       with:
