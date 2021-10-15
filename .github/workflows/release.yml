@@ -118,17 +118,12 @@ jobs:
     - name: Test wheels
       if: |
         !startsWith(matrix.os, 'windows')
-      run: pip3 install --pre asgi_tools -f "file:///${GITHUB_WORKSPACE}/dist"
+      run: pip3 install --pre asgi_tools -f "file:///${GITHUB_WORKSPACE}/wheelhouse"
 
     - uses: actions/upload-artifact@v2
       with:
         name: dist
         path: wheelhouse/*.whl
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: dist
-        path: dist
 
     - name: Notify Failure
       if: ${{ failure() }}
