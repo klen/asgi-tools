@@ -16,11 +16,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout
       with:
         fetch-depth: 5
 
-    - uses: actions/cache@v2.1.6
+    - uses: actions/cache
       id: cache-c
       with:
         path: asgi_tools/*.c
@@ -33,7 +33,7 @@ jobs:
         cython asgi_tools/multipart.pyx
       if: steps.cache-c.outputs.cache-hit != 'true'
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact
       with:
         name: asgi_tools
         path: asgi_tools/*.c
@@ -47,22 +47,22 @@ jobs:
         python-version: ['3.7', '3.8', '3.9', '3.10', 'pypy-3.7']
 
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout
       with:
         fetch-depth: 5
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2.2.2
+      uses: actions/setup-python
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Cache pip
-      uses: actions/cache@v2.1.6
+      uses: actions/cache
       with:
         path: ~/.cache/pip
-        key: ${{ hashFiles('setup.cfg') }}
+        key: ${{ hashFiles('requirements/requirements.txt', 'requirements/requirements-tests.txt') }}
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact
       if: matrix.python-version != 'pypy-3.7'
   
     - name: Compile cython files

@@ -14,15 +14,15 @@ jobs:
     if: github.event.workflow_run.conclusion == 'success'
 
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout
       with:
         fetch-depth: 5
  
-    - uses: actions/setup-python@v2.2.2
+    - uses: actions/setup-python
       with:
         python-version: 3.9
 
-    - uses: actions/cache@v2.1.6
+    - uses: actions/cache
       id: cache-c
       with:
         path: asgi_tools/*.c
@@ -35,7 +35,7 @@ jobs:
         cython asgi_tools/multipart.pyx
       if: steps.cache-c.outputs.cache-hit != 'true'
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact
       with:
         name: asgi_tools
         path: asgi_tools/*.c
@@ -43,7 +43,7 @@ jobs:
     - name: Build sdist
       run: python3 setup.py sdist
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact
       with:
         name: dist
         path: dist/*.tar.*
@@ -94,7 +94,7 @@ jobs:
       PIP_DISABLE_PIP_VERSION_CHECK: 1
 
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout
       with:
         fetch-depth: 5
 
@@ -104,7 +104,7 @@ jobs:
       with:
         platforms: arm64
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact
       with:
         name: asgi_tools
         path: asgi_tools
@@ -120,7 +120,7 @@ jobs:
         !startsWith(matrix.os, 'windows')
       run: pip3 install --pre asgi_tools -f "file:///${GITHUB_WORKSPACE}/wheelhouse"
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact
       with:
         name: dist
         path: wheelhouse/*.whl
@@ -141,7 +141,7 @@ jobs:
     steps:
 
       - name: Download a distribution artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact
         with:
           name: dist
           path: dist

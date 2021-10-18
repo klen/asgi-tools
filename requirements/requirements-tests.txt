@@ -1,0 +1,7 @@
+aiofile
+pytest
+pytest-aio[curio,trio] >= 1.1.0
+pytest-benchmark
+PyYAML
+pytest-mypy; implementation_name == 'cpython'
+uvloop; implementation_name == 'cpython'
