@@ -377,13 +377,12 @@ class StaticFilesMiddleware(BaseMiddeware):
         if not path.startswith(url_prefix):
             return await self.app(scope, receive, send)
 
-        response = None
+        response: t.Optional[Response] = None
         filename = path[len(url_prefix):].strip('/')
         for folder in self.folders:
             filepath = folder.joinpath(filename).resolve()
             try:
-                response: t.Optional[Response] = ResponseFile(
-                    filepath, headers_only=scope['method'] == 'HEAD')
+                response = ResponseFile(filepath, headers_only=scope['method'] == 'HEAD')
                 break
 
             except ASGIError:

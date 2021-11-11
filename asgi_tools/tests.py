@@ -22,7 +22,7 @@ from .typing import JSONType, Scope, Receive, Send, Message, ASGIApp
 
 class TestResponse(Response):
 
-    async def __call__(self, _: Scope, receive: Receive, __: Send):
+    async def __call__(self, _: Scope, receive: Receive, __: Send):  # type: ignore
         self._receive = receive
         msg = await self._receive()
         assert msg.get('type') == 'http.response.start', 'Invalid Response'
