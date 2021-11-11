@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>API Reference &#8212; asgi-tools 0.63.0 documentation</title>
+    <title>API Reference &#8212; asgi-tools 0.63.2 documentation</title>
     
   <link href="_static/css/theme.css" rel="stylesheet">
   <link href="_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
@@ -136,7 +136,7 @@
     
   </div>
 </nav><div class="sidebar-message pl-3">
-    Version: 0.63.0
+    Version: 0.63.2
 </div>
 
             </div>
@@ -560,13 +560,13 @@ the request’s body would be returned.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asgi_tools.Response.__call__">
-<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receive</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#Response.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Response.__call__" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">__</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/response.html#Response.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.Response.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Behave as an ASGI application.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>scope</strong> (<em>Any</em>) – </p></li>
-<li><p><strong>receive</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>_</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>__</strong> (<em>Any</em>) – </p></li>
 <li><p><strong>send</strong> (<em>Callable</em><em>[</em><em>[</em><em>MutableMapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>Any</em><em>]</em><em>]</em>) – </p></li>
 </ul>
 </dd>
@@ -861,8 +861,8 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>scope</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Request info (ASGI Scope | ASGI-Tools Request)</p></li>
-<li><p><strong>receive</strong> (<em>Receive</em>) – ASGI receive function</p></li>
-<li><p><strong>send</strong> (<em>Send</em>) – ASGI send function</p></li>
+<li><p><strong>receive</strong> (<em>t.Optional</em><em>[</em><em>Receive</em><em>]</em>) – ASGI receive function</p></li>
+<li><p><strong>send</strong> (<em>t.Optional</em><em>[</em><em>Send</em><em>]</em>) – ASGI send function</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -1338,7 +1338,7 @@ send them to server as <a class="reference external" href="https://asgi.readthed
 <h2>Class Based Views<a class="headerlink" href="#class-based-views" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.HTTPView">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">HTTPView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">opts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#HTTPView"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.HTTPView" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">HTTPView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">opts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#HTTPView"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.HTTPView" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class-based view pattern for handling HTTP method dispatching.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/custom&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">CustomEndpoint</span><span class="p">(</span><span class="n">HTTPView</span><span class="p">):</span>
