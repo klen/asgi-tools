@@ -59,7 +59,7 @@ class HTTPView:
 
     """
 
-    def __new__(cls, request: Request, *args, **opts):
+    def __new__(cls, request: Request, **opts):
         """Init the class and call it."""
         self = super().__new__(cls)
         return self(request, **opts)
@@ -72,7 +72,7 @@ class HTTPView:
         methods = methods or [m for m in HTTP_METHODS if m.lower() in view_methods]
         return router.bind(cls, *paths, methods=methods, **params)
 
-    def __call__(self, request: Request, *args, **opts) -> t.Awaitable:
+    def __call__(self, request: Request, **opts) -> t.Awaitable:
         """Dispatch the given request by HTTP method."""
         method = getattr(self, request.method.lower())
         return method(request, **opts)
@@ -130,7 +130,7 @@ class App:
         """Initialize router and lifespan middleware."""
 
         # Register base exception handlers
-        self.exception_handlers = {ASGIConnectionClosed: to_awaitable(lambda req, exc: None)}
+        self.exception_handlers = {ASGIConnectionClosed: to_awaitable(lambda _, __: None)}
 
         # Setup routing
         self.router = router = Router(
@@ -139,7 +139,7 @@ class App:
         # Setup logging
         self.logger = logger
 
-        async def process(request: Request, receive: Receive, send: Send) -> t.Optional[Response]:
+        async def process(request: Request, _: Receive, __: Send) -> t.Optional[Response]:
             """Find and call a callback, parse a response, handle exceptions."""
             scope = request.scope
             path = f"{ scope.get('root_path', '') }{ scope['path'] }"
@@ -175,7 +175,7 @@ class App:
         # Handle unknown exceptions
         if not debug:
 
-            async def handle_unknown_exception(request: Request, exc: BaseException) -> Response:
+            async def handle_unknown_exception(_: Request, exc: BaseException) -> Response:
                 self.logger.exception(exc)
                 return ResponseError.INTERNAL_SERVER_ERROR()
 
@@ -183,11 +183,8 @@ class App:
 
         self.internal_middlewares: t.List = []
 
-    def __route__(self, router: Router, *prefixes: str, methods: TYPE_METHODS = None, **params):
+    def __route__(self, router: Router, *prefixes: str, **_):
         """Mount self as a nested application."""
-        def target(request):
-            return self.__internal__(request, request.receive, request.send)
-
         for prefix in prefixes:
             route = RouteApp(prefix, set(), target=self)
             router.dynamic.insert(0, route)

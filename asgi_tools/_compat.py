@@ -1,12 +1,12 @@
 """Compatability layer."""
 
 import asyncio
+from concurrent.futures import ALL_COMPLETED, FIRST_COMPLETED
+from contextlib import asynccontextmanager
 import inspect
+from pathlib import Path
 import sys
 import typing as t
-from pathlib import Path
-from contextlib import asynccontextmanager
-from concurrent.futures import ALL_COMPLETED, FIRST_COMPLETED
 
 from sniffio import current_async_library
 
@@ -34,6 +34,9 @@ except ImportError:
         return loads(obj)
 
 
+assert json_dumps and json_loads
+
+
 # Python 3.8+
 if sys.version_info >= (3, 8):
     create_task = asyncio.create_task
@@ -51,14 +54,12 @@ except ImportError:
 
 try:
     import trio
-
 except ImportError:
     trio = None
 
 
 try:
     import curio
-
 except ImportError:
     curio = None
 

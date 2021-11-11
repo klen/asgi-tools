@@ -22,7 +22,7 @@ from .typing import JSONType, Scope, Receive, Send, Message, ASGIApp
 
 class TestResponse(Response):
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+    async def __call__(self, _: Scope, receive: Receive, __: Send):
         self._receive = receive
         msg = await self._receive()
         assert msg.get('type') == 'http.response.start', 'Invalid Response'
@@ -158,7 +158,7 @@ class ASGITestClient:
         await aio_wait(
             aio_wait(
                 self.app(scope, receive_from_client, send_to_client),
-                stream_data(data, send_to_app, timeout),
+                stream_data(data, send_to_app),
             ), raise_timeout(timeout), strategy=FIRST_COMPLETED
         )
         await send_to_client({'type': 'http.response.body', 'more_body': False})
@@ -183,7 +183,7 @@ class ASGITestClient:
 
         scope = self.build_scope(
             path, headers=ci_headers, query=query, cookies=cookies, type='websocket',
-            subprotocols=ci_headers.get('Sec-WebSocket-Protocol', '').split(','),
+            subprotocols=str(ci_headers.get('Sec-WebSocket-Protocol', '')).split(','),
         )
         ws = TestWebSocketResponse(scope, receive_from_app, send_to_app)
         async with aio_spawn(self.app, scope, receive_from_client, send_to_client):
@@ -273,8 +273,7 @@ async def raise_timeout(timeout: t.Union[int, float]):
     raise TimeoutError('Timeout occured')
 
 
-async def stream_data(data: t.Union[bytes, t.AsyncGenerator[t.Any, bytes]],
-                      send: t.Callable[..., t.Awaitable], timeout: t.Union[int, float]):
+async def stream_data(data: t.Union[bytes, t.AsyncGenerator[t.Any, bytes]], send: t.Callable[..., t.Awaitable]):
     """Stream a data to an application."""
 
     if isinstance(data, bytes):

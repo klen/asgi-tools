@@ -39,7 +39,7 @@ class FormReader:
         self.curvalue = bytearray()
         self.form: MultiDict = MultiDict()
 
-    def init_parser(self, request: Request, max_size: int) -> BaseParser:
+    def init_parser(self, _: Request, max_size: int) -> BaseParser:
         return QueryStringParser({
             'field_name': self.on_field_name,
             'field_data': self.on_field_data,
@@ -52,7 +52,7 @@ class FormReader:
     def on_field_data(self, data: bytes, start: int, end: int):
         self.curvalue += data[start:end]
 
-    def on_field_end(self, data: bytes, start: int, end: int):
+    def on_field_end(self, *_):
         self.form.add(
             unquote_plus(self.curname).decode(self.charset),
             unquote_plus(self.curvalue).decode(self.charset),
@@ -95,12 +95,12 @@ class MultipartReader(FormReader):
     def on_header_value(self, data: bytes, start: int, end: int):
         self.curvalue += data[start:end]
 
-    def on_header_end(self, data: bytes, start: int, end: int):
+    def on_header_end(self, *_):
         self.headers[bytes(self.curname.lower())] = bytes(self.curvalue)
         self.curname.clear()
         self.curvalue.clear()
 
-    def on_headers_finished(self, data: bytes, start: int, end: int):
+    def on_headers_finished(self, *_):
         _, options = parse_header(self.headers[b'content-disposition'].decode(self.charset))
         self.name = options['name']
         if 'filename' in options:
@@ -118,7 +118,7 @@ class MultipartReader(FormReader):
     def on_part_data(self, data: bytes, start: int, end: int):
         self.partdata.write(data[start:end])
 
-    def on_part_end(self, data: bytes, start: int, end: int):
+    def on_part_end(self, *_):
         field_data = self.partdata
         if isinstance(field_data, BytesIO):
             self.form.add(self.name, field_data.getvalue().decode(self.charset))

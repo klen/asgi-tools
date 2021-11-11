@@ -195,7 +195,7 @@ class LifespanMiddleware(BaseMiddeware):
         self.__register__(on_startup, self.__startup__)
         self.__register__(on_shutdown, self.__shutdown__)
 
-    async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __process__(self, _: Scope, receive: Receive, send: Send) -> None:
         """Manage lifespan cycle."""
         while True:
             message = await receive()
@@ -223,11 +223,11 @@ class LifespanMiddleware(BaseMiddeware):
         await self.run('startup')
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, *_):
         """Use the lifespan middleware as a context manager."""
         await self.run('shutdown')
 
-    async def run(self, event: str, send: Send = None):
+    async def run(self, event: str, _: Send = None):
         """Run startup/shutdown handlers."""
         assert event in {'startup', 'shutdown'}
         handlers = getattr(self, f"__{event}__")
@@ -377,6 +377,7 @@ class StaticFilesMiddleware(BaseMiddeware):
         if not path.startswith(url_prefix):
             return await self.app(scope, receive, send)
 
+        response = None
         filename = path[len(url_prefix):].strip('/')
         for folder in self.folders:
             filepath = folder.joinpath(filename).resolve()
@@ -386,7 +387,7 @@ class StaticFilesMiddleware(BaseMiddeware):
                 break
 
             except ASGIError:
-                response = None
+                continue
 
         response = response or ResponseError(status_code=404)
         await response(scope, receive, send)

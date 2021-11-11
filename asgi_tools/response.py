@@ -6,19 +6,21 @@ from email.utils import formatdate
 from enum import Enum
 from functools import partial
 from hashlib import md5
-from http import cookies, HTTPStatus
+from http import HTTPStatus
+from http.cookies import SimpleCookie
 from mimetypes import guess_type
-from multidict import MultiDict
-from pathlib import Path
-from urllib.parse import quote, quote_plus
-from stat import S_ISDIR
 import os
+from pathlib import Path
+from stat import S_ISDIR
 import typing as t
+from urllib.parse import quote, quote_plus
 
-from . import DEFAULT_CHARSET, ASGIError, ASGIConnectionClosed
-from ._compat import aio_wait, FIRST_COMPLETED, aio_stream_file, json_dumps
+from multidict import MultiDict
+
+from . import ASGIConnectionClosed, ASGIError, DEFAULT_CHARSET
+from ._compat import FIRST_COMPLETED, aio_stream_file, aio_wait, json_dumps
 from .request import Request
-from .typing import Message, ResponseContent, Scope, Receive, Send
+from .typing import Message, Receive, ResponseContent, Scope, Send
 
 
 class Response:
@@ -35,7 +37,7 @@ class Response:
     """
 
     headers: MultiDict  #: Multidict of response's headers
-    cookies: cookies.SimpleCookie
+    cookies: SimpleCookie
     """ Set/Update cookies
 
     * `response.cookies[name] = value` ``str`` -- set a cookie's value
@@ -54,11 +56,11 @@ class Response:
 
     def __init__(
             self, content: ResponseContent = None, status_code: int = None,
-            headers: dict = None, content_type: str = None):
+            headers: dict = None, content_type: t.Optional[str] = None):
         """Setup the response."""
-        self.content = content
+        self.content = content # type: ignore
         self.headers: MultiDict = MultiDict(headers or {})
-        self.cookies: cookies.SimpleCookie = cookies.SimpleCookie()
+        self.cookies: SimpleCookie = SimpleCookie()
         if status_code is not None:
             self.status_code = status_code
 
@@ -77,7 +79,7 @@ class Response:
         """Stringify the response."""
         return f"<{ self.__class__.__name__ } '{ self }'>"
 
-    async def __call__(self, scope: t.Any, receive: t.Any, send: Send) -> None:
+    async def __call__(self, _: t.Any, __: t.Any, send: Send) -> None:
         """Behave as an ASGI application."""
         self.headers.setdefault('content-length', str(len(self.__content__)))
 
@@ -182,14 +184,15 @@ class ResponseStream(Response):
     async def stream_response(self, send: Send):
         """Stream response content."""
         await send(self.msg_start())
-        if self.content:
-            async for chunk in self.content:
+        content = t.cast(t.AsyncGenerator, self.content)
+        if content:
+            async for chunk in content:
                 await send({"type": "http.response.body",
                             "body": self.prepare_chunk(chunk), "more_body": True})
 
         await send({"type": "http.response.body", "body": b""})
 
-    async def __call__(self, scope: t.Any, receive: t.Any, send: Send) -> None:
+    async def __call__(self, _: t.Any, receive: t.Any, send: Send) -> None:
         """Behave as an ASGI application."""
         await aio_wait(
             self.listen_for_disconnect(receive),
@@ -280,7 +283,7 @@ class ResponseWebSocket(Response):
         connected = 1
         disconnected = 2
 
-    def __init__(self, scope: Scope, receive: Receive = None, send: Send = None) -> None:
+    def __init__(self, scope: Scope, receive: t.Optional[Receive] = None, send: t.Optional[Send] = None) -> None:
         """Initialize the websocket response."""
         if isinstance(scope, Request):
             receive, send = scope.receive, scope.send
@@ -292,7 +295,7 @@ class ResponseWebSocket(Response):
         self.state = self.STATES.connecting
         self.partner_state = self.STATES.connecting
 
-    async def __call__(self, scope: t.Any, receive: t.Any, send: Send):
+    async def __call__(self, _: t.Any, __: t.Any, send: Send):
         """Close websocket if the response has been returned."""
         await send({'type': 'websocket.close'})
 
@@ -301,7 +304,7 @@ class ResponseWebSocket(Response):
         await self.accept()
         return self
 
-    async def __aexit__(self, *args):
+    async def __aexit__(self, *_):
         """Use it as async context manager."""
         await self.close()
 

@@ -55,7 +55,7 @@ class BaseParser:
         except KeyError:
             pass
 
-    def write(self, data: bytes):
+    def write(self, _: bytes):
         pass
 
     def finalize(self):
@@ -281,7 +281,7 @@ class MultipartParser(BaseParser):
         # Note: the +8 is since we can have, at maximum, "\r\n--" + boundary +
         # "--\r\n" at the final boundary, and the length of '\r\n--' and
         # '--\r\n' is 8 bytes.
-        self.lookbehind = [EMPTY for x in range(len(boundary) + 8)]
+        self.lookbehind = [EMPTY for _ in range(len(boundary) + 8)]
 
     def write(self, data):  # noqa
         data_len = prune_data(len(data), self.cursize, self.max_size)
