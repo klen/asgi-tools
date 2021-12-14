@@ -8,16 +8,17 @@ from pathlib import Path
 
 from http_router import Router
 
-from . import ASGIError, asgi_logger
-from .request import Request
-from .response import parse_response, ResponseError, ResponseFile, Response, ResponseRedirect
-from .typing import Scope, Receive, Send, ASGIApp
+from asgi_tools import ASGIError, asgi_logger
+from asgi_tools.request import Request
+from asgi_tools.response import (Response, ResponseError, ResponseFile, ResponseRedirect,
+                                 parse_response)
+from asgi_tools.typing import ASGIApp, Receive, Scope, Send
 
 
 class BaseMiddeware(metaclass=abc.ABCMeta):
     """Base class for ASGI-Tools middlewares."""
 
-    scopes: t.Set = {'http', 'websocket'}
+    scopes: t.Set = {"http", "websocket"}
 
     def __init__(self, app: ASGIApp = None) -> None:
         """Save ASGI App."""
@@ -26,7 +27,7 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Handle ASGI call."""
 
-        if scope['type'] in self.scopes:
+        if scope["type"] in self.scopes:
             return await self.__process__(scope, receive, send)
 
         return await self.app(scope, receive, send)
@@ -82,9 +83,12 @@ class ResponseMiddleware(BaseMiddeware):
     The conversion rules:
 
     * :class:`Response` objects will be directly returned from the view
-    * ``dict``, ``list``, ``int``, ``bool``, ``None`` results will be converted into :class:`ResponseJSON`
+    * ``dict``, ``list``, ``int``, ``bool``, ``None`` results will be converted
+      into :class:`ResponseJSON`
     * ``str``, ``bytes`` results will be converted into :class:`ResponseHTML`
-    * ``tuple[int, Any, dict]`` will be converted into a :class:`Response` with ``int`` status code, ``dict`` will be used as headers, ``Any`` will be used to define the response's type
+    * ``tuple[int, Any, dict]`` will be converted into a :class:`Response` with
+      ``int`` status code, ``dict`` will be used as headers, ``Any`` will be used
+      to define the response's type
 
     .. code-block:: python
 
@@ -96,7 +100,8 @@ class ResponseMiddleware(BaseMiddeware):
 
         app = ResponseMiddleware(app)
 
-    You are able to raise :class:`ResponseError` from yours ASGI_ apps and it will be catched and returned as a response
+    You are able to raise :class:`ResponseError` from yours ASGI_ apps and it
+    will be catched and returned as a response
 
     """
 
@@ -111,7 +116,7 @@ class ResponseMiddleware(BaseMiddeware):
 
         try:
             response = await self.app(scope, receive, send)
-            if response is None and scope['type'] == 'websocket':
+            if response is None and scope["type"] == "websocket":
                 return
 
             # Prepare a response
@@ -181,11 +186,16 @@ class LifespanMiddleware(BaseMiddeware):
 
     """
 
-    scopes = {'lifespan'}
+    scopes = {"lifespan"}
 
-    def __init__(self, app: ASGIApp = None, ignore_errors: bool = False, logger=asgi_logger,
-                 on_startup: t.Union[t.Callable, t.List[t.Callable]] = None,
-                 on_shutdown: t.Union[t.Callable, t.List[t.Callable]] = None) -> None:
+    def __init__(
+        self,
+        app: ASGIApp = None,
+        ignore_errors: bool = False,
+        logger=asgi_logger,
+        on_startup: t.Union[t.Callable, t.List[t.Callable]] = None,
+        on_shutdown: t.Union[t.Callable, t.List[t.Callable]] = None,
+    ) -> None:
         """Prepare the middleware."""
         super(LifespanMiddleware, self).__init__(app)
         self.ignore_errors = ignore_errors
@@ -199,16 +209,19 @@ class LifespanMiddleware(BaseMiddeware):
         """Manage lifespan cycle."""
         while True:
             message = await receive()
-            if message['type'] == 'lifespan.startup':
-                msg = await self.run('startup', send)
+            if message["type"] == "lifespan.startup":
+                msg = await self.run("startup", send)
                 await send(msg)
 
-            elif message['type'] == 'lifespan.shutdown':
-                msg = await self.run('shutdown', send)
+            elif message["type"] == "lifespan.shutdown":
+                msg = await self.run("shutdown", send)
                 return await send(msg)
 
-    def __register__(self, handlers: t.Union[t.Callable, t.List[t.Callable], None],
-                     container: t.List[t.Callable]) -> None:
+    def __register__(
+        self,
+        handlers: t.Union[t.Callable, t.List[t.Callable], None],
+        container: t.List[t.Callable],
+    ) -> None:
         """Register lifespan handlers."""
         if not handlers:
             return
@@ -220,34 +233,36 @@ class LifespanMiddleware(BaseMiddeware):
 
     async def __aenter__(self):
         """Use the lifespan middleware as a context manager."""
-        await self.run('startup')
+        await self.run("startup")
         return self
 
     async def __aexit__(self, *_):
         """Use the lifespan middleware as a context manager."""
-        await self.run('shutdown')
+        await self.run("shutdown")
 
     async def run(self, event: str, _: Send = None):
         """Run startup/shutdown handlers."""
-        assert event in {'startup', 'shutdown'}
+        assert event in {"startup", "shutdown"}
         handlers = getattr(self, f"__{event}__")
+
         for handler in handlers:
             try:
                 res = handler()
                 if inspect.isawaitable(res):
                     await res
-            except Exception as exc:
+            except Exception as exc:  # noqa
                 if self.ignore_errors:
                     continue
 
                 self.logger.exception(exc)
                 self.logger.error(
                     f"{ event.title() } method '{ handler }' raises an exception. "
-                    "Lifespan process failed.")
+                    "Lifespan process failed."
+                )
 
-                return {'type': f'lifespan.{event}.failed', 'message': str(exc)}
+                return {"type": f"lifespan.{event}.failed", "message": str(exc)}
 
-        return {'type': f'lifespan.{event}.complete'}
+        return {"type": f"lifespan.{event}.complete"}
 
     def on_startup(self, fn: t.Callable) -> None:
         """Add a function to startup."""
@@ -314,8 +329,8 @@ class RouterMiddleware(BaseMiddeware):
     """
 
     def __init__(self, app: ASGIApp = None, router: Router = None) -> None:
-        """Initialize HTTP router. """
-        super(RouterMiddleware, self).__init__(app)
+        """Initialize HTTP router."""
+        super().__init__(app)
         self.router = router or Router()
 
     async def __process__(self, scope: Scope, receive: Receive, send: Send):
@@ -324,13 +339,17 @@ class RouterMiddleware(BaseMiddeware):
         if not callable(app):
             app = self.app
 
-        scope['path_params'] = path_params
+        scope["path_params"] = path_params
         return await app(scope, receive, send)
 
-    def __dispatch__(self, scope: Scope) -> t.Tuple[t.Optional[t.Any], t.Optional[t.Mapping]]:
+    def __dispatch__(
+        self, scope: Scope
+    ) -> t.Tuple[t.Optional[t.Any], t.Optional[t.Mapping]]:
         """Lookup for a callback."""
         try:
-            match = self.router(scope.get("root_path", "") + scope["path"], scope['method'])
+            match = self.router(
+                scope.get("root_path", "") + scope["path"], scope["method"]
+            )
             return match.target, match.params
 
         except self.router.RouterError:
@@ -360,10 +379,14 @@ class StaticFilesMiddleware(BaseMiddeware):
 
     """
 
-    def __init__(self, app: ASGIApp = None, url_prefix: str = '/static',
-                 folders: t.Union[str, t.List[str]] = None) -> None:
-        """Initialize the middleware. """
-        super(StaticFilesMiddleware, self).__init__(app)
+    def __init__(
+        self,
+        app: ASGIApp = None,
+        url_prefix: str = "/static",
+        folders: t.Union[str, t.List[str]] = None,
+    ) -> None:
+        """Initialize the middleware."""
+        super().__init__(app)
         self.url_prefix = url_prefix
         folders = folders or []
         if isinstance(folders, str):
@@ -372,17 +395,19 @@ class StaticFilesMiddleware(BaseMiddeware):
 
     async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Serve static files for self url prefix."""
-        path = scope['path']
+        path = scope["path"]
         url_prefix = self.url_prefix
         if not path.startswith(url_prefix):
             return await self.app(scope, receive, send)
 
         response: t.Optional[Response] = None
-        filename = path[len(url_prefix):].strip('/')
+        filename = path[len(url_prefix) :].strip("/")
         for folder in self.folders:
             filepath = folder.joinpath(filename).resolve()
             try:
-                response = ResponseFile(filepath, headers_only=scope['method'] == 'HEAD')
+                response = ResponseFile(
+                    filepath, headers_only=scope["method"] == "HEAD"
+                )
                 break
 
             except ASGIError:
@@ -390,5 +415,6 @@ class StaticFilesMiddleware(BaseMiddeware):
 
         response = response or ResponseError(status_code=404)
         await response(scope, receive, send)
+
 
 # pylama: ignore=E501

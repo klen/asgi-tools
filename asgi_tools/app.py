@@ -5,23 +5,28 @@ import logging
 import typing as t
 from functools import partial
 
-from http_router import Router as HTTPRouter, PrefixedRoute
+from http_router import PrefixedRoute
+from http_router import Router as HTTPRouter
 from http_router.typing import TYPE_METHODS
 
-from . import ASGIError, ASGINotFound, ASGIMethodNotAllowed, ASGIConnectionClosed, asgi_logger
-from .middleware import (
-    BaseMiddeware,
-    LifespanMiddleware,
-    StaticFilesMiddleware,
-    parse_response
-)
+from . import ASGIConnectionClosed, ASGIError, ASGIMethodNotAllowed, ASGINotFound, asgi_logger
+from .middleware import BaseMiddeware, LifespanMiddleware, StaticFilesMiddleware, parse_response
 from .request import Request
-from .response import ResponseError, Response
-from .utils import to_awaitable, iscoroutinefunction
-from .typing import Scope, Receive, Send, F
+from .response import Response, ResponseError
+from .typing import F, Receive, Scope, Send
+from .utils import iscoroutinefunction, to_awaitable
 
-
-HTTP_METHODS = {'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'}
+HTTP_METHODS = {
+    "GET",
+    "HEAD",
+    "POST",
+    "PUT",
+    "DELETE",
+    "CONNECT",
+    "OPTIONS",
+    "TRACE",
+    "PATCH",
+}
 
 
 class Router(HTTPRouter):
@@ -65,8 +70,9 @@ class HTTPView:
         return self(request, **opts)
 
     @classmethod
-    def __route__(cls, router: Router, *paths: str,
-                  methods: TYPE_METHODS = None, **params) -> t.Type['HTTPView']:
+    def __route__(
+        cls, router: Router, *paths: str, methods: TYPE_METHODS = None, **params
+    ) -> t.Type["HTTPView"]:
         """Bind the class view to the given router."""
         view_methods = dict(inspect.getmembers(cls, inspect.isfunction))
         methods = methods or [m for m in HTTP_METHODS if m.lower() in view_methods]
@@ -81,7 +87,7 @@ class HTTPView:
 class AppInternalMiddleware(BaseMiddeware):
     """Process responses."""
 
-    scopes = {'http'}
+    scopes = {"http"}
 
     async def __process__(self, scope: Scope, receive: Receive, send: Send):
         """Send ASGI messages."""
@@ -120,39 +126,49 @@ class App:
 
     exception_handlers: t.Dict[
         t.Union[int, t.Type[BaseException]],
-        t.Callable[[Request, BaseException], t.Awaitable]
+        t.Callable[[Request, BaseException], t.Awaitable],
     ]
 
-    def __init__(self, *, debug: bool = False,
-                 logger: logging.Logger = asgi_logger,
-                 static_url_prefix: str = '/static',
-                 static_folders: t.Union[str, t.List[str]] = None, trim_last_slash: bool = False):
+    def __init__(
+        self,
+        *,
+        debug: bool = False,
+        logger: logging.Logger = asgi_logger,
+        static_url_prefix: str = "/static",
+        static_folders: t.Union[str, t.List[str]] = None,
+        trim_last_slash: bool = False,
+    ):
         """Initialize router and lifespan middleware."""
 
         # Register base exception handlers
-        self.exception_handlers = {ASGIConnectionClosed: to_awaitable(lambda _, __: None)}
+        self.exception_handlers = {
+            ASGIConnectionClosed: to_awaitable(lambda _, __: None)
+        }
 
         # Setup routing
         self.router = router = Router(
-            trim_last_slash=trim_last_slash, validator=callable, converter=to_awaitable)
+            trim_last_slash=trim_last_slash, validator=callable, converter=to_awaitable
+        )
 
         # Setup logging
         self.logger = logger
 
-        async def process(request: Request, _: Receive, __: Send) -> t.Optional[Response]:
+        async def process(
+            request: Request, _: Receive, __: Send
+        ) -> t.Optional[Response]:
             """Find and call a callback, parse a response, handle exceptions."""
             scope = request.scope
             path = f"{ scope.get('root_path', '') }{ scope['path'] }"
             try:
-                match = router(path, scope.get('method', 'GET'))
-            except ASGINotFound:
-                raise ResponseError.NOT_FOUND()
-            except ASGIMethodNotAllowed:
-                raise ResponseError.METHOD_NOT_ALLOWED()
+                match = router(path, scope.get("method", "GET"))
+            except ASGINotFound as exc:
+                raise ResponseError.NOT_FOUND() from exc
+            except ASGIMethodNotAllowed as exc:
+                raise ResponseError.METHOD_NOT_ALLOWED() from exc
 
-            scope['path_params'] = {} if match.params is None else match.params
+            scope["path_params"] = {} if match.params is None else match.params
             response = await match.target(request)  # type: ignore
-            if response is None and request['type'] == 'websocket':
+            if response is None and request["type"] == "websocket":
                 return None
 
             return parse_response(response)
@@ -162,11 +178,14 @@ class App:
 
         # Setup lifespan
         self.lifespan = LifespanMiddleware(
-            self.__internal__, ignore_errors=not debug, logger=self.logger)
+            self.__internal__, ignore_errors=not debug, logger=self.logger
+        )
 
         # Enable middleware for static files
         if static_folders and static_url_prefix:
-            md = StaticFilesMiddleware.setup(folders=static_folders, url_prefix=static_url_prefix)
+            md = StaticFilesMiddleware.setup(
+                folders=static_folders, url_prefix=static_url_prefix
+            )
             self.middleware(md)
 
         # Debug mode
@@ -175,7 +194,9 @@ class App:
         # Handle unknown exceptions
         if not debug:
 
-            async def handle_unknown_exception(_: Request, exc: BaseException) -> Response:
+            async def handle_unknown_exception(
+                _: Request, exc: BaseException
+            ) -> Response:
                 self.logger.exception(exc)
                 return ResponseError.INTERNAL_SERVER_ERROR()
 
@@ -192,11 +213,12 @@ class App:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """Convert the given scope into a request and process."""
-        scope['app'] = self
+        scope["app"] = self
         request = Request(scope, receive, send)
         try:
             await self.lifespan(request, receive, send)
-        except BaseException as exc:  # Handle exceptions
+        # Handle exceptions
+        except BaseException as exc:  # noqa
             response = await self.handle_exc(request, exc)
             if response is ...:
                 raise
@@ -226,8 +248,8 @@ class App:
                     self.internal_middlewares.append(md)
 
             app = self.__process__
-            for md in reversed(self.internal_middlewares):
-                app = partial(md, app)
+            for imd in reversed(self.internal_middlewares):
+                app = partial(imd, app)
 
             self.__internal__.bind(app)
 
@@ -262,6 +284,7 @@ class App:
                 return render_template('page_not_found.html'), 404
 
         """
+
         def recorder(handler: F) -> F:
             self.exception_handlers[etype] = to_awaitable(handler)
             return handler
@@ -274,12 +297,12 @@ class RouteApp(PrefixedRoute):
 
     def __init__(self, path: str, methods: t.Set, target: App):
         """Create app callable."""
-        path = path.rstrip('/')
+        path = path.rstrip("/")
 
         def app(request: Request):
-            subrequest = request.__copy__(path=request.path[len(path):])
+            subrequest = request.__copy__(path=request.path[len(path) :])
             receive = t.cast(Receive, request.receive)
             send = t.cast(Send, request.send)
             return target.__internal__.app(subrequest, receive, send)
 
-        super(RouteApp, self).__init__(path, methods, app)
+        super().__init__(path, methods, app)

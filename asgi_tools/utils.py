@@ -1,12 +1,12 @@
 """ASGI-Tools Utils."""
 
 from functools import wraps
-from inspect import iscoroutinefunction, isasyncgenfunction
-from typing import Callable, Awaitable
+from inspect import isasyncgenfunction, iscoroutinefunction
+from typing import Awaitable, Callable
 
 from multidict import CIMultiDict
 
-from .typing import ScopeHeaders
+from asgi_tools.typing import ScopeHeaders
 
 
 def is_awaitable(fn: Callable) -> bool:
@@ -28,4 +28,4 @@ def to_awaitable(fn: Callable) -> Callable[..., Awaitable]:
 
 def parse_headers(headers: ScopeHeaders) -> CIMultiDict:
     """Decode the given headers list."""
-    return CIMultiDict([(n.decode('latin-1'), v.decode('latin-1')) for n, v in headers])
+    return CIMultiDict([(n.decode("latin-1"), v.decode("latin-1")) for n, v in headers])

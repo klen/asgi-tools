@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import typing as t
 from email.utils import formatdate
 from enum import Enum
 from functools import partial
@@ -9,18 +11,16 @@ from hashlib import md5
 from http import HTTPStatus
 from http.cookies import SimpleCookie
 from mimetypes import guess_type
-import os
 from pathlib import Path
 from stat import S_ISDIR
-import typing as t
 from urllib.parse import quote, quote_plus
 
 from multidict import MultiDict
 
-from . import ASGIConnectionClosed, ASGIError, DEFAULT_CHARSET
-from ._compat import FIRST_COMPLETED, aio_stream_file, aio_wait, json_dumps
-from .request import Request
-from .typing import Message, Receive, ResponseContent, Scope, Send
+from asgi_tools import DEFAULT_CHARSET, ASGIConnectionClosed, ASGIError
+from asgi_tools._compat import FIRST_COMPLETED, aio_stream_file, aio_wait, json_dumps
+from asgi_tools.request import Request
+from asgi_tools.typing import Message, Receive, ResponseContent, Scope, Send
 
 
 class Response:
@@ -45,9 +45,12 @@ class Response:
     * `response.cookies[name]['expires'] = value` ``int`` -- set a cookie's expire
     * `response.cookies[name]['domain'] = value` ``str`` -- set a cookie's domain
     * `response.cookies[name]['max-age'] = value` ``int`` -- set a cookie's max-age
-    * `response.cookies[name]['secure'] = value` ``bool``-- is the cookie should only be sent if request is SSL
-    * `response.cookies[name]['httponly'] = value` ``bool`` -- is the cookie should be available through HTTP request only (not from JS)
-    * `response.cookies[name]['samesite'] = value` ``str`` -- set a cookie's strategy ('lax'|'strict'|'none')
+    * `response.cookies[name]['secure'] = value` ``bool``-- is the cookie
+      should only be sent if request is SSL
+    * `response.cookies[name]['httponly'] = value` ``bool`` -- is the cookie
+      should be available through HTTP request only (not from JS)
+    * `response.cookies[name]['samesite'] = value` ``str`` -- set a cookie's
+      strategy ('lax'|'strict'|'none')
 
     """
     charset: str = DEFAULT_CHARSET
@@ -55,10 +58,14 @@ class Response:
     status_code: int = HTTPStatus.OK.value
 
     def __init__(
-            self, content: ResponseContent = None, status_code: int = None,
-            headers: dict = None, content_type: t.Optional[str] = None):
+        self,
+        content: ResponseContent = None,
+        status_code: int = None,
+        headers: dict = None,
+        content_type: t.Optional[str] = None,
+    ):
         """Setup the response."""
-        self.content = content # type: ignore
+        self.content = content  # type: ignore
         self.headers: MultiDict = MultiDict(headers or {})
         self.cookies: SimpleCookie = SimpleCookie()
         if status_code is not None:
@@ -67,8 +74,10 @@ class Response:
         content_type = content_type or self.content_type
         if content_type:
             self.headers.setdefault(
-                'content-type', content_type.startswith('text/') and
-                f"{content_type}; charset={self.charset}" or content_type
+                "content-type",
+                content_type.startswith("text/")
+                and f"{content_type}; charset={self.charset}"
+                or content_type,
             )
 
     def __str__(self) -> str:
@@ -79,9 +88,9 @@ class Response:
         """Stringify the response."""
         return f"<{ self.__class__.__name__ } '{ self }'>"
 
-    async def __call__(self, _: t.Any, __: t.Any, send: Send) -> None:
+    async def __call__(self, scope: t.Any, receive: t.Any, send: Send) -> None:
         """Behave as an ASGI application."""
-        self.headers.setdefault('content-length', str(len(self.__content__)))
+        self.headers.setdefault("content-length", str(len(self.__content__)))
 
         await send(self.msg_start())
         await send({"type": "http.response.body", "body": self.__content__})
@@ -109,12 +118,14 @@ class Response:
     def msg_start(self) -> Message:
         """Get ASGI response start message."""
         headers = [
-            (key.encode('latin-1'), str(val).encode('latin-1'))
+            (key.encode("latin-1"), str(val).encode("latin-1"))
             for key, val in self.headers.items()
         ]
 
         for cookie in self.cookies.values():
-            headers.append((b"set-cookie", cookie.output(header='').strip().encode('latin-1')))
+            headers.append(
+                (b"set-cookie", cookie.output(header="").strip().encode("latin-1"))
+            )
 
         return {
             "type": "http.response.start",
@@ -126,13 +137,13 @@ class Response:
 class ResponseText(Response):
     """A helper to return plain text responses (text/plain)."""
 
-    content_type = 'text/plain'
+    content_type = "text/plain"
 
 
 class ResponseHTML(Response):
     """A helper to return HTML responses (text/html)."""
 
-    content_type = 'text/html'
+    content_type = "text/html"
 
 
 class ResponseJSON(Response):
@@ -144,7 +155,7 @@ class ResponseJSON(Response):
 
     """
 
-    content_type = 'application/json'
+    content_type = "application/json"
 
     def dumps(self, content: ResponseContent) -> bytes:
         """Dumps the given content."""
@@ -178,7 +189,7 @@ class ResponseStream(Response):
         """Listen for the client has been disconnected."""
         while True:
             message = await receive()
-            if message['type'] == 'http.disconnect':
+            if message["type"] == "http.disconnect":
                 break
 
     async def stream_response(self, send: Send):
@@ -187,8 +198,13 @@ class ResponseStream(Response):
         content = t.cast(t.AsyncGenerator, self.content)
         if content:
             async for chunk in content:
-                await send({"type": "http.response.body",
-                            "body": self.prepare_chunk(chunk), "more_body": True})
+                await send(
+                    {
+                        "type": "http.response.body",
+                        "body": self.prepare_chunk(chunk),
+                        "more_body": True,
+                    }
+                )
 
         await send({"type": "http.response.body", "body": b""})
 
@@ -208,22 +224,22 @@ class ResponseSSE(ResponseStream):
     :type content: AsyncGenerator
     """
 
-    content_type = 'text/event-stream'
+    content_type = "text/event-stream"
 
     def msg_start(self) -> Message:
         """Set cache-control header."""
-        self.headers.setdefault('Cache-Control', 'no-cache')
-        return super(ResponseSSE, self).msg_start()
+        self.headers.setdefault("Cache-Control", "no-cache")
+        return super().msg_start()
 
     def prepare_chunk(self, chunk: t.Any) -> bytes:
         """Prepare a chunk from stream generator to send."""
         if isinstance(chunk, dict):
-            chunk = '\n'.join(f"{k}: {v}" for k, v in chunk.items())
+            chunk = "\n".join(f"{k}: {v}" for k, v in chunk.items())
 
         if not isinstance(chunk, bytes):
             chunk = str(chunk).encode(self.charset)
 
-        return chunk + b'\n\n'
+        return chunk + b"\n\n"
 
 
 class ResponseFile(ResponseStream):
@@ -240,31 +256,40 @@ class ResponseFile(ResponseStream):
 
     """
 
-    def __init__(self, filepath: t.Union[str, Path], *, chunk_size: int = 32 * 1024,
-                 filename: str = None, headers_only: bool = False, **kwargs) -> None:
+    def __init__(
+        self,
+        filepath: t.Union[str, Path],
+        *,
+        chunk_size: int = 32 * 1024,
+        filename: str = None,
+        headers_only: bool = False,
+        **kwargs,
+    ) -> None:
         """Store filepath to self."""
         try:
             stat = os.stat(filepath)
         except FileNotFoundError as exc:
-            raise ASGIError(*exc.args)
+            raise ASGIError(*exc.args) from exc
 
         if S_ISDIR(stat.st_mode):
             raise ASGIError(f"It's a directory: {filepath}")
 
         stream = aio_stream_file(filepath, chunk_size) if not headers_only else None
-        super(ResponseFile, self).__init__(stream, **kwargs)  # type: ignore
+        super().__init__(stream, **kwargs)  # type: ignore
 
         headers = self.headers
-        if filename and 'content-disposition' not in headers:
-            headers['content-disposition'] = f'attachment; filename="{quote(filename)}"'
+        if filename and "content-disposition" not in headers:
+            headers["content-disposition"] = f'attachment; filename="{quote(filename)}"'
 
-        if 'content-type' not in headers:
-            headers['content-type'] = guess_type(filename or str(filepath))[0] or "text/plain"
+        if "content-type" not in headers:
+            headers["content-type"] = (
+                guess_type(filename or str(filepath))[0] or "text/plain"
+            )
 
-        headers.setdefault('content-length', str(stat.st_size))
-        headers.setdefault('last-modified', formatdate(stat.st_mtime, usegmt=True))
+        headers.setdefault("content-length", str(stat.st_size))
+        headers.setdefault("last-modified", formatdate(stat.st_mtime, usegmt=True))
         etag = str(stat.st_mtime) + "-" + str(stat.st_size)
-        headers.setdefault('etag', md5(etag.encode()).hexdigest())
+        headers.setdefault("etag", md5(etag.encode()).hexdigest())
 
 
 class ResponseWebSocket(Response):
@@ -279,25 +304,30 @@ class ResponseWebSocket(Response):
     class STATES(Enum):
         """Represent websocket states."""
 
-        connecting = 0
-        connected = 1
-        disconnected = 2
+        CONNECTING = 0
+        CONNECTED = 1
+        DISCONNECTED = 2
 
-    def __init__(self, scope: Scope, receive: t.Optional[Receive] = None, send: t.Optional[Send] = None) -> None:
+    def __init__(
+        self,
+        scope: Scope,
+        receive: t.Optional[Receive] = None,
+        send: t.Optional[Send] = None,
+    ) -> None:
         """Initialize the websocket response."""
         if isinstance(scope, Request):
             receive, send = scope.receive, scope.send
 
-        super(ResponseWebSocket, self).__init__()
-        assert receive and send, 'Invalid initialization'
+        super().__init__()
+        assert receive and send, "Invalid initialization"
         self._receive: Receive = receive
         self._send: Send = send
-        self.state = self.STATES.connecting
-        self.partner_state = self.STATES.connecting
+        self.state = self.STATES.CONNECTING
+        self.partner_state = self.STATES.CONNECTING
 
     async def __call__(self, _: t.Any, __: t.Any, send: Send):
         """Close websocket if the response has been returned."""
-        await send({'type': 'websocket.close'})
+        await send({"type": "websocket.close"})
 
     async def __aenter__(self):
         """Use it as async context manager."""
@@ -311,62 +341,71 @@ class ResponseWebSocket(Response):
     @property
     def connected(self) -> bool:
         """Check that is the websocket connected."""
-        return self.state == self.STATES.connected and self.partner_state == self.STATES.connected
+        return (
+            self.state == self.STATES.CONNECTED
+            and self.partner_state == self.STATES.CONNECTED
+        )
 
     async def _connect(self) -> bool:
         """Wait for connect message."""
-        if self.partner_state == self.STATES.connecting:
+        if self.partner_state == self.STATES.CONNECTING:
             msg = await self._receive()
-            assert msg.get('type') == 'websocket.connect'
-            self.partner_state = self.STATES.connected
+            assert msg.get("type") == "websocket.connect"
+            self.partner_state = self.STATES.CONNECTED
 
-        return self.partner_state == self.STATES.connected
+        return self.partner_state == self.STATES.CONNECTED
 
     async def accept(self, **params) -> None:
         """Accept a websocket connection."""
-        if self.partner_state == self.STATES.connecting:
+        if self.partner_state == self.STATES.CONNECTING:
             await self._connect()
 
-        await self.send({'type': 'websocket.accept', **params})
-        self.state = self.STATES.connected
+        await self.send({"type": "websocket.accept", **params})
+        self.state = self.STATES.CONNECTED
 
     async def close(self, code: int = 1000) -> None:
         """Sent by the application to tell the server to close the connection."""
         if self.connected:
-            await self.send({'type': 'websocket.close', 'code': code})
-        self.state = self.STATES.disconnected
+            await self.send({"type": "websocket.close", "code": code})
+        self.state = self.STATES.DISCONNECTED
 
-    async def send(self, msg: t.Union[t.Dict, str, bytes], type='websocket.send') -> None:
+    async def send(
+        self, msg: t.Union[t.Dict, str, bytes], type="websocket.send"  # noqa
+    ) -> None:
         """Send the given message to a client."""
-        if self.state == self.STATES.disconnected:
-            raise ASGIConnectionClosed('Cannot send once the connection has been disconnected.')
+        if self.state == self.STATES.DISCONNECTED:
+            raise ASGIConnectionClosed(
+                "Cannot send once the connection has been disconnected."
+            )
 
         if not isinstance(msg, dict):
-            msg = {'type': type, (isinstance(msg, str) and 'text' or 'bytes'): msg}
+            msg = {"type": type, (isinstance(msg, str) and "text" or "bytes"): msg}
 
         return await self._send(msg)
 
     async def send_json(self, data) -> None:
         """Serialize the given data to JSON and send to a client."""
-        return await self._send({'type': 'websocket.send', 'bytes': json_dumps(data)})
+        return await self._send({"type": "websocket.send", "bytes": json_dumps(data)})
 
     async def receive(self, raw: bool = False) -> t.Union[Message, str]:
         """Receive messages from a client.
 
         :param raw: Receive messages as is.
         """
-        if self.partner_state == self.STATES.disconnected:
-            raise ASGIConnectionClosed('Cannot receive once a connection has been disconnected.')
+        if self.partner_state == self.STATES.DISCONNECTED:
+            raise ASGIConnectionClosed(
+                "Cannot receive once a connection has been disconnected."
+            )
 
-        if self.partner_state == self.STATES.connecting:
+        if self.partner_state == self.STATES.CONNECTING:
             await self._connect()
             return await self.receive(raw=raw)
 
         msg = await self._receive()
-        if msg['type'] == 'websocket.disconnect':
-            self.partner_state = self.STATES.disconnected
+        if msg["type"] == "websocket.disconnect":
+            self.partner_state = self.STATES.DISCONNECTED
 
-        return raw and msg or parse_websocket_msg(msg, charset=self.charset)
+        return msg if raw else parse_websocket_msg(msg, charset=self.charset)
 
 
 class ResponseRedirect(Response, BaseException):
@@ -380,8 +419,10 @@ class ResponseRedirect(Response, BaseException):
 
     def __init__(self, url: str, status_code: int = None, **kwargs) -> None:
         """Set status code and prepare location."""
-        super(ResponseRedirect, self).__init__(status_code=status_code, **kwargs)
-        assert 300 <= self.status_code < 400, f"Invalid status code for redirection: {self.status_code}"  # noqa
+        super().__init__(status_code=status_code, **kwargs)
+        assert (
+            300 <= self.status_code < 400
+        ), f"Invalid status code for redirection: {self.status_code}"  # noqa
         self.headers["location"] = quote_plus(str(url), safe=":/%#?&=@[]!$&'()*+,;")
 
 
@@ -391,7 +432,7 @@ class ResponseErrorMeta(type):
     # XXX: From python 3.9 -> partial['ResponseError]
     def __getattr__(cls, name: str) -> t.Callable[..., ResponseError]:
         """Generate Response Errors by HTTP names."""
-        status = HTTPStatus[name]
+        status = HTTPStatus[name]  # noqa
         return partial(cls, status_code=status.value)
 
 
@@ -416,54 +457,58 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
 
     # Typing annotations
     if t.TYPE_CHECKING:
-        BAD_REQUEST: t.Callable[..., ResponseError]                       # 400
-        UNAUTHORIZED: t.Callable[..., ResponseError]                      # 401
-        PAYMENT_REQUIRED: t.Callable[..., ResponseError]                  # 402
-        FORBIDDEN: t.Callable[..., ResponseError]                         # 403
-        NOT_FOUND: t.Callable[..., ResponseError]                         # 404
-        METHOD_NOT_ALLOWED: t.Callable[..., ResponseError]                # 405
-        NOT_ACCEPTABLE: t.Callable[..., ResponseError]                    # 406
-        PROXY_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]     # 407
-        REQUEST_TIMEOUT: t.Callable[..., ResponseError]                   # 408
-        CONFLICT: t.Callable[..., ResponseError]                          # 409
-        GONE: t.Callable[..., ResponseError]                              # 410
-        LENGTH_REQUIRED: t.Callable[..., ResponseError]                   # 411
-        PRECONDITION_FAILED: t.Callable[..., ResponseError]               # 412
-        REQUEST_ENTITY_TOO_LARGE: t.Callable[..., ResponseError]          # 413
-        REQUEST_URI_TOO_LONG: t.Callable[..., ResponseError]              # 414
-        UNSUPPORTED_MEDIA_TYPE: t.Callable[..., ResponseError]            # 415
-        REQUESTED_RANGE_NOT_SATISFIABLE: t.Callable[..., ResponseError]   # 416
-        EXPECTATION_FAILED: t.Callable[..., ResponseError]                # 417
+        BAD_REQUEST: t.Callable[..., ResponseError]  # 400
+        UNAUTHORIZED: t.Callable[..., ResponseError]  # 401
+        PAYMENT_REQUIRED: t.Callable[..., ResponseError]  # 402
+        FORBIDDEN: t.Callable[..., ResponseError]  # 403
+        NOT_FOUND: t.Callable[..., ResponseError]  # 404
+        METHOD_NOT_ALLOWED: t.Callable[..., ResponseError]  # 405
+        NOT_ACCEPTABLE: t.Callable[..., ResponseError]  # 406
+        PROXY_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]  # 407
+        REQUEST_TIMEOUT: t.Callable[..., ResponseError]  # 408
+        CONFLICT: t.Callable[..., ResponseError]  # 409
+        GONE: t.Callable[..., ResponseError]  # 410
+        LENGTH_REQUIRED: t.Callable[..., ResponseError]  # 411
+        PRECONDITION_FAILED: t.Callable[..., ResponseError]  # 412
+        REQUEST_ENTITY_TOO_LARGE: t.Callable[..., ResponseError]  # 413
+        REQUEST_URI_TOO_LONG: t.Callable[..., ResponseError]  # 414
+        UNSUPPORTED_MEDIA_TYPE: t.Callable[..., ResponseError]  # 415
+        REQUESTED_RANGE_NOT_SATISFIABLE: t.Callable[..., ResponseError]  # 416
+        EXPECTATION_FAILED: t.Callable[..., ResponseError]  # 417
         # XXX: From python 3.9
         # IM_A_TEAPOT: t.Callable[..., ResponseError]                       # 418
         # MISDIRECTED_REQUEST: t.Callable[..., ResponseError]               # 421
-        UNPROCESSABLE_ENTITY: t.Callable[..., ResponseError]              # 422
-        LOCKED: t.Callable[..., ResponseError]                            # 423
-        FAILED_DEPENDENCY: t.Callable[..., ResponseError]                 # 424
-        TOO_EARLY: t.Callable[..., ResponseError]                         # 425
-        UPGRADE_REQUIRED: t.Callable[..., ResponseError]                  # 426
-        PRECONDITION_REQUIRED: t.Callable[..., ResponseError]             # 428
-        TOO_MANY_REQUESTS: t.Callable[..., ResponseError]                 # 429
-        REQUEST_HEADER_FIELDS_TOO_LARGE: t.Callable[..., ResponseError]   # 431
+        UNPROCESSABLE_ENTITY: t.Callable[..., ResponseError]  # 422
+        LOCKED: t.Callable[..., ResponseError]  # 423
+        FAILED_DEPENDENCY: t.Callable[..., ResponseError]  # 424
+        TOO_EARLY: t.Callable[..., ResponseError]  # 425
+        UPGRADE_REQUIRED: t.Callable[..., ResponseError]  # 426
+        PRECONDITION_REQUIRED: t.Callable[..., ResponseError]  # 428
+        TOO_MANY_REQUESTS: t.Callable[..., ResponseError]  # 429
+        REQUEST_HEADER_FIELDS_TOO_LARGE: t.Callable[..., ResponseError]  # 431
         # XXX: From python 3.9
         # UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., ResponseError]     # 451
 
-        INTERNAL_SERVER_ERROR: t.Callable[..., ResponseError]             # 500
-        NOT_IMPLEMENTED: t.Callable[..., ResponseError]                   # 501
-        BAD_GATEWAY: t.Callable[..., ResponseError]                       # 502
-        SERVICE_UNAVAILABLE: t.Callable[..., ResponseError]               # 503
-        GATEWAY_TIMEOUT: t.Callable[..., ResponseError]                   # 504
-        HTTP_VERSION_NOT_SUPPORTED: t.Callable[..., ResponseError]        # 505
-        VARIANT_ALSO_NEGOTIATES: t.Callable[..., ResponseError]           # 506
-        INSUFFICIENT_STORAGE: t.Callable[..., ResponseError]              # 507
-        LOOP_DETECTED: t.Callable[..., ResponseError]                     # 508
-        NOT_EXTENDED: t.Callable[..., ResponseError]                      # 510
-        NETWORK_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]   # 511
+        INTERNAL_SERVER_ERROR: t.Callable[..., ResponseError]  # 500
+        NOT_IMPLEMENTED: t.Callable[..., ResponseError]  # 501
+        BAD_GATEWAY: t.Callable[..., ResponseError]  # 502
+        SERVICE_UNAVAILABLE: t.Callable[..., ResponseError]  # 503
+        GATEWAY_TIMEOUT: t.Callable[..., ResponseError]  # 504
+        HTTP_VERSION_NOT_SUPPORTED: t.Callable[..., ResponseError]  # 505
+        VARIANT_ALSO_NEGOTIATES: t.Callable[..., ResponseError]  # 506
+        INSUFFICIENT_STORAGE: t.Callable[..., ResponseError]  # 507
+        LOOP_DETECTED: t.Callable[..., ResponseError]  # 508
+        NOT_EXTENDED: t.Callable[..., ResponseError]  # 510
+        NETWORK_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]  # 511
 
-    def __init__(self, message: ResponseContent = None, status_code: int = None, **kwargs):
+    def __init__(
+        self, message: ResponseContent = None, status_code: int = None, **kwargs
+    ):
         """Check error status."""
-        super(ResponseError, self).__init__(content=message, status_code=status_code, **kwargs)
-        assert self.status_code >= 400, f"Invalid status code for an error: {self.status_code}"
+        super().__init__(content=message, status_code=status_code, **kwargs)
+        assert (
+            self.status_code >= 400
+        ), f"Invalid status code for an error: {self.status_code}"
         self.content = message or HTTPStatus(self.status_code).description
 
 
@@ -484,16 +529,18 @@ def parse_response(response: t.Any, headers: t.Dict = None) -> Response:
     if issubclass(rtype, Response):
         return response
 
-    ResponseType = CAST_RESPONSE.get(rtype)
-    if ResponseType:
-        return ResponseType(response, headers=headers)
+    response_type = CAST_RESPONSE.get(rtype)
+    if response_type:
+        return response_type(response, headers=headers)
 
     if rtype is tuple:
         status, *contents = response
-        assert isinstance(status, int), 'Invalid Response Status'
+        assert isinstance(status, int), "Invalid Response Status"
         if len(contents) > 1:
             headers, *contents = contents
-        response = parse_response(contents[0] or '' if contents else '', headers=headers)
+        response = parse_response(
+            contents[0] or "" if contents else "", headers=headers
+        )
         response.status_code = status
         return response
 
@@ -502,14 +549,15 @@ def parse_response(response: t.Any, headers: t.Dict = None) -> Response:
 
 def parse_websocket_msg(msg: Message, charset: str = None) -> t.Union[Message, str]:
     """Prepare websocket message."""
-    data = msg.get('text')
+    data = msg.get("text")
     if data:
         return data
 
-    data = msg.get('bytes')
+    data = msg.get("bytes")
     if data:
         return data.decode(charset)
 
     return msg
+
 
 # pylama: ignore=E501

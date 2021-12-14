@@ -1,40 +1,52 @@
 """Compatability layer."""
 
 import asyncio
-from concurrent.futures import ALL_COMPLETED, FIRST_COMPLETED
-from contextlib import asynccontextmanager
 import inspect
-from pathlib import Path
 import sys
 import typing as t
+from concurrent.futures import ALL_COMPLETED, FIRST_COMPLETED
+from contextlib import asynccontextmanager
+from pathlib import Path
 
 from sniffio import current_async_library
 
+__all__ = (
+    "aio_cancel",
+    "aio_sleep",
+    "aio_spawn",
+    "aio_stream_file",
+    "aio_wait",
+    "aiofile",
+    "create_task",
+    "curio",
+    "json_dumps",
+    "json_loads",
+    "trio",
+)
+
 try:
-    from orjson import dumps as json_dumps, loads as json_loads  # noqa
+    from orjson import dumps as json_dumps  # noqa
+    from orjson import loads as json_loads
 except ImportError:
     try:
         from ujson import dumps, loads
 
         def json_dumps(content) -> bytes:  # type: ignore
             """Emulate orjson."""
-            return dumps(content, ensure_ascii=False).encode('utf-8')
+            return dumps(content, ensure_ascii=False).encode("utf-8")
 
     except ImportError:
         from json import dumps, loads  # type: ignore
 
         def json_dumps(content) -> bytes:  # type: ignore
             """Emulate orjson."""
-            return dumps(content, ensure_ascii=False, separators=(',', ':')).encode('utf-8')  # type: ignore # noqa
+            return dumps(content, ensure_ascii=False, separators=(",", ":")).encode("utf-8")  # type: ignore # noqa
 
     def json_loads(obj: t.Union[bytes, str]) -> t.Any:  # type: ignore
         """Emulate orjson."""
         if isinstance(obj, bytes):
-            obj = obj.decode('utf-8')
+            obj = obj.decode("utf-8")
         return loads(obj)
-
-
-assert json_dumps and json_loads
 
 
 # Python 3.8+
@@ -67,10 +79,10 @@ except ImportError:
 def aio_sleep(seconds: float = 0) -> t.Awaitable:
     """Return sleep coroutine."""
 
-    if trio and current_async_library() == 'trio':
+    if trio and current_async_library() == "trio":
         return trio.sleep(seconds)
 
-    if curio and current_async_library() == 'curio':
+    if curio and current_async_library() == "curio":
         return curio.sleep(seconds)
 
     return asyncio.sleep(seconds)
@@ -79,12 +91,12 @@ def aio_sleep(seconds: float = 0) -> t.Awaitable:
 @asynccontextmanager
 async def aio_spawn(fn: t.Callable[..., t.Awaitable], *args, **kwargs):
     """Spawn a given coroutine."""
-    if trio and current_async_library() == 'trio':
+    if trio and current_async_library() == "trio":
         async with trio.open_nursery() as tasks:
             tasks.start_soon(fn, *args, **kwargs)
             yield tasks
 
-    elif curio and current_async_library() == 'curio':
+    elif curio and current_async_library() == "curio":
         task = await curio.spawn(fn, *args, **kwargs)
         yield task
         await task.join()
@@ -103,7 +115,7 @@ async def aio_wait(*aws: t.Awaitable, strategy: str = ALL_COMPLETED) -> t.Any:
     if not aws:
         return
 
-    if trio and current_async_library() == 'trio':
+    if trio and current_async_library() == "trio":
 
         send_channel, receive_channel = trio.open_memory_channel(0)
 
@@ -118,7 +130,7 @@ async def aio_wait(*aws: t.Awaitable, strategy: str = ALL_COMPLETED) -> t.Any:
 
             return results
 
-    if curio and current_async_library() == 'curio':
+    if curio and current_async_library() == "curio":
         wait = all if strategy == ALL_COMPLETED else any
         async with curio.TaskGroup(wait=wait) as g:
             [await g.spawn(aw) for aw in aws]
@@ -140,25 +152,27 @@ async def aio_cancel(task: t.Union[asyncio.Task, t.Any]):
     if isinstance(task, asyncio.Task):
         return task.cancel()
 
-    if trio and current_async_library() == 'trio':
+    if trio and current_async_library() == "trio":
         return task.cancel_scope.cancel()
 
-    if curio and current_async_library() == 'curio':
+    if curio and current_async_library() == "curio":
         return await task.cancel()
 
 
-async def aio_stream_file(filepath: t.Union[str, Path], chunk_size: int = 32 * 1024) -> t.AsyncGenerator[bytes, None]:  # noqa
+async def aio_stream_file(
+    filepath: t.Union[str, Path], chunk_size: int = 32 * 1024
+) -> t.AsyncGenerator[bytes, None]:  # noqa
 
-    if trio and current_async_library() == 'trio':
-        async with await trio.open_file(filepath, 'rb') as fp:
+    if trio and current_async_library() == "trio":
+        async with await trio.open_file(filepath, "rb") as fp:
             while True:
                 chunk = await fp.read(chunk_size)
                 if not chunk:
                     break
                 yield chunk
 
-    elif curio and current_async_library() == 'curio':
-        async with curio.aopen(filepath, 'rb') as fp:
+    elif curio and current_async_library() == "curio":
+        async with curio.aopen(filepath, "rb") as fp:
             while True:
                 chunk = await fp.read(chunk_size)
                 if not chunk:
@@ -167,9 +181,9 @@ async def aio_stream_file(filepath: t.Union[str, Path], chunk_size: int = 32 * 1
 
     else:
         if aiofile is None:
-            raise RuntimeError('`aiofile` is required to return files with asyncio')
+            raise RuntimeError("`aiofile` is required to return files with asyncio")
 
-        async with aiofile.AIOFile(filepath, mode='rb') as fp:
+        async with aiofile.AIOFile(filepath, mode="rb") as fp:
             async for chunk in aiofile.Reader(fp, chunk_size=chunk_size):
                 yield chunk
 

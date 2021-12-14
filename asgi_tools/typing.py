@@ -2,7 +2,6 @@
 
 import typing as t
 
-
 Message = t.MutableMapping[str, t.Any]
 Send = t.Callable[[Message], t.Awaitable[t.Any]]
 Receive = t.Callable[[], t.Awaitable[Message]]
@@ -12,4 +11,4 @@ JSONType = t.Union[str, int, float, bool, None, t.Dict[str, t.Any], t.List[t.Any
 ASGIApp = t.Callable[[Scope, Receive, Send], t.Awaitable]
 
 ResponseContent = t.Union[str, bytes]
-F = t.TypeVar('F', bound=t.Callable)
+F = t.TypeVar("F", bound=t.Callable)

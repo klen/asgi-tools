@@ -11,10 +11,11 @@ from http import cookies
 from multidict import MultiDict
 from yarl import URL
 
-from . import ASGIDecodeError, DEFAULT_CHARSET
-from ._compat import json_loads
-from .typing import Scope, Receive, Send, JSONType
-from .utils import parse_headers, CIMultiDict
+from asgi_tools import DEFAULT_CHARSET, ASGIDecodeError
+from asgi_tools._compat import json_loads
+from asgi_tools.forms import read_formdata
+from asgi_tools.typing import JSONType, Receive, Scope, Send
+from asgi_tools.utils import CIMultiDict, parse_headers
 
 
 class Request(t.MutableMapping):
@@ -34,7 +35,9 @@ class Request(t.MutableMapping):
     _media: t.Optional[t.Dict[str, str]] = None
     _cookies: t.Optional[t.Dict[str, str]] = None
 
-    def __init__(self, scope: Scope, receive: Receive = None, send: Send = None) -> None:
+    def __init__(
+        self, scope: Scope, receive: Receive = None, send: Send = None
+    ) -> None:
         """Create a request based on the given scope."""
         self.scope = scope
         self.receive = receive
@@ -90,24 +93,25 @@ class Request(t.MutableMapping):
         """
         if self._url is None:
             scope = self.scope
-            host = self.headers.get('host')
-            if host is None and ('server' in scope):
-                host, port = scope['server']
+            host = self.headers.get("host")
+            if host is None and ("server" in scope):
+                host, port = scope["server"]
                 if port:
                     host = f"{host}:{port}"
 
             self._url = URL.build(
                 host=host,  # type: ignore
-                scheme=scope.get('scheme', 'http'),
-                encoded=True, path=f"{ scope.get('root_path', '') }{ scope['path'] }",
-                query_string=scope['query_string'].decode("latin-1"),
+                scheme=scope.get("scheme", "http"),
+                encoded=True,
+                path=f"{ scope.get('root_path', '') }{ scope['path'] }",
+                query_string=scope["query_string"].decode("latin-1"),
             )
 
         return self._url
 
     @property
     def headers(self) -> CIMultiDict:
-        """ A lazy property that parses the current scope's headers, decodes them as strings and
+        """A lazy property that parses the current scope's headers, decodes them as strings and
         returns case-insensitive multi-dict :py:class:`multidict.CIMultiDict`.
 
         .. code-block:: python
@@ -121,7 +125,7 @@ class Request(t.MutableMapping):
 
         """
         if self._headers is None:
-            self._headers = parse_headers(self.scope['headers'])
+            self._headers = parse_headers(self.scope["headers"])
         return self._headers
 
     @property
@@ -136,11 +140,11 @@ class Request(t.MutableMapping):
         """
         if self._cookies is None:
             self._cookies = {}
-            cookie = self.headers.get('cookie')
+            cookie = self.headers.get("cookie")
             if cookie:
-                for chunk in cookie.split(';'):
-                    key, _, val = chunk.partition('=')
-                    self._cookies[key.strip()] = cookies._unquote(val.strip())  # type: ignore
+                for chunk in cookie.split(";"):
+                    key, _, val = chunk.partition("=")
+                    self._cookies[key.strip()] = cookies._unquote(val.strip())  # type: ignore # noqa
 
         return self._cookies
 
@@ -148,7 +152,7 @@ class Request(t.MutableMapping):
     def media(self) -> t.Dict[str, str]:
         """Prepare a media data for the request."""
         if self._media is None:
-            content_type, opts = parse_header(self.headers.get('content-type', ''))
+            content_type, opts = parse_header(self.headers.get("content-type", ""))
             self._media = dict(opts, content_type=content_type)
 
         return self._media
@@ -156,7 +160,7 @@ class Request(t.MutableMapping):
     @property
     def charset(self) -> str:
         """Get an encoding charset for the current scope."""
-        return self.media.get('charset', DEFAULT_CHARSET)
+        return self.media.get("charset", DEFAULT_CHARSET)
 
     @property
     def query(self) -> MultiDict:
@@ -169,7 +173,7 @@ class Request(t.MutableMapping):
     @property
     def content_type(self) -> str:
         """Get a content type for the current scope."""
-        return self.media['content_type']
+        return self.media["content_type"]
 
     async def stream(self) -> t.AsyncGenerator:
         """Stream the request's body.
@@ -184,17 +188,17 @@ class Request(t.MutableMapping):
 
         """
         if not self.receive:
-            raise RuntimeError('Request doesnt have a receive coroutine')
+            raise RuntimeError("Request doesnt have a receive coroutine")
 
         if self._is_read:
-            raise RuntimeError('Stream has been read')
+            raise RuntimeError("Stream has been read")
 
         self._is_read = True
         message = await self.receive()
-        yield message.get('body', b'')
-        while message.get('more_body'):
+        yield message.get("body", b"")
+        while message.get("more_body"):
             message = await self.receive()
-            yield message.get('body', b'')
+            yield message.get("body", b"")
 
     async def body(self) -> bytes:
         """Read and return the request's body as bytes.
@@ -218,8 +222,8 @@ class Request(t.MutableMapping):
         body = await self.body()
         try:
             return body.decode(self.charset or DEFAULT_CHARSET)
-        except (LookupError, ValueError):
-            raise ASGIDecodeError('Invalid Encoding')
+        except (LookupError, ValueError) as exc:
+            raise ASGIDecodeError("Invalid Encoding") from exc
 
     async def json(self) -> JSONType:
         """Read and return the request's body as a JSON.
@@ -229,11 +233,15 @@ class Request(t.MutableMapping):
         """
         try:
             return json_loads(await self.body())
-        except (LookupError, ValueError):
-            raise ASGIDecodeError('Invalid JSON')
+        except (LookupError, ValueError) as exc:
+            raise ASGIDecodeError("Invalid JSON") from exc
 
-    async def form(self, max_size: int = 0, upload_to: t.Callable = None,
-                   file_memory_limit: int = 1024 * 1024) -> MultiDict:
+    async def form(
+        self,
+        max_size: int = 0,
+        upload_to: t.Callable = None,
+        file_memory_limit: int = 1024 * 1024,
+    ) -> MultiDict:
         """Read and return the request's multipart formdata as a multidict.
 
         The method reads the request's stream stright into memory formdata.
@@ -242,17 +250,19 @@ class Request(t.MutableMapping):
         `formdata = await request.form()`
 
         """
-        from .forms import read_formdata
-
         if self._form is None:
             try:
-                self._form = await read_formdata(self, max_size, upload_to, file_memory_limit)
-            except (LookupError, ValueError):
-                raise ASGIDecodeError('Invalid Encoding')
+                self._form = await read_formdata(
+                    self, max_size, upload_to, file_memory_limit
+                )
+            except (LookupError, ValueError) as exc:
+                raise ASGIDecodeError("Invalid Encoding") from exc
 
         return self._form
 
-    async def data(self, raise_errors: bool = False) -> t.Union[str, bytes, JSONType, MultiDict]:
+    async def data(
+        self, raise_errors: bool = False
+    ) -> t.Union[str, bytes, JSONType, MultiDict]:
         """The method checks Content-Type Header and parse the request's data automatically.
 
         `data = await request.data()`
@@ -264,10 +274,13 @@ class Request(t.MutableMapping):
         `application/x-www-form-urlencoded`,  `multipart/form-data` and :py:meth:`text` otherwise.
         """
         try:
-            if self.content_type in {'application/x-www-form-urlencoded', 'multipart/form-data'}:
+            if self.content_type in {
+                "application/x-www-form-urlencoded",
+                "multipart/form-data",
+            }:
                 return await self.form()
 
-            if self.content_type == 'application/json':
+            if self.content_type == "application/json":
                 return await self.json()
 
             return await self.text()

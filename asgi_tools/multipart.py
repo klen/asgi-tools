@@ -6,21 +6,21 @@ The original code is licensed by Apache2 license.
 import typing as t
 
 # Flags for the multipart parser.
-FLAG_PART_BOUNDARY              = 1
-FLAG_LAST_BOUNDARY              = 2
+FLAG_PART_BOUNDARY = 1
+FLAG_LAST_BOUNDARY = 2
 
 # Get constants.  Since iterating over a str on Python 2 gives you a 1-length
 # string, but iterating over a bytes object on Python 3 gives you an integer,
 # we need to save these constants.
-AMPERSAND = b'&'[0]
-COLON = b':'[0]
-CR = b'\r'[0]
-EQUAL = b'='[0]
-HYPHEN = b'-'[0]
-LF = b'\n'[0]
-SEMICOLON = b';'[0]
-SPACE = b' '[0]
-EMPTY = b'\x00'[0]
+AMPERSAND = b"&"[0]
+COLON = b":"[0]
+CR = b"\r"[0]
+EQUAL = b"="[0]
+HYPHEN = b"-"[0]
+LF = b"\n"[0]
+SEMICOLON = b";"[0]
+SPACE = b" "[0]
+EMPTY = b"\x00"[0]
 
 
 class BaseParser:
@@ -43,7 +43,7 @@ class BaseParser:
 
     """
 
-    __slots__ = 'callbacks',
+    __slots__ = ("callbacks",)
 
     def __init__(self, callbacks: t.Dict):
         self.callbacks = callbacks
@@ -100,10 +100,10 @@ class QueryStringParser(BaseParser):
     :param max_size: the maximum size of body to parse.  defaults to 0
     """
 
-    __slots__ = 'callbacks', 'cursize', 'max_size', 'state'
+    __slots__ = "callbacks", "cursize", "max_size", "state"
 
     def __init__(self, callbacks: t.Dict, max_size: int = 0):
-        self.callbacks = callbacks
+        super().__init__(callbacks)
         self.cursize = 0
         self.max_size = max_size
 
@@ -119,8 +119,8 @@ class QueryStringParser(BaseParser):
             ch = data[idx]
             if state == STATE_BEFORE_FIELD:
 
-                if not (ch == AMPERSAND or ch == SEMICOLON):
-                    self.callback('field_start', b'', 0, 0)
+                if ch not in (AMPERSAND, SEMICOLON):
+                    self.callback("field_start", b"", 0, 0)
                     idx -= 1
                     state = STATE_FIELD_NAME
 
@@ -135,18 +135,18 @@ class QueryStringParser(BaseParser):
                     equals_pos = data.find(EQUAL, idx)
 
                 if equals_pos != -1:
-                    self.callback('field_name', data, idx, equals_pos)
+                    self.callback("field_name", data, idx, equals_pos)
                     idx = equals_pos
                     state = STATE_FIELD_DATA
 
                 else:
                     if sep_pos == -1:
-                        self.callback('field_name', data, idx, data_len)
+                        self.callback("field_name", data, idx, data_len)
                         idx = data_len
 
                     else:
-                        self.callback('field_name', data, idx, sep_pos)
-                        self.callback('field_end', b'', 0, 0)
+                        self.callback("field_name", data, idx, sep_pos)
+                        self.callback("field_end", b"", 0, 0)
                         idx = sep_pos - 1
                         state = STATE_BEFORE_FIELD
 
@@ -156,12 +156,12 @@ class QueryStringParser(BaseParser):
                     sep_pos = data.find(SEMICOLON, idx)
 
                 if sep_pos == -1:
-                    self.callback('field_data', data, idx, data_len)
+                    self.callback("field_data", data, idx, data_len)
                     idx = data_len
 
                 else:
-                    self.callback('field_data', data, idx, sep_pos)
-                    self.callback('field_end', b'', 0, 0)
+                    self.callback("field_data", data, idx, sep_pos)
+                    self.callback("field_end", b"", 0, 0)
 
                     idx = sep_pos - 1
                     state = STATE_BEFORE_FIELD
@@ -181,22 +181,22 @@ class QueryStringParser(BaseParser):
         """
         # If we're currently in the middle of a field, we finish it.
         if self.state == STATE_FIELD_DATA:
-            self.callback('field_end', b'', 0, 0)
-        self.callback('end', b'', 0, 0)
+            self.callback("field_end", b"", 0, 0)
+        self.callback("end", b"", 0, 0)
 
 
-STATE_START                     = 0
-STATE_START_BOUNDARY            = 1
-STATE_HEADER_FIELD_START        = 2
-STATE_HEADER_FIELD              = 3
-STATE_HEADER_VALUE_START        = 4
-STATE_HEADER_VALUE              = 5
-STATE_HEADER_VALUE_ALMOST_DONE  = 6
-STATE_HEADERS_ALMOST_DONE       = 7
-STATE_PART_DATA_START           = 8
-STATE_PART_DATA                 = 9
-STATE_PART_DATA_END             = 10
-STATE_END                       = 11
+STATE_START = 0
+STATE_START_BOUNDARY = 1
+STATE_HEADER_FIELD_START = 2
+STATE_HEADER_FIELD = 3
+STATE_HEADER_VALUE_START = 4
+STATE_HEADER_VALUE = 5
+STATE_HEADER_VALUE_ALMOST_DONE = 6
+STATE_HEADERS_ALMOST_DONE = 7
+STATE_PART_DATA_START = 8
+STATE_PART_DATA = 9
+STATE_PART_DATA_END = 10
+STATE_END = 11
 
 
 class MultipartParser(BaseParser):
@@ -255,11 +255,22 @@ class MultipartParser(BaseParser):
     """
 
     __slots__ = (
-        'callbacks', 'cursize', 'max_size', 'state', 'index', 'flags', 'header_field_pos',
-        'header_value_pos', 'part_data_pos', 'boundary', 'boundary_chars', 'lookbehind')
+        "callbacks",
+        "cursize",
+        "max_size",
+        "state",
+        "index",
+        "flags",
+        "header_field_pos",
+        "header_value_pos",
+        "part_data_pos",
+        "boundary",
+        "boundary_chars",
+        "lookbehind",
+    )
 
     def __init__(self, boundary, callbacks: t.Dict, max_size: int = 0):
-        self.callbacks = callbacks
+        super().__init__(callbacks)
         self.cursize = 0
         self.max_size = max_size
         self.state = STATE_START
@@ -270,9 +281,9 @@ class MultipartParser(BaseParser):
         self.part_data_pos = -1
 
         if isinstance(boundary, str):
-            boundary = boundary.encode('latin-1')
+            boundary = boundary.encode("latin-1")
 
-        self.boundary = b'\r\n--' + boundary
+        self.boundary = b"\r\n--" + boundary
 
         # Get a set of characters that belong to our boundary.
         self.boundary_chars = frozenset(self.boundary)
@@ -309,7 +320,7 @@ class MultipartParser(BaseParser):
                         raise ValueError(f"Did not find \\n at end of boundary ({idx})")
 
                     state = STATE_HEADER_FIELD_START
-                    self.callback('part_begin', b'', 0, 0)
+                    self.callback("part_begin", b"", 0, 0)
 
                 # Check to ensure our boundary matches
                 elif ch == boundary[index + 2]:
@@ -317,7 +328,9 @@ class MultipartParser(BaseParser):
                     index += 1
 
                 else:
-                    raise ValueError(f"Did not find boundary character {chr(ch)} at index {idx}")
+                    raise ValueError(
+                        f"Did not find boundary character {chr(ch)} at index {idx}"
+                    )
 
             elif state == STATE_HEADER_FIELD_START:
                 # Mark the start of a header field here, reset the index, and
@@ -347,7 +360,7 @@ class MultipartParser(BaseParser):
 
                     # Call our callback with the header field.
                     if self.header_field_pos != -1:
-                        self.callback('header_field', data, self.header_field_pos, idx)
+                        self.callback("header_field", data, self.header_field_pos, idx)
                         self.header_field_pos = -1
 
                     # Move to parsing the header value.
@@ -367,16 +380,18 @@ class MultipartParser(BaseParser):
                 # we do nothing and just move past this character.
                 if ch == CR:
                     if self.header_value_pos != -1:
-                        self.callback('header_value', data, self.header_value_pos, idx)
+                        self.callback("header_value", data, self.header_value_pos, idx)
                         self.header_value_pos = -1
 
-                    self.callback('header_end', b'', 0, 0)
+                    self.callback("header_end", b"", 0, 0)
                     state = STATE_HEADER_VALUE_ALMOST_DONE
 
             elif state == STATE_HEADER_VALUE_ALMOST_DONE:
                 # The last character should be a LF.  If not, it's an error.
                 if ch != LF:
-                    raise ValueError(f"Did not find \\n at end of header (found {chr(ch)})")
+                    raise ValueError(
+                        f"Did not find \\n at end of header (found {chr(ch)})"
+                    )
 
                 # Move back to the start of another header.  Note that if that
                 # state detects ANOTHER newline, it'll trigger the end of our
@@ -388,9 +403,11 @@ class MultipartParser(BaseParser):
                 # a CR at the beginning of a header, so our next character
                 # should be a LF, or it's an error.
                 if ch != LF:
-                    raise ValueError(f"Did not find \\n at end of headers (found {chr(ch)})")
+                    raise ValueError(
+                        f"Did not find \\n at end of headers (found {chr(ch)})"
+                    )
 
-                self.callback('headers_finished', b'', 0, 0)
+                self.callback("headers_finished", b"", 0, 0)
                 # Mark the start of our part data.
                 self.part_data_pos = idx + 1
                 state = STATE_PART_DATA
@@ -435,7 +452,7 @@ class MultipartParser(BaseParser):
                         # If we found a match for our boundary, we send the
                         # existing data.
                         if index == 0 and self.part_data_pos != -1:
-                            self.callback('part_data', data, self.part_data_pos, idx)
+                            self.callback("part_data", data, self.part_data_pos, idx)
                             self.part_data_pos = -1
 
                         # The current character matches, so continue!
@@ -472,12 +489,12 @@ class MultipartParser(BaseParser):
                         # We need a LF character next.
                         if ch == LF:
                             # Unset the part boundary flag.
-                            flags &= (~FLAG_PART_BOUNDARY)
+                            flags &= ~FLAG_PART_BOUNDARY
 
                             # Callback indicating that we've reached the end of
                             # a part, and are starting a new one.
-                            self.callback('part_end', b'', 0, 0)
-                            self.callback('part_begin', b'', 0, 0)
+                            self.callback("part_end", b"", 0, 0)
+                            self.callback("part_begin", b"", 0, 0)
 
                             # Move to parsing new headers.
                             index = 0
@@ -488,7 +505,7 @@ class MultipartParser(BaseParser):
                         # We didn't find an LF character, so no match.  Reset
                         # our index and clear our flag.
                         index = 0
-                        flags &= (~FLAG_PART_BOUNDARY)
+                        flags &= ~FLAG_PART_BOUNDARY
 
                     # Otherwise, if we're at the last boundary (i.e. we've
                     # seen a hyphen already)...
@@ -497,8 +514,8 @@ class MultipartParser(BaseParser):
                         if ch == HYPHEN:
                             # Callback to end the current part, and then the
                             # message.
-                            self.callback('part_end', b'', 0, 0)
-                            self.callback('end', b'', 0, 0)
+                            self.callback("part_end", b"", 0, 0)
+                            self.callback("end", b"", 0, 0)
                             state = STATE_END
                         else:
                             # No match, so reset index.
@@ -516,7 +533,7 @@ class MultipartParser(BaseParser):
                 elif prev_index > 0:
                     # Callback to write the saved data.
                     lb_data = bytes(self.lookbehind)
-                    self.callback('part_data', lb_data, 0, prev_index)
+                    self.callback("part_data", lb_data, 0, prev_index)
 
                     # Overwrite our previous index.
                     prev_index = 0
@@ -530,7 +547,7 @@ class MultipartParser(BaseParser):
 
             elif state == STATE_START:
                 # Skip leading newlines
-                if not (ch == CR or ch == LF):
+                if ch not in (CR, LF):
 
                     # Move to the next state, but decrement i so that we re-process
                     # this character.
@@ -548,15 +565,15 @@ class MultipartParser(BaseParser):
             idx += 1
 
         if self.header_field_pos != -1:
-            self.callback('header_field', data, self.header_field_pos, data_len)
+            self.callback("header_field", data, self.header_field_pos, data_len)
             self.header_field_pos = 0
 
         if self.header_value_pos != -1:
-            self.callback('header_value', data, self.header_value_pos, data_len)
+            self.callback("header_value", data, self.header_value_pos, data_len)
             self.header_value_pos = 0
 
         if self.part_data_pos != -1:
-            self.callback('part_data', data, self.part_data_pos, data_len)
+            self.callback("part_data", data, self.part_data_pos, data_len)
             self.part_data_pos = 0
 
         self.index = index
