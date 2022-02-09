@@ -260,7 +260,7 @@ class ResponseFile(ResponseStream):
         self,
         filepath: t.Union[str, Path],
         *,
-        chunk_size: int = 32 * 1024,
+        chunk_size: int = 64 * 1024,
         filename: str = None,
         headers_only: bool = False,
         **kwargs,
