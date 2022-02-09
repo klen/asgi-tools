@@ -54,7 +54,7 @@ test t: cyt $(VIRTUAL_ENV)
 
 
 mypy: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/mypy asgi_tools
+	$(VIRTUAL_ENV)/bin/mypy --install-types --non-interactive asgi_tools
 
 
 EXAMPLE = rates

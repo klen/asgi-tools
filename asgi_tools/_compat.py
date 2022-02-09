@@ -61,19 +61,19 @@ else:
 try:
     import aiofile
 except ImportError:
-    aiofile = None
+    aiofile = None  # type: ignore
 
 
 try:
     import trio
 except ImportError:
-    trio = None
+    trio = None  # type: ignore
 
 
 try:
     import curio
 except ImportError:
-    curio = None
+    curio = None  # type: ignore
 
 
 def aio_sleep(seconds: float = 0) -> t.Awaitable:
