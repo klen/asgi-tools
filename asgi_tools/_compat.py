@@ -3,10 +3,11 @@
 import asyncio
 import inspect
 import sys
-import typing as t
+from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine
 from concurrent.futures import ALL_COMPLETED, FIRST_COMPLETED
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any, Union, cast
 
 from sniffio import current_async_library
 
@@ -42,7 +43,7 @@ except ImportError:
             """Emulate orjson."""
             return dumps(content, ensure_ascii=False, separators=(",", ":")).encode("utf-8")  # type: ignore # noqa
 
-    def json_loads(obj: t.Union[bytes, str]) -> t.Any:  # type: ignore
+    def json_loads(obj: Union[bytes, str]) -> Any:  # type: ignore
         """Emulate orjson."""
         if isinstance(obj, bytes):
             obj = obj.decode("utf-8")
@@ -76,7 +77,7 @@ except ImportError:
     curio = None  # type: ignore
 
 
-def aio_sleep(seconds: float = 0) -> t.Awaitable:
+def aio_sleep(seconds: float = 0) -> Awaitable:
     """Return sleep coroutine."""
 
     if trio and current_async_library() == "trio":
@@ -89,7 +90,7 @@ def aio_sleep(seconds: float = 0) -> t.Awaitable:
 
 
 @asynccontextmanager
-async def aio_spawn(fn: t.Callable[..., t.Awaitable], *args, **kwargs):
+async def aio_spawn(fn: Callable[..., Awaitable], *args, **kwargs):
     """Spawn a given coroutine."""
     if trio and current_async_library() == "trio":
         async with trio.open_nursery() as tasks:
@@ -102,12 +103,13 @@ async def aio_spawn(fn: t.Callable[..., t.Awaitable], *args, **kwargs):
         await task.join()
 
     else:
-        task = create_task(fn(*args, **kwargs))
+        coro = cast(Coroutine, fn(*args, **kwargs))
+        task = create_task(coro)
         yield task
         await asyncio.gather(task)
 
 
-async def aio_wait(*aws: t.Awaitable, strategy: str = ALL_COMPLETED) -> t.Any:
+async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:
     """Run the coros concurently, wait for all completed or cancel others.
 
     Only ALL_COMPLETED, FIRST_COMPLETED are supported.
@@ -147,7 +149,7 @@ async def aio_wait(*aws: t.Awaitable, strategy: str = ALL_COMPLETED) -> t.Any:
     return [t.result() for t in done]
 
 
-async def aio_cancel(task: t.Union[asyncio.Task, t.Any]):
+async def aio_cancel(task: Union[asyncio.Task, Any]):
     """Cancel asyncio task / trio nursery."""
     if isinstance(task, asyncio.Task):
         return task.cancel()
@@ -160,8 +162,8 @@ async def aio_cancel(task: t.Union[asyncio.Task, t.Any]):
 
 
 async def aio_stream_file(
-    filepath: t.Union[str, Path], chunk_size: int = 32 * 1024
-) -> t.AsyncGenerator[bytes, None]:  # noqa
+    filepath: Union[str, Path], chunk_size: int = 32 * 1024
+) -> AsyncGenerator[bytes, None]:  # noqa
 
     if trio and current_async_library() == "trio":
         async with await trio.open_file(filepath, "rb") as fp:
@@ -188,6 +190,6 @@ async def aio_stream_file(
                 yield chunk
 
 
-async def trio_jockey(coro: t.Awaitable, channel):
+async def trio_jockey(coro: Awaitable, channel):
     """Wait for the given coroutine and send result back to the given channel."""
     await channel.send(await coro)
