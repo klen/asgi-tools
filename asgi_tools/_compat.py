@@ -3,11 +3,10 @@
 import asyncio
 import inspect
 import sys
-from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine
 from concurrent.futures import ALL_COMPLETED, FIRST_COMPLETED
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, Union, cast
+from typing import Any, AsyncGenerator, Awaitable, Callable, Coroutine, Union, cast
 
 from sniffio import current_async_library
 
