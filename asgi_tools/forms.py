@@ -1,23 +1,23 @@
 """Work with multipart."""
 
-import typing as t
 from cgi import parse_header
 from io import BytesIO
 from tempfile import SpooledTemporaryFile
+from typing import TYPE_CHECKING, Callable, Dict, Optional
 from urllib.parse import unquote_to_bytes
 
 from multidict import MultiDict
 
 from asgi_tools.multipart import BaseParser, MultipartParser, QueryStringParser
 
-if t.TYPE_CHECKING:
+if TYPE_CHECKING:
     from asgi_tools.request import Request  # noqa
 
 
 async def read_formdata(
     request: "Request",
     max_size: int,
-    upload_to: t.Optional[t.Callable],
+    upload_to: Optional[Callable],
     file_memory_limit: int = 1024 * 1024,
 ) -> MultiDict:
     """Read formdata from the given request."""
@@ -88,11 +88,11 @@ class MultipartReader(FormReader):
     )
 
     def __init__(
-        self, charset: str, upload_to: t.Optional[t.Callable], file_memory_limit: int
+        self, charset: str, upload_to: Optional[Callable], file_memory_limit: int
     ):
         super().__init__(charset)
         self.name = ""
-        self.headers: t.Dict[bytes, bytes] = {}
+        self.headers: Dict[bytes, bytes] = {}
         self.partdata = BytesIO()
         self.upload_to = upload_to
         self.file_memory_limit = file_memory_limit

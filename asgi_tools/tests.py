@@ -4,13 +4,13 @@ import binascii
 import io
 import mimetypes
 import os
-import typing as t
 from collections import deque
 from contextlib import asynccontextmanager
 from functools import partial
 from http.cookies import SimpleCookie
 from json import dumps, loads
 from pathlib import Path
+from typing import Any, AsyncGenerator, Awaitable, Callable, Coroutine, Dict, Mapping, Tuple, Union
 from urllib.parse import urlencode
 
 from yarl import URL
@@ -35,7 +35,7 @@ class TestResponse(Response):
         for cookie in self.headers.getall("set-cookie", []):
             self.cookies.load(cookie)
 
-    async def stream(self) -> t.AsyncGenerator[bytes, None]:
+    async def stream(self) -> AsyncGenerator[bytes, None]:
         """Stream the response."""
         more_body = True
         while more_body:
@@ -68,7 +68,7 @@ class TestWebSocketResponse(ResponseWebSocket):
     # Disable app methods for clients
     accept = close = None  # type: ignore
 
-    def connect(self) -> t.Coroutine[Message, t.Any, t.Any]:
+    def connect(self) -> Coroutine[Message, Any, Any]:
         return self.send({"type": "websocket.connect"})
 
     async def disconnect(self):
@@ -118,19 +118,19 @@ class ASGITestClient:
         self.app = app
         self.base_url = URL(base_url)
         self.cookies: SimpleCookie = SimpleCookie()
-        self.headers: t.Dict[str, str] = {}
+        self.headers: Dict[str, str] = {}
 
-    def __getattr__(self, name: str) -> t.Callable[..., t.Awaitable]:
+    def __getattr__(self, name: str) -> Callable[..., Awaitable]:
         return partial(self.request, method=name.upper())
 
     async def request(
         self,
         path: str,
         method: str = "GET",
-        query: t.Union[str, t.Dict] = "",
-        headers: t.Dict[str, str] = None,
-        cookies: t.Dict = None,
-        data: t.Union[bytes, str, t.Dict, t.AsyncGenerator] = b"",
+        query: Union[str, Dict] = "",
+        headers: Dict[str, str] = None,
+        cookies: Dict = None,
+        data: Union[bytes, str, Dict, AsyncGenerator] = b"",
         json: JSONType = None,
         follow_redirect: bool = True,
         timeout: float = 10.0,
@@ -194,9 +194,9 @@ class ASGITestClient:
     async def websocket(
         self,
         path: str,
-        query: t.Union[str, t.Dict] = None,
-        headers: t.Dict = None,
-        cookies: t.Dict = None,
+        query: Union[str, Dict] = None,
+        headers: Dict = None,
+        cookies: Dict = None,
     ):
         """Connect to a websocket."""
         receive_from_client, send_to_app = simple_stream()
@@ -226,9 +226,9 @@ class ASGITestClient:
     def build_scope(
         self,
         path: str,
-        headers: t.Union[t.Dict, CIMultiDict] = None,
-        query: t.Union[str, t.Dict] = None,
-        cookies: t.Dict = None,
+        headers: Union[Dict, CIMultiDict] = None,
+        query: Union[str, Dict] = None,
+        cookies: Dict = None,
         **scope,
     ) -> Scope:
         """Prepare a request scope."""
@@ -267,7 +267,7 @@ class ASGITestClient:
         )
 
 
-def encode_multipart(data: t.Dict) -> t.Tuple[bytes, str]:
+def encode_multipart(data: Dict) -> Tuple[bytes, str]:
     body = io.BytesIO()
     boundary = binascii.hexlify(os.urandom(16))
     for name, value in data.items():
@@ -305,14 +305,14 @@ def simple_stream(maxlen=None):
     return receive, to_awaitable(queue.append)
 
 
-async def raise_timeout(timeout: t.Union[int, float]):
+async def raise_timeout(timeout: Union[int, float]):
     await aio_sleep(timeout)
     raise TimeoutError("Timeout occured")
 
 
 async def stream_data(
-    data: t.Union[bytes, t.AsyncGenerator[t.Any, bytes]],
-    send: t.Callable[..., t.Awaitable],
+    data: Union[bytes, AsyncGenerator[Any, bytes]],
+    send: Callable[..., Awaitable],
 ):
     """Stream a data to an application."""
 
@@ -341,7 +341,7 @@ async def manage_lifespan(app, timeout: float = 3e-2):
         msg = await aio_wait(
             receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED
         )
-        if msg and isinstance(msg, t.Mapping):
+        if msg and isinstance(msg, Mapping):
             if msg["type"] == "lifespan.startup.failed":
                 await aio_cancel(task)
             else:
@@ -353,7 +353,7 @@ async def manage_lifespan(app, timeout: float = 3e-2):
         msg = await aio_wait(
             receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED
         )
-        if msg and isinstance(msg, t.Mapping):
+        if msg and isinstance(msg, Mapping):
             assert msg["type"] == "lifespan.shutdown.complete"
 
 

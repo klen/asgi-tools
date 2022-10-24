@@ -64,3 +64,5 @@ __all__ = (
     "StaticFilesMiddleware",
     "parse_response",
 )
+
+# pylama: ignore=E402

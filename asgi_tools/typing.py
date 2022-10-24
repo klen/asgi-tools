@@ -1,7 +1,6 @@
 """ASGI Types."""
 
-from typing import (TYPE_CHECKING, Any, Awaitable, Callable, Dict, List, MutableMapping, Tuple,
-                    TypeVar, Union)
+from typing import Any, Awaitable, Callable, Dict, List, MutableMapping, Tuple, TypeVar, Union
 
 Message = MutableMapping[str, Any]
 Send = Callable[[Message], Awaitable[Any]]

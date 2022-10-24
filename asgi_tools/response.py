@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import typing as t
 from email.utils import formatdate
 from enum import Enum
 from functools import partial
@@ -13,6 +12,7 @@ from http.cookies import SimpleCookie
 from mimetypes import guess_type
 from pathlib import Path
 from stat import S_ISDIR
+from typing import TYPE_CHECKING, AsyncGenerator, Callable, Dict, Optional, Type, Union, cast
 from urllib.parse import quote, quote_plus
 
 from multidict import MultiDict
@@ -54,7 +54,7 @@ class Response:
 
     """
     charset: str = DEFAULT_CHARSET
-    content_type: t.Optional[str] = None
+    content_type: Optional[str] = None
     status_code: int = HTTPStatus.OK.value
 
     def __init__(
@@ -62,7 +62,7 @@ class Response:
         content: ResponseContent = None,
         status_code: int = None,
         headers: dict = None,
-        content_type: t.Optional[str] = None,
+        content_type: Optional[str] = None,
     ):
         """Setup the response."""
         self.content = content  # type: ignore
@@ -88,7 +88,7 @@ class Response:
         """Stringify the response."""
         return f"<{ self.__class__.__name__ } '{ self }'>"
 
-    async def __call__(self, scope: t.Any, receive: t.Any, send: Send) -> None:
+    async def __call__(self, scope, receive, send: Send) -> None:
         """Behave as an ASGI application."""
         self.headers.setdefault("content-length", str(len(self.__content__)))
 
@@ -175,11 +175,11 @@ class ResponseStream(Response):
     """
 
     @Response.content.setter  # type: ignore
-    def content(self, content: t.AsyncGenerator[ResponseContent, None] = None):
+    def content(self, content: AsyncGenerator[ResponseContent, None] = None):
         """Store self content as is."""
         self.__content__ = content  # type: ignore
 
-    def prepare_chunk(self, chunk: t.Any) -> bytes:
+    def prepare_chunk(self, chunk) -> bytes:
         """Prepare a chunk from stream generator to send."""
         if not isinstance(chunk, bytes):
             chunk = str(chunk).encode(self.charset)
@@ -195,7 +195,7 @@ class ResponseStream(Response):
     async def stream_response(self, send: Send):
         """Stream response content."""
         await send(self.msg_start())
-        content = t.cast(t.AsyncGenerator, self.content)
+        content = cast(AsyncGenerator, self.content)
         if content:
             async for chunk in content:
                 await send(
@@ -208,7 +208,7 @@ class ResponseStream(Response):
 
         await send({"type": "http.response.body", "body": b""})
 
-    async def __call__(self, _: t.Any, receive: t.Any, send: Send) -> None:
+    async def __call__(self, _, receive, send: Send) -> None:
         """Behave as an ASGI application."""
         await aio_wait(
             self.listen_for_disconnect(receive),
@@ -231,7 +231,7 @@ class ResponseSSE(ResponseStream):
         self.headers.setdefault("Cache-Control", "no-cache")
         return super().msg_start()
 
-    def prepare_chunk(self, chunk: t.Any) -> bytes:
+    def prepare_chunk(self, chunk) -> bytes:
         """Prepare a chunk from stream generator to send."""
         if isinstance(chunk, dict):
             chunk = "\n".join(f"{k}: {v}" for k, v in chunk.items())
@@ -258,7 +258,7 @@ class ResponseFile(ResponseStream):
 
     def __init__(
         self,
-        filepath: t.Union[str, Path],
+        filepath: Union[str, Path],
         *,
         chunk_size: int = 64 * 1024,
         filename: str = None,
@@ -311,8 +311,8 @@ class ResponseWebSocket(Response):
     def __init__(
         self,
         scope: Scope,
-        receive: t.Optional[Receive] = None,
-        send: t.Optional[Send] = None,
+        receive: Optional[Receive] = None,
+        send: Optional[Send] = None,
     ) -> None:
         """Initialize the websocket response."""
         if isinstance(scope, Request):
@@ -325,7 +325,7 @@ class ResponseWebSocket(Response):
         self.state = self.STATES.CONNECTING
         self.partner_state = self.STATES.CONNECTING
 
-    async def __call__(self, _: t.Any, __: t.Any, send: Send):
+    async def __call__(self, _, __, send: Send):
         """Close websocket if the response has been returned."""
         await send({"type": "websocket.close"})
 
@@ -370,7 +370,7 @@ class ResponseWebSocket(Response):
         self.state = self.STATES.DISCONNECTED
 
     async def send(
-        self, msg: t.Union[t.Dict, str, bytes], type="websocket.send"  # noqa
+        self, msg: Union[Dict, str, bytes], type="websocket.send"  # noqa
     ) -> None:
         """Send the given message to a client."""
         if self.state == self.STATES.DISCONNECTED:
@@ -387,7 +387,7 @@ class ResponseWebSocket(Response):
         """Serialize the given data to JSON and send to a client."""
         return await self._send({"type": "websocket.send", "bytes": json_dumps(data)})
 
-    async def receive(self, raw: bool = False) -> t.Union[Message, str]:
+    async def receive(self, raw: bool = False) -> Union[Message, str]:
         """Receive messages from a client.
 
         :param raw: Receive messages as is.
@@ -430,7 +430,7 @@ class ResponseErrorMeta(type):
     """Generate Response Errors by HTTP names."""
 
     # XXX: From python 3.9 -> partial['ResponseError]
-    def __getattr__(cls, name: str) -> t.Callable[..., ResponseError]:
+    def __getattr__(cls, name: str) -> Callable[..., ResponseError]:
         """Generate Response Errors by HTTP names."""
         status = HTTPStatus[name]  # noqa
         return partial(cls, status_code=status.value)
@@ -456,50 +456,50 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
     status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR.value
 
     # Typing annotations
-    if t.TYPE_CHECKING:
-        BAD_REQUEST: t.Callable[..., ResponseError]  # 400
-        UNAUTHORIZED: t.Callable[..., ResponseError]  # 401
-        PAYMENT_REQUIRED: t.Callable[..., ResponseError]  # 402
-        FORBIDDEN: t.Callable[..., ResponseError]  # 403
-        NOT_FOUND: t.Callable[..., ResponseError]  # 404
-        METHOD_NOT_ALLOWED: t.Callable[..., ResponseError]  # 405
-        NOT_ACCEPTABLE: t.Callable[..., ResponseError]  # 406
-        PROXY_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]  # 407
-        REQUEST_TIMEOUT: t.Callable[..., ResponseError]  # 408
-        CONFLICT: t.Callable[..., ResponseError]  # 409
-        GONE: t.Callable[..., ResponseError]  # 410
-        LENGTH_REQUIRED: t.Callable[..., ResponseError]  # 411
-        PRECONDITION_FAILED: t.Callable[..., ResponseError]  # 412
-        REQUEST_ENTITY_TOO_LARGE: t.Callable[..., ResponseError]  # 413
-        REQUEST_URI_TOO_LONG: t.Callable[..., ResponseError]  # 414
-        UNSUPPORTED_MEDIA_TYPE: t.Callable[..., ResponseError]  # 415
-        REQUESTED_RANGE_NOT_SATISFIABLE: t.Callable[..., ResponseError]  # 416
-        EXPECTATION_FAILED: t.Callable[..., ResponseError]  # 417
+    if TYPE_CHECKING:
+        BAD_REQUEST: Callable[..., ResponseError]  # 400
+        UNAUTHORIZED: Callable[..., ResponseError]  # 401
+        PAYMENT_REQUIRED: Callable[..., ResponseError]  # 402
+        FORBIDDEN: Callable[..., ResponseError]  # 403
+        NOT_FOUND: Callable[..., ResponseError]  # 404
+        METHOD_NOT_ALLOWED: Callable[..., ResponseError]  # 405
+        NOT_ACCEPTABLE: Callable[..., ResponseError]  # 406
+        PROXY_AUTHENTICATION_REQUIRED: Callable[..., ResponseError]  # 407
+        REQUEST_TIMEOUT: Callable[..., ResponseError]  # 408
+        CONFLICT: Callable[..., ResponseError]  # 409
+        GONE: Callable[..., ResponseError]  # 410
+        LENGTH_REQUIRED: Callable[..., ResponseError]  # 411
+        PRECONDITION_FAILED: Callable[..., ResponseError]  # 412
+        REQUEST_ENTITY_TOO_LARGE: Callable[..., ResponseError]  # 413
+        REQUEST_URI_TOO_LONG: Callable[..., ResponseError]  # 414
+        UNSUPPORTED_MEDIA_TYPE: Callable[..., ResponseError]  # 415
+        REQUESTED_RANGE_NOT_SATISFIABLE: Callable[..., ResponseError]  # 416
+        EXPECTATION_FAILED: Callable[..., ResponseError]  # 417
         # XXX: From python 3.9
-        # IM_A_TEAPOT: t.Callable[..., ResponseError]                       # 418
-        # MISDIRECTED_REQUEST: t.Callable[..., ResponseError]               # 421
-        UNPROCESSABLE_ENTITY: t.Callable[..., ResponseError]  # 422
-        LOCKED: t.Callable[..., ResponseError]  # 423
-        FAILED_DEPENDENCY: t.Callable[..., ResponseError]  # 424
-        TOO_EARLY: t.Callable[..., ResponseError]  # 425
-        UPGRADE_REQUIRED: t.Callable[..., ResponseError]  # 426
-        PRECONDITION_REQUIRED: t.Callable[..., ResponseError]  # 428
-        TOO_MANY_REQUESTS: t.Callable[..., ResponseError]  # 429
-        REQUEST_HEADER_FIELDS_TOO_LARGE: t.Callable[..., ResponseError]  # 431
+        # IM_A_TEAPOT: Callable[..., ResponseError]                       # 418
+        # MISDIRECTED_REQUEST: Callable[..., ResponseError]               # 421
+        UNPROCESSABLE_ENTITY: Callable[..., ResponseError]  # 422
+        LOCKED: Callable[..., ResponseError]  # 423
+        FAILED_DEPENDENCY: Callable[..., ResponseError]  # 424
+        TOO_EARLY: Callable[..., ResponseError]  # 425
+        UPGRADE_REQUIRED: Callable[..., ResponseError]  # 426
+        PRECONDITION_REQUIRED: Callable[..., ResponseError]  # 428
+        TOO_MANY_REQUESTS: Callable[..., ResponseError]  # 429
+        REQUEST_HEADER_FIELDS_TOO_LARGE: Callable[..., ResponseError]  # 431
         # XXX: From python 3.9
-        # UNAVAILABLE_FOR_LEGAL_REASONS: t.Callable[..., ResponseError]     # 451
+        # UNAVAILABLE_FOR_LEGAL_REASONS: Callable[..., ResponseError]     # 451
 
-        INTERNAL_SERVER_ERROR: t.Callable[..., ResponseError]  # 500
-        NOT_IMPLEMENTED: t.Callable[..., ResponseError]  # 501
-        BAD_GATEWAY: t.Callable[..., ResponseError]  # 502
-        SERVICE_UNAVAILABLE: t.Callable[..., ResponseError]  # 503
-        GATEWAY_TIMEOUT: t.Callable[..., ResponseError]  # 504
-        HTTP_VERSION_NOT_SUPPORTED: t.Callable[..., ResponseError]  # 505
-        VARIANT_ALSO_NEGOTIATES: t.Callable[..., ResponseError]  # 506
-        INSUFFICIENT_STORAGE: t.Callable[..., ResponseError]  # 507
-        LOOP_DETECTED: t.Callable[..., ResponseError]  # 508
-        NOT_EXTENDED: t.Callable[..., ResponseError]  # 510
-        NETWORK_AUTHENTICATION_REQUIRED: t.Callable[..., ResponseError]  # 511
+        INTERNAL_SERVER_ERROR: Callable[..., ResponseError]  # 500
+        NOT_IMPLEMENTED: Callable[..., ResponseError]  # 501
+        BAD_GATEWAY: Callable[..., ResponseError]  # 502
+        SERVICE_UNAVAILABLE: Callable[..., ResponseError]  # 503
+        GATEWAY_TIMEOUT: Callable[..., ResponseError]  # 504
+        HTTP_VERSION_NOT_SUPPORTED: Callable[..., ResponseError]  # 505
+        VARIANT_ALSO_NEGOTIATES: Callable[..., ResponseError]  # 506
+        INSUFFICIENT_STORAGE: Callable[..., ResponseError]  # 507
+        LOOP_DETECTED: Callable[..., ResponseError]  # 508
+        NOT_EXTENDED: Callable[..., ResponseError]  # 510
+        NETWORK_AUTHENTICATION_REQUIRED: Callable[..., ResponseError]  # 511
 
     def __init__(
         self, message: ResponseContent = None, status_code: int = None, **kwargs
@@ -512,7 +512,7 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
         self.content = message or HTTPStatus(self.status_code).description
 
 
-CAST_RESPONSE: t.Dict[t.Type, t.Type[Response]] = {
+CAST_RESPONSE: Dict[Type, Type[Response]] = {
     bool: ResponseJSON,
     bytes: ResponseHTML,
     dict: ResponseJSON,
@@ -523,7 +523,7 @@ CAST_RESPONSE: t.Dict[t.Type, t.Type[Response]] = {
 }
 
 
-def parse_response(response: t.Any, headers: t.Dict = None) -> Response:
+def parse_response(response, headers: Dict = None) -> Response:
     """Parse the given object and convert it into a asgi_tools.Response."""
     rtype = type(response)
     if issubclass(rtype, Response):
@@ -547,7 +547,7 @@ def parse_response(response: t.Any, headers: t.Dict = None) -> Response:
     return ResponseText(str(response), headers=headers)
 
 
-def parse_websocket_msg(msg: Message, charset: str = None) -> t.Union[Message, str]:
+def parse_websocket_msg(msg: Message, charset: str = None) -> Union[Message, str]:
     """Prepare websocket message."""
     data = msg.get("text")
     if data:

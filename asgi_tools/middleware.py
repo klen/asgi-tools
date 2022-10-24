@@ -2,9 +2,9 @@
 
 import abc
 import inspect
-import typing as t
 from functools import partial
 from pathlib import Path
+from typing import Any, Callable, List, Mapping, Optional, Set, Tuple, Union
 
 from http_router import Router
 
@@ -18,7 +18,7 @@ from asgi_tools.typing import ASGIApp, Receive, Scope, Send
 class BaseMiddeware(metaclass=abc.ABCMeta):
     """Base class for ASGI-Tools middlewares."""
 
-    scopes: t.Set = {"http", "websocket"}
+    scopes: Set = {"http", "websocket"}
 
     def __init__(self, app: ASGIApp = None) -> None:
         """Save ASGI App."""
@@ -39,7 +39,7 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @classmethod
-    def setup(cls, **params) -> t.Callable:
+    def setup(cls, **params) -> Callable:
         """Setup the middleware without an initialization."""
         return partial(cls, **params)
 
@@ -193,15 +193,15 @@ class LifespanMiddleware(BaseMiddeware):
         app: ASGIApp = None,
         ignore_errors: bool = False,
         logger=asgi_logger,
-        on_startup: t.Union[t.Callable, t.List[t.Callable]] = None,
-        on_shutdown: t.Union[t.Callable, t.List[t.Callable]] = None,
+        on_startup: Union[Callable, List[Callable]] = None,
+        on_shutdown: Union[Callable, List[Callable]] = None,
     ) -> None:
         """Prepare the middleware."""
         super(LifespanMiddleware, self).__init__(app)
         self.ignore_errors = ignore_errors
         self.logger = logger
-        self.__startup__: t.List[t.Callable] = []
-        self.__shutdown__: t.List[t.Callable] = []
+        self.__startup__: List[Callable] = []
+        self.__shutdown__: List[Callable] = []
         self.__register__(on_startup, self.__startup__)
         self.__register__(on_shutdown, self.__shutdown__)
 
@@ -219,8 +219,8 @@ class LifespanMiddleware(BaseMiddeware):
 
     def __register__(
         self,
-        handlers: t.Union[t.Callable, t.List[t.Callable], None],
-        container: t.List[t.Callable],
+        handlers: Union[Callable, List[Callable], None],
+        container: List[Callable],
     ) -> None:
         """Register lifespan handlers."""
         if not handlers:
@@ -264,11 +264,11 @@ class LifespanMiddleware(BaseMiddeware):
 
         return {"type": f"lifespan.{event}.complete"}
 
-    def on_startup(self, fn: t.Callable) -> None:
+    def on_startup(self, fn: Callable) -> None:
         """Add a function to startup."""
         self.__register__(fn, self.__startup__)
 
-    def on_shutdown(self, fn: t.Callable) -> None:
+    def on_shutdown(self, fn: Callable) -> None:
         """Add a function to shutdown."""
         self.__register__(fn, self.__shutdown__)
 
@@ -342,9 +342,7 @@ class RouterMiddleware(BaseMiddeware):
         scope["path_params"] = path_params
         return await app(scope, receive, send)
 
-    def __dispatch__(
-        self, scope: Scope
-    ) -> t.Tuple[t.Optional[t.Any], t.Optional[t.Mapping]]:
+    def __dispatch__(self, scope: Scope) -> Tuple[Optional[Any], Optional[Mapping]]:
         """Lookup for a callback."""
         try:
             match = self.router(
@@ -383,7 +381,7 @@ class StaticFilesMiddleware(BaseMiddeware):
         self,
         app: ASGIApp = None,
         url_prefix: str = "/static",
-        folders: t.Union[str, t.List[str]] = None,
+        folders: Union[str, List[str]] = None,
     ) -> None:
         """Initialize the middleware."""
         super().__init__(app)
@@ -391,7 +389,7 @@ class StaticFilesMiddleware(BaseMiddeware):
         folders = folders or []
         if isinstance(folders, str):
             folders = [folders]
-        self.folders: t.List[Path] = [Path(folder) for folder in folders]
+        self.folders: List[Path] = [Path(folder) for folder in folders]
 
     async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Serve static files for self url prefix."""
@@ -400,7 +398,7 @@ class StaticFilesMiddleware(BaseMiddeware):
         if not path.startswith(url_prefix):
             return await self.app(scope, receive, send)
 
-        response: t.Optional[Response] = None
+        response: Optional[Response] = None
         filename = path[len(url_prefix) :].strip("/")
         for folder in self.folders:
             filepath = folder.joinpath(filename).resolve()
@@ -417,4 +415,4 @@ class StaticFilesMiddleware(BaseMiddeware):
         await response(scope, receive, send)
 
 
-# pylama: ignore=E501
+# pylama: ignore=E203,E501

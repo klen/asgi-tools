@@ -4,9 +4,9 @@ incoming request.
 
 from __future__ import annotations
 
-import typing as t
 from cgi import parse_header
 from http import cookies
+from typing import Any, AsyncGenerator, Callable, Dict, Iterator, MutableMapping, Optional, Union
 
 from multidict import MultiDict
 from yarl import URL
@@ -18,7 +18,7 @@ from asgi_tools.typing import JSONType, Receive, Scope, Send
 from asgi_tools.utils import CIMultiDict, parse_headers
 
 
-class Request(t.MutableMapping):
+class Request(MutableMapping):
     """Represent a HTTP Request.
 
     :param scope: HTTP ASGI Scope
@@ -28,12 +28,12 @@ class Request(t.MutableMapping):
     """
 
     _is_read: bool = False
-    _url: t.Optional[URL] = None
-    _body: t.Optional[bytes] = None
-    _form: t.Optional[MultiDict] = None
-    _headers: t.Optional[CIMultiDict] = None
-    _media: t.Optional[t.Dict[str, str]] = None
-    _cookies: t.Optional[t.Dict[str, str]] = None
+    _url: Optional[URL] = None
+    _body: Optional[bytes] = None
+    _form: Optional[MultiDict] = None
+    _headers: Optional[CIMultiDict] = None
+    _media: Optional[Dict[str, str]] = None
+    _cookies: Optional[Dict[str, str]] = None
 
     def __init__(
         self, scope: Scope, receive: Receive = None, send: Send = None
@@ -47,11 +47,11 @@ class Request(t.MutableMapping):
         """Represent the request."""
         return f"<Request {self.content_type} {self.method} {self.url.path}>"
 
-    def __getitem__(self, key: str) -> t.Any:
+    def __getitem__(self, key: str) -> Any:
         """Proxy the method to the scope."""
         return self.scope[key]
 
-    def __setitem__(self, key: str, value: t.Any) -> None:
+    def __setitem__(self, key: str, value: Any) -> None:
         """Proxy the method to the scope."""
         self.scope[key] = value
 
@@ -59,7 +59,7 @@ class Request(t.MutableMapping):
         """Proxy the method to the scope."""
         del self.scope[key]
 
-    def __iter__(self) -> t.Iterator[str]:
+    def __iter__(self) -> Iterator[str]:
         """Proxy the method to the scope."""
         return iter(self.scope)
 
@@ -67,7 +67,7 @@ class Request(t.MutableMapping):
         """Proxy the method to the scope."""
         return len(self.scope)
 
-    def __getattr__(self, name: str) -> t.Any:
+    def __getattr__(self, name: str) -> Any:
         """Proxy the request's unknown attributes to scope."""
         return self.scope[name]
 
@@ -129,7 +129,7 @@ class Request(t.MutableMapping):
         return self._headers
 
     @property
-    def cookies(self) -> t.Dict[str, str]:
+    def cookies(self) -> Dict[str, str]:
         """A lazy property that parses the current scope's cookies and returns a dictionary.
 
         .. code-block:: python
@@ -149,7 +149,7 @@ class Request(t.MutableMapping):
         return self._cookies
 
     @property
-    def media(self) -> t.Dict[str, str]:
+    def media(self) -> Dict[str, str]:
         """Prepare a media data for the request."""
         if self._media is None:
             content_type, opts = parse_header(self.headers.get("content-type", ""))
@@ -175,7 +175,7 @@ class Request(t.MutableMapping):
         """Get a content type for the current scope."""
         return self.media["content_type"]
 
-    async def stream(self) -> t.AsyncGenerator:
+    async def stream(self) -> AsyncGenerator:
         """Stream the request's body.
 
         The method provides byte chunks without storing the entire body to memory.
@@ -242,7 +242,7 @@ class Request(t.MutableMapping):
     async def form(
         self,
         max_size: int = 0,
-        upload_to: t.Callable = None,
+        upload_to: Callable = None,
         file_memory_limit: int = 1024 * 1024,
     ) -> MultiDict:
         """Read and return the request's multipart formdata as a multidict.
@@ -265,7 +265,7 @@ class Request(t.MutableMapping):
 
     async def data(
         self, raise_errors: bool = False
-    ) -> t.Union[str, bytes, JSONType, MultiDict]:
+    ) -> Union[str, bytes, JSONType, MultiDict]:
         """The method checks Content-Type Header and parse the request's data automatically.
 
         `data = await request.data()`
