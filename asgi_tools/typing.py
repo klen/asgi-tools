@@ -1,14 +1,16 @@
 """ASGI Types."""
 
-import typing as t
+from typing import (TYPE_CHECKING, Any, Awaitable, Callable, Dict, List, MutableMapping, Tuple,
+                    TypeVar, Union)
 
-Message = t.MutableMapping[str, t.Any]
-Send = t.Callable[[Message], t.Awaitable[t.Any]]
-Receive = t.Callable[[], t.Awaitable[Message]]
-Scope = t.MutableMapping[str, t.Any]
-ScopeHeaders = t.List[t.Tuple[bytes, bytes]]
-JSONType = t.Union[str, int, float, bool, None, t.Dict[str, t.Any], t.List[t.Any]]
-ASGIApp = t.Callable[[Scope, Receive, Send], t.Awaitable]
+Message = MutableMapping[str, Any]
+Send = Callable[[Message], Awaitable[Any]]
+Receive = Callable[[], Awaitable[Message]]
+Scope = MutableMapping[str, Any]
+ScopeHeaders = List[Tuple[bytes, bytes]]
+JSONType = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
+ASGIApp = Callable[[Scope, Receive, Send], Awaitable]
 
-ResponseContent = t.Union[str, bytes]
-F = t.TypeVar("F", bound=t.Callable)
+ResponseContent = Union[str, bytes]
+F = TypeVar("F", bound=Callable)
+DecoratedCallable = TypeVar("DecoratedCallable", bound=Callable)

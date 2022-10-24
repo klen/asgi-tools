@@ -251,15 +251,15 @@ class LifespanMiddleware(BaseMiddeware):
                 if inspect.isawaitable(res):
                     await res
             except Exception as exc:  # noqa
+                self.logger.error(
+                    f"{ event.title() } method '{ handler }' raises an exception."
+                )
+                self.logger.exception(exc)
+
                 if self.ignore_errors:
                     continue
 
-                self.logger.exception(exc)
-                self.logger.error(
-                    f"{ event.title() } method '{ handler }' raises an exception. "
-                    "Lifespan process failed."
-                )
-
+                self.logger.error("Lifespans process failed")
                 return {"type": f"lifespan.{event}.failed", "message": str(exc)}
 
         return {"type": f"lifespan.{event}.complete"}

@@ -191,14 +191,17 @@ class Request(t.MutableMapping):
             raise RuntimeError("Request doesnt have a receive coroutine")
 
         if self._is_read:
-            raise RuntimeError("Stream has been read")
+            if self._body is None:
+                raise RuntimeError("Stream has been read")
+            yield self._body
 
-        self._is_read = True
-        message = await self.receive()
-        yield message.get("body", b"")
-        while message.get("more_body"):
+        else:
+            self._is_read = True
             message = await self.receive()
             yield message.get("body", b"")
+            while message.get("more_body"):
+                message = await self.receive()
+                yield message.get("body", b"")
 
     async def body(self) -> bytes:
         """Read and return the request's body as bytes.

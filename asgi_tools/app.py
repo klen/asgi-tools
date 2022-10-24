@@ -7,13 +7,13 @@ from functools import partial
 
 from http_router import PrefixedRoute
 from http_router import Router as HTTPRouter
-from http_router.typing import TYPE_METHODS
+from http_router.typing import TYPE_METHODS, TYPE_PATH
 
 from . import ASGIConnectionClosed, ASGIError, ASGIMethodNotAllowed, ASGINotFound, asgi_logger
 from .middleware import BaseMiddeware, LifespanMiddleware, StaticFilesMiddleware, parse_response
 from .request import Request
 from .response import Response, ResponseError
-from .typing import F, Receive, Scope, Send
+from .typing import DecoratedCallable, F, Receive, Scope, Send
 from .utils import iscoroutinefunction, to_awaitable
 
 HTTP_METHODS = {
@@ -204,14 +204,14 @@ class App:
 
         self.internal_middlewares: t.List = []
 
-    def __route__(self, router: Router, *prefixes: str, **_):
+    def __route__(self, router: Router, *prefixes: str, **_) -> "App":
         """Mount self as a nested application."""
         for prefix in prefixes:
             route = RouteApp(prefix, set(), target=self)
             router.dynamic.insert(0, route)
         return self
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Convert the given scope into a request and process."""
         scope["app"] = self
         request = Request(scope, receive, send)
@@ -258,19 +258,23 @@ class App:
 
         return md
 
-    def route(self, *args, **kwargs) -> t.Callable:
+    def route(
+        self, *paths: TYPE_PATH, methods: TYPE_METHODS = None, **opts
+    ) -> t.Callable[[DecoratedCallable], DecoratedCallable]:
         """Register a route."""
-        return self.router.route(*args, **kwargs)
+        return self.router.route(*paths, methods=methods, **opts)
 
-    def on_startup(self, fn: t.Callable):
+    def on_startup(self, fn: t.Callable) -> None:
         """Register a startup handler."""
         return self.lifespan.on_startup(fn)
 
-    def on_shutdown(self, fn: t.Callable):
+    def on_shutdown(self, fn: t.Callable) -> None:
         """Register a shutdown handler."""
         return self.lifespan.on_shutdown(fn)
 
-    def on_error(self, etype: t.Union[int, t.Type[BaseException]]):
+    def on_error(
+        self, etype: t.Union[int, t.Type[BaseException]]
+    ) -> t.Callable[[DecoratedCallable], DecoratedCallable]:
         """Register an exception handler.
 
         .. code-block::
