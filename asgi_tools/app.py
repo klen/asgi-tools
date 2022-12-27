@@ -2,12 +2,12 @@
 
 import inspect
 import logging
-import typing as t
 from functools import partial
+from typing import Any, Awaitable, Callable, ClassVar, Dict, List, Optional, Set, Type, Union, cast
 
 from http_router import PrefixedRoute
 from http_router import Router as HTTPRouter
-from http_router.typing import TYPE_METHODS, TYPE_PATH
+from http_router.types import TMethods, TPath
 
 from . import ASGIConnectionClosed, ASGIError, ASGIMethodNotAllowed, ASGINotFound, asgi_logger
 from .middleware import BaseMiddeware, LifespanMiddleware, StaticFilesMiddleware, parse_response
@@ -32,9 +32,9 @@ HTTP_METHODS = {
 class Router(HTTPRouter):
     """Rebind router errors."""
 
-    NotFound: t.ClassVar[t.Type[Exception]] = ASGINotFound
-    RouterError: t.ClassVar[t.Type[Exception]] = ASGIError
-    MethodNotAllowed: t.ClassVar[t.Type[Exception]] = ASGIMethodNotAllowed
+    NotFound: ClassVar[Type[Exception]] = ASGINotFound
+    RouterError: ClassVar[Type[Exception]] = ASGIError
+    MethodNotAllowed: ClassVar[Type[Exception]] = ASGIMethodNotAllowed
 
 
 class HTTPView:
@@ -71,14 +71,18 @@ class HTTPView:
 
     @classmethod
     def __route__(
-        cls, router: Router, *paths: str, methods: TYPE_METHODS = None, **params
-    ) -> t.Type["HTTPView"]:
+        cls,
+        router: Router,
+        *paths: str,
+        methods: Optional[TMethods] = None,
+        **params,
+    ) -> Type["HTTPView"]:
         """Bind the class view to the given router."""
         view_methods = dict(inspect.getmembers(cls, inspect.isfunction))
         methods = methods or [m for m in HTTP_METHODS if m.lower() in view_methods]
         return router.bind(cls, *paths, methods=methods, **params)
 
-    def __call__(self, request: Request, **opts) -> t.Awaitable:
+    def __call__(self, request: Request, **opts) -> Awaitable:
         """Dispatch the given request by HTTP method."""
         method = getattr(self, request.method.lower())
         return method(request, **opts)
@@ -124,9 +128,9 @@ class App:
 
     """
 
-    exception_handlers: t.Dict[
-        t.Union[int, t.Type[BaseException]],
-        t.Callable[[Request, BaseException], t.Awaitable],
+    exception_handlers: Dict[
+        Union[int, Type[BaseException]],
+        Callable[[Request, BaseException], Awaitable],
     ]
 
     def __init__(
@@ -135,7 +139,7 @@ class App:
         debug: bool = False,
         logger: logging.Logger = asgi_logger,
         static_url_prefix: str = "/static",
-        static_folders: t.Union[str, t.List[str]] = None,
+        static_folders: Union[str, List[str], None] = None,
         trim_last_slash: bool = False,
     ):
         """Initialize router and lifespan middleware."""
@@ -153,9 +157,7 @@ class App:
         # Setup logging
         self.logger = logger
 
-        async def process(
-            request: Request, _: Receive, __: Send
-        ) -> t.Optional[Response]:
+        async def process(request: Request, _: Receive, __: Send) -> Optional[Response]:
             """Find and call a callback, parse a response, handle exceptions."""
             scope = request.scope
             path = f"{ scope.get('root_path', '') }{ scope['path'] }"
@@ -202,7 +204,7 @@ class App:
 
             self.exception_handlers[Exception] = handle_unknown_exception
 
-        self.internal_middlewares: t.List = []
+        self.internal_middlewares: List = []
 
     def __route__(self, router: Router, *prefixes: str, **_) -> "App":
         """Mount self as a nested application."""
@@ -225,7 +227,7 @@ class App:
 
             await parse_response(response)(scope, receive, send)
 
-    async def handle_exc(self, request: Request, exc: BaseException) -> t.Any:
+    async def handle_exc(self, request: Request, exc: BaseException) -> Any:
         """Look for a handler for the given exception."""
         if isinstance(exc, Response) and exc.status_code in self.exception_handlers:
             return await self.exception_handlers[exc.status_code](request, exc)
@@ -259,22 +261,22 @@ class App:
         return md
 
     def route(
-        self, *paths: TYPE_PATH, methods: TYPE_METHODS = None, **opts
-    ) -> t.Callable[[DecoratedCallable], DecoratedCallable]:
+        self, *paths: TPath, methods: Optional[TMethods] = None, **opts
+    ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """Register a route."""
         return self.router.route(*paths, methods=methods, **opts)
 
-    def on_startup(self, fn: t.Callable) -> None:
+    def on_startup(self, fn: Callable) -> None:
         """Register a startup handler."""
         return self.lifespan.on_startup(fn)
 
-    def on_shutdown(self, fn: t.Callable) -> None:
+    def on_shutdown(self, fn: Callable) -> None:
         """Register a shutdown handler."""
         return self.lifespan.on_shutdown(fn)
 
     def on_error(
-        self, etype: t.Union[int, t.Type[BaseException]]
-    ) -> t.Callable[[DecoratedCallable], DecoratedCallable]:
+        self, etype: Union[int, Type[BaseException]]
+    ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """Register an exception handler.
 
         .. code-block::
@@ -299,14 +301,14 @@ class App:
 class RouteApp(PrefixedRoute):
     """Custom route to submount an application."""
 
-    def __init__(self, path: str, methods: t.Set, target: App):
+    def __init__(self, path: str, methods: Set, target: App):
         """Create app callable."""
         path = path.rstrip("/")
 
         def app(request: Request):
             subrequest = request.__copy__(path=request.path[len(path) :])
-            receive = t.cast(Receive, request.receive)
-            send = t.cast(Send, request.send)
+            receive = cast(Receive, request.receive)
+            send = cast(Send, request.send)
             return target.__internal__.app(subrequest, receive, send)
 
         super().__init__(path, methods, app)

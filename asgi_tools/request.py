@@ -36,7 +36,10 @@ class Request(MutableMapping):
     _cookies: Optional[Dict[str, str]] = None
 
     def __init__(
-        self, scope: Scope, receive: Receive = None, send: Send = None
+        self,
+        scope: Scope,
+        receive: Optional[Receive] = None,
+        send: Optional[Send] = None,
     ) -> None:
         """Create a request based on the given scope."""
         self.scope = scope
@@ -242,7 +245,7 @@ class Request(MutableMapping):
     async def form(
         self,
         max_size: int = 0,
-        upload_to: Callable = None,
+        upload_to: Optional[Callable] = None,
         file_memory_limit: int = 1024 * 1024,
     ) -> MultiDict:
         """Read and return the request's multipart formdata as a multidict.

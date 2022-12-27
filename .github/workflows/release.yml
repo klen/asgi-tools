@@ -20,7 +20,7 @@ jobs:
  
     - uses: actions/setup-python@main
       with:
-        python-version: 3.9
+        python-version: '3.10'
 
     - uses: actions/cache@main
       id: cache-c
@@ -68,6 +68,7 @@ jobs:
         - "cp38-*"
         - "cp39-*"
         - "cp310-*"
+        - "cp311-*"
         exclude:
         - os: ubuntu-latest
           cibw_arch: universal2

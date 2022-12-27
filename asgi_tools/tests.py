@@ -4,13 +4,15 @@ import binascii
 import io
 import mimetypes
 import os
+import random
 from collections import deque
 from contextlib import asynccontextmanager
 from functools import partial
 from http.cookies import SimpleCookie
 from json import dumps, loads
 from pathlib import Path
-from typing import Any, AsyncGenerator, Awaitable, Callable, Coroutine, Dict, Mapping, Tuple, Union
+from typing import (Any, AsyncGenerator, Awaitable, Callable, Coroutine, Dict, Mapping, Optional,
+                    Tuple, Union)
 from urllib.parse import urlencode
 
 from yarl import URL
@@ -128,8 +130,8 @@ class ASGITestClient:
         path: str,
         method: str = "GET",
         query: Union[str, Dict] = "",
-        headers: Dict[str, str] = None,
-        cookies: Dict = None,
+        headers: Optional[Dict[str, str]] = None,
+        cookies: Optional[Dict[str, str]] = None,
         data: Union[bytes, str, Dict, AsyncGenerator] = b"",
         json: JSONType = None,
         follow_redirect: bool = True,
@@ -194,9 +196,9 @@ class ASGITestClient:
     async def websocket(
         self,
         path: str,
-        query: Union[str, Dict] = None,
-        headers: Dict = None,
-        cookies: Dict = None,
+        query: Union[str, Dict, None] = None,
+        headers: Optional[Dict] = None,
+        cookies: Optional[Dict] = None,
     ):
         """Connect to a websocket."""
         receive_from_client, send_to_app = simple_stream()
@@ -226,14 +228,13 @@ class ASGITestClient:
     def build_scope(
         self,
         path: str,
-        headers: Union[Dict, CIMultiDict] = None,
-        query: Union[str, Dict] = None,
-        cookies: Dict = None,
+        headers: Union[Dict, CIMultiDict, None] = None,
+        query: Union[str, Dict, None] = None,
+        cookies: Optional[Dict] = None,
         **scope,
     ) -> Scope:
         """Prepare a request scope."""
         headers = headers or {}
-        headers.setdefault("Remote-Addr", "127.0.0.1")
         headers.setdefault("User-Agent", "ASGI-Tools-Test-Client")
         headers.setdefault("Host", self.base_url.host)
 
@@ -247,6 +248,9 @@ class ASGITestClient:
         url = URL(path)
         if query:
             url = url.with_query(query)
+
+        # Setup client
+        scope.setdefault("client", ("127.0.0.1", random.randint(1024, 65535)))
 
         return dict(
             {

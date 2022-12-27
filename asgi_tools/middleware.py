@@ -20,7 +20,7 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
 
     scopes: Set = {"http", "websocket"}
 
-    def __init__(self, app: ASGIApp = None) -> None:
+    def __init__(self, app: Optional[ASGIApp] = None) -> None:
         """Save ASGI App."""
         self.bind(app)
 
@@ -43,7 +43,7 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
         """Setup the middleware without an initialization."""
         return partial(cls, **params)
 
-    def bind(self, app: ASGIApp = None):
+    def bind(self, app: Optional[ASGIApp] = None):
         """Rebind the middleware to an ASGI application if it has been inited already."""
         self.app = app or ResponseError.NOT_FOUND()
         return self
@@ -190,11 +190,11 @@ class LifespanMiddleware(BaseMiddeware):
 
     def __init__(
         self,
-        app: ASGIApp = None,
+        app: Optional[ASGIApp] = None,
         ignore_errors: bool = False,
         logger=asgi_logger,
-        on_startup: Union[Callable, List[Callable]] = None,
-        on_shutdown: Union[Callable, List[Callable]] = None,
+        on_startup: Union[Callable, List[Callable], None] = None,
+        on_shutdown: Union[Callable, List[Callable], None] = None,
     ) -> None:
         """Prepare the middleware."""
         super(LifespanMiddleware, self).__init__(app)
@@ -240,7 +240,7 @@ class LifespanMiddleware(BaseMiddeware):
         """Use the lifespan middleware as a context manager."""
         await self.run("shutdown")
 
-    async def run(self, event: str, _: Send = None):
+    async def run(self, event: str, _: Optional[Send] = None):
         """Run startup/shutdown handlers."""
         assert event in {"startup", "shutdown"}
         handlers = getattr(self, f"__{event}__")
@@ -328,7 +328,9 @@ class RouterMiddleware(BaseMiddeware):
 
     """
 
-    def __init__(self, app: ASGIApp = None, router: Router = None) -> None:
+    def __init__(
+        self, app: Optional[ASGIApp] = None, router: Optional[Router] = None
+    ) -> None:
         """Initialize HTTP router."""
         super().__init__(app)
         self.router = router or Router()
@@ -379,9 +381,9 @@ class StaticFilesMiddleware(BaseMiddeware):
 
     def __init__(
         self,
-        app: ASGIApp = None,
+        app: Optional[ASGIApp] = None,
         url_prefix: str = "/static",
-        folders: Union[str, List[str]] = None,
+        folders: Union[str, List[str], None] = None,
     ) -> None:
         """Initialize the middleware."""
         super().__init__(app)

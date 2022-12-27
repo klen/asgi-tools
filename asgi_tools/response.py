@@ -59,9 +59,9 @@ class Response:
 
     def __init__(
         self,
-        content: ResponseContent = None,
-        status_code: int = None,
-        headers: dict = None,
+        content: Optional[ResponseContent] = None,
+        status_code: Optional[int] = None,
+        headers: Optional[Dict] = None,
         content_type: Optional[str] = None,
     ):
         """Setup the response."""
@@ -175,7 +175,7 @@ class ResponseStream(Response):
     """
 
     @Response.content.setter  # type: ignore
-    def content(self, content: AsyncGenerator[ResponseContent, None] = None):
+    def content(self, content: Optional[AsyncGenerator[ResponseContent, None]] = None):
         """Store self content as is."""
         self.__content__ = content  # type: ignore
 
@@ -261,7 +261,7 @@ class ResponseFile(ResponseStream):
         filepath: Union[str, Path],
         *,
         chunk_size: int = 64 * 1024,
-        filename: str = None,
+        filename: Optional[str] = None,
         headers_only: bool = False,
         **kwargs,
     ) -> None:
@@ -417,7 +417,7 @@ class ResponseRedirect(Response, BaseException):
 
     status_code: int = HTTPStatus.TEMPORARY_REDIRECT.value
 
-    def __init__(self, url: str, status_code: int = None, **kwargs) -> None:
+    def __init__(self, url: str, status_code: Optional[int] = None, **kwargs) -> None:
         """Set status code and prepare location."""
         super().__init__(status_code=status_code, **kwargs)
         assert (
@@ -502,7 +502,10 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
         NETWORK_AUTHENTICATION_REQUIRED: Callable[..., ResponseError]  # 511
 
     def __init__(
-        self, message: ResponseContent = None, status_code: int = None, **kwargs
+        self,
+        message: Optional[ResponseContent] = None,
+        status_code: Optional[int] = None,
+        **kwargs,
     ):
         """Check error status."""
         super().__init__(content=message, status_code=status_code, **kwargs)
@@ -523,7 +526,7 @@ CAST_RESPONSE: Dict[Type, Type[Response]] = {
 }
 
 
-def parse_response(response, headers: Dict = None) -> Response:
+def parse_response(response, headers: Optional[Dict] = None) -> Response:
     """Parse the given object and convert it into a asgi_tools.Response."""
     rtype = type(response)
     if issubclass(rtype, Response):
@@ -547,7 +550,9 @@ def parse_response(response, headers: Dict = None) -> Response:
     return ResponseText(str(response), headers=headers)
 
 
-def parse_websocket_msg(msg: Message, charset: str = None) -> Union[Message, str]:
+def parse_websocket_msg(
+    msg: Message, charset: Optional[str] = None
+) -> Union[Message, str]:
     """Prepare websocket message."""
     data = msg.get("text")
     if data:
