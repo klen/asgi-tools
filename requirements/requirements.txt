@@ -1,4 +1,4 @@
 http-router >= 2.6.7
 multidict   >= 6.0.2
 sniffio
-yarl        >= 1.4.2
+yarl
