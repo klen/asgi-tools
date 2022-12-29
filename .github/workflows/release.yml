@@ -6,6 +6,10 @@ on:
     branches: [master]
     types: [completed]
 
+concurrency:
+  group: publish
+  cancel-in-progress: true
+
 jobs:
 
   # We have to repeat https://github.com/actions/toolkit/issues/501
