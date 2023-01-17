@@ -6,7 +6,7 @@ import pytest
 
 
 def test_build_scope(client):
-    scope = client.build_scope("/test", query={"value": 42})
+    scope = client.build_scope("/test", query={"value": 42, "value2": "❤️"})
     assert scope == {
         "asgi": {"version": "3.0"},
         "headers": [
@@ -15,7 +15,7 @@ def test_build_scope(client):
         ],
         "http_version": "1.1",
         "path": "/test",
-        "query_string": b"value=42",
+        "query_string": b"value=42&value2=%E2%9D%A4%EF%B8%8F",
         "raw_path": b"/test",
         "root_path": "",
         "scheme": "ws",
@@ -48,11 +48,11 @@ async def test_client(app, client):
             "data": data,
         }
 
-    res = await client.patch("/test")
+    res = await client.patch("/test?value=👋")
     assert res.status_code == 200
     json = await res.json()
     assert json == {
-        "query": {},
+        "query": {"value": "👋"},
         "cookies": {},
         "data": "",
         "headers": {

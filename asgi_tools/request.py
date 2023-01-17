@@ -107,7 +107,7 @@ class Request(MutableMapping):
                 scheme=scope.get("scheme", "http"),
                 encoded=True,
                 path=f"{ scope.get('root_path', '') }{ scope['path'] }",
-                query_string=scope["query_string"].decode("latin-1"),
+                query_string=scope["query_string"].decode(encoding="ascii"),
             )
 
         return self._url

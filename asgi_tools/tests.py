@@ -257,8 +257,8 @@ class ASGITestClient:
                 "asgi": {"version": "3.0"},
                 "http_version": "1.1",
                 "path": url.path,
-                "query_string": url.query_string.encode("latin-1"),
-                "raw_path": url.raw_path.encode("latin-1"),
+                "query_string": url.raw_query_string.encode(),
+                "raw_path": url.raw_path.encode(),
                 "root_path": "",
                 "scheme": scope.get("type") == "http" and self.base_url.scheme or "ws",
                 "headers": [
