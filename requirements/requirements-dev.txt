@@ -5,3 +5,4 @@ pytest-benchmark
 PyYAML
 pytest-mypy; implementation_name == 'cpython'
 uvloop; implementation_name == 'cpython'
+cython; implementation_name == 'cpython'
