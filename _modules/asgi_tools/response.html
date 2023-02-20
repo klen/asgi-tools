@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.response &#8212; asgi-tools 0.64.8 documentation</title>
+    <title>asgi_tools.response &#8212; asgi-tools 0.65.1 documentation</title>
   
   
   
@@ -308,7 +308,7 @@
 </form>
     </div>
     <div class="sidebar-start-items__item"><div class="sidebar-message pl-3">
-    Version: 0.64.8
+    Version: 0.65.1
 </div>
 
     </div>
@@ -353,7 +353,8 @@
 <span class="kn">from</span> <span class="nn">mimetypes</span> <span class="kn">import</span> <span class="n">guess_type</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISDIR</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">AsyncGenerator</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="p">(</span><span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AsyncGenerator</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span>
+                    <span class="n">Union</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote</span><span class="p">,</span> <span class="n">quote_plus</span>
 
 <span class="kn">from</span> <span class="nn">multidict</span> <span class="kn">import</span> <span class="n">MultiDict</span>
@@ -361,7 +362,7 @@
 <span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">DEFAULT_CHARSET</span><span class="p">,</span> <span class="n">ASGIConnectionClosed</span><span class="p">,</span> <span class="n">ASGIError</span>
 <span class="kn">from</span> <span class="nn">asgi_tools._compat</span> <span class="kn">import</span> <span class="n">FIRST_COMPLETED</span><span class="p">,</span> <span class="n">aio_stream_file</span><span class="p">,</span> <span class="n">aio_wait</span><span class="p">,</span> <span class="n">json_dumps</span>
 <span class="kn">from</span> <span class="nn">asgi_tools.request</span> <span class="kn">import</span> <span class="n">Request</span>
-<span class="kn">from</span> <span class="nn">asgi_tools.typing</span> <span class="kn">import</span> <span class="n">Message</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">ResponseContent</span><span class="p">,</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Send</span>
+<span class="kn">from</span> <span class="nn">asgi_tools.types</span> <span class="kn">import</span> <span class="n">TASGIMessage</span><span class="p">,</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">TASGISend</span>
 
 
 <div class="viewcode-block" id="Response"><a class="viewcode-back" href="../../api.html#asgi_tools.Response">[docs]</a><span class="k">class</span> <span class="nc">Response</span><span class="p">:</span>
@@ -394,19 +395,19 @@
 <span class="sd">      strategy (&#39;lax&#39;|&#39;strict&#39;|&#39;none&#39;)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">charset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_CHARSET</span>
     <span class="n">content_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">OK</span><span class="o">.</span><span class="n">value</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">content</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ResponseContent</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">content</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
         <span class="n">status_code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">headers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">content_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Setup the response.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">content</span>  <span class="c1"># type: ignore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_content</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span> <span class="n">MultiDict</span> <span class="o">=</span> <span class="n">MultiDict</span><span class="p">(</span><span class="n">headers</span> <span class="ow">or</span> <span class="p">{})</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="p">:</span> <span class="n">SimpleCookie</span> <span class="o">=</span> <span class="n">SimpleCookie</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">status_code</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -417,7 +418,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
                 <span class="s2">&quot;content-type&quot;</span><span class="p">,</span>
                 <span class="n">content_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;text/&quot;</span><span class="p">)</span>
-                <span class="ow">and</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">content_type</span><span class="si">}</span><span class="s2">; charset=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="ow">and</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">content_type</span><span class="si">}</span><span class="s2">; charset=</span><span class="si">{</span><span class="n">DEFAULT_CHARSET</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="ow">or</span> <span class="n">content_type</span><span class="p">,</span>
             <span class="p">)</span>
 
@@ -429,34 +430,20 @@
         <span class="sd">&quot;&quot;&quot;Stringify the response.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="si">}</span><span class="s2"> &#39;</span><span class="si">{</span> <span class="bp">self</span> <span class="si">}</span><span class="s2">&#39;&gt;&quot;</span>
 
-<div class="viewcode-block" id="Response.__call__"><a class="viewcode-back" href="../../api.html#asgi_tools.Response.__call__">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Response.__call__"><a class="viewcode-back" href="../../api.html#asgi_tools.Response.__call__">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Behave as an ASGI application.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;content-length&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__content__</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;content-length&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)))</span>
 
         <span class="k">await</span> <span class="n">send</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msg_start</span><span class="p">())</span>
-        <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__content__</span><span class="p">})</span></div>
+        <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">})</span></div>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get self content.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__content__</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">process_content</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">DEFAULT_CHARSET</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">content</span>
 
-    <span class="nd">@content</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">ResponseContent</span><span class="p">):</span>
-        <span class="c1"># py38 return :=</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__content__</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
-
-        <span class="k">elif</span> <span class="n">content</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__content__</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
-
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__content__</span> <span class="o">=</span> <span class="n">content</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__content__</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">msg_start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Message</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">msg_start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TASGIMessage</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Get ASGI response start message.&quot;&quot;&quot;</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;latin-1&quot;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;latin-1&quot;</span><span class="p">))</span>
@@ -498,14 +485,10 @@
 
     <span class="n">content_type</span> <span class="o">=</span> <span class="s2">&quot;application/json&quot;</span>
 
-    <span class="k">def</span> <span class="nf">dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">ResponseContent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">process_content</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Dumps the given content.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">json_dumps</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
-
-    <span class="nd">@Response</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">setter</span>  <span class="c1"># type: ignore</span>
-    <span class="k">def</span> <span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">ResponseContent</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Jsonify the content.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__content__</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">content</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">json_dumps</span><span class="p">(</span><span class="n">content</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ResponseStream"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseStream">[docs]</a><span class="k">class</span> <span class="nc">ResponseStream</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
@@ -515,41 +498,32 @@
 <span class="sd">    :type content: AsyncGenerator</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@Response</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">setter</span>  <span class="c1"># type: ignore</span>
-    <span class="k">def</span> <span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AsyncGenerator</span><span class="p">[</span><span class="n">ResponseContent</span><span class="p">,</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Store self content as is.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__content__</span> <span class="o">=</span> <span class="n">content</span>  <span class="c1"># type: ignore</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">:</span> <span class="n">AsyncGenerator</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">stream</span>
 
-    <span class="k">def</span> <span class="nf">prepare_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Prepare a chunk from stream generator to send.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-            <span class="n">chunk</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">chunk</span>
-
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">listen_for_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">listen_for_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Listen for the client has been disconnected.&quot;&quot;&quot;</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">receive</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;http.disconnect&quot;</span><span class="p">:</span>
                 <span class="k">break</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">stream_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">stream_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Stream response content.&quot;&quot;&quot;</span>
         <span class="k">await</span> <span class="n">send</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msg_start</span><span class="p">())</span>
-        <span class="n">content</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">AsyncGenerator</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">content</span><span class="p">:</span>
-            <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
-                <span class="k">await</span> <span class="n">send</span><span class="p">(</span>
-                    <span class="p">{</span>
-                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span>
-                        <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                    <span class="p">}</span>
-                <span class="p">)</span>
+        <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">send</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_content</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span>
+                    <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
 
         <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">})</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Behave as an ASGI application.&quot;&quot;&quot;</span>
         <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">listen_for_disconnect</span><span class="p">(</span><span class="n">receive</span><span class="p">),</span>
@@ -567,18 +541,19 @@
 
     <span class="n">content_type</span> <span class="o">=</span> <span class="s2">&quot;text/event-stream&quot;</span>
 
-    <span class="k">def</span> <span class="nf">msg_start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Message</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">msg_start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TASGIMessage</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Set cache-control header.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;Cache-Control&quot;</span><span class="p">,</span> <span class="s2">&quot;no-cache&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">msg_start</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">prepare_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">process_content</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Prepare a chunk from stream generator to send.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="n">chunk</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">chunk</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-            <span class="n">chunk</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">DEFAULT_CHARSET</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">chunk</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span></div>
 
@@ -615,8 +590,9 @@
         <span class="k">if</span> <span class="n">S_ISDIR</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mode</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">ASGIError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;It&#39;s a directory: </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="n">stream</span> <span class="o">=</span> <span class="n">aio_stream_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">headers_only</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">empty</span><span class="p">()</span> <span class="k">if</span> <span class="n">headers_only</span> <span class="k">else</span> <span class="n">aio_stream_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
 
         <span class="n">headers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span>
         <span class="k">if</span> <span class="n">filename</span> <span class="ow">and</span> <span class="s2">&quot;content-disposition&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
@@ -651,22 +627,22 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span>
-        <span class="n">receive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Receive</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">send</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Send</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span>
+        <span class="n">receive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TASGIReceive</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">send</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TASGISend</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Initialize the websocket response.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">Request</span><span class="p">):</span>
             <span class="n">receive</span><span class="p">,</span> <span class="n">send</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">receive</span><span class="p">,</span> <span class="n">scope</span><span class="o">.</span><span class="n">send</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">receive</span> <span class="ow">and</span> <span class="n">send</span><span class="p">,</span> <span class="s2">&quot;Invalid initialization&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">:</span> <span class="n">Receive</span> <span class="o">=</span> <span class="n">receive</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">:</span> <span class="n">Send</span> <span class="o">=</span> <span class="n">send</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">:</span> <span class="n">TASGIReceive</span> <span class="o">=</span> <span class="n">receive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">:</span> <span class="n">TASGISend</span> <span class="o">=</span> <span class="n">send</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">CONNECTING</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">CONNECTING</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Close websocket if the response has been returned.&quot;&quot;&quot;</span>
         <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;websocket.close&quot;</span><span class="p">})</span>
 
@@ -682,10 +658,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">connected</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Check that is the websocket connected.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">CONNECTED</span>
-            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">CONNECTED</span>
-        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">CONNECTED</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_connect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Wait for connect message.&quot;&quot;&quot;</span>
@@ -728,7 +701,7 @@
         <span class="sd">&quot;&quot;&quot;Serialize the given data to JSON and send to a client.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;websocket.send&quot;</span><span class="p">,</span> <span class="s2">&quot;bytes&quot;</span><span class="p">:</span> <span class="n">json_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)})</span></div>
 
-<div class="viewcode-block" id="ResponseWebSocket.receive"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseWebSocket.receive">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Message</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="ResponseWebSocket.receive"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseWebSocket.receive">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">TASGIMessage</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Receive messages from a client.</span>
 
 <span class="sd">        :param raw: Receive messages as is.</span>
@@ -746,7 +719,7 @@
         <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;websocket.disconnect&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">DISCONNECTED</span>
 
-        <span class="k">return</span> <span class="n">msg</span> <span class="k">if</span> <span class="n">raw</span> <span class="k">else</span> <span class="n">parse_websocket_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">charset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">msg</span> <span class="k">if</span> <span class="n">raw</span> <span class="k">else</span> <span class="n">parse_websocket_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">charset</span><span class="o">=</span><span class="n">DEFAULT_CHARSET</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="ResponseRedirect"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseRedirect">[docs]</a><span class="k">class</span> <span class="nc">ResponseRedirect</span><span class="p">(</span><span class="n">Response</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">):</span>
@@ -760,11 +733,11 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Set status code and prepare location.&quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">assert</span> <span class="p">(</span>
             <span class="mi">300</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">400</span>
         <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Invalid status code for redirection: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span>  <span class="c1"># noqa</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">quote_plus</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">url</span><span class="p">),</span> <span class="n">safe</span><span class="o">=</span><span class="s2">&quot;:/%#?&amp;=@[]!$&amp;&#39;()*+,;&quot;</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">quote_plus</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s2">&quot;:/%#?&amp;=@[]!$&amp;&#39;()*+,;&quot;</span><span class="p">)</span></div>
 
 
 <span class="k">class</span> <span class="nc">ResponseErrorMeta</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
@@ -844,19 +817,19 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">message</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ResponseContent</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">status_code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Check error status.&quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">message</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">message</span> <span class="ow">or</span> <span class="n">HTTPStatus</span><span class="p">(</span><span class="n">status_code</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">description</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">assert</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span>
-        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Invalid status code for an error: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">message</span> <span class="ow">or</span> <span class="n">HTTPStatus</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">description</span></div>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Invalid status code for an error: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 
-<span class="n">CAST_RESPONSE</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Type</span><span class="p">,</span> <span class="n">Type</span><span class="p">[</span><span class="n">Response</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+<span class="n">CAST_RESPONSE</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Type</span><span class="p">,</span> <span class="n">Type</span><span class="p">[</span><span class="n">Response</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="nb">bool</span><span class="p">:</span> <span class="n">ResponseJSON</span><span class="p">,</span>
     <span class="nb">bytes</span><span class="p">:</span> <span class="n">ResponseHTML</span><span class="p">,</span>
     <span class="nb">dict</span><span class="p">:</span> <span class="n">ResponseJSON</span><span class="p">,</span>
@@ -892,8 +865,8 @@
 
 
 <span class="k">def</span> <span class="nf">parse_websocket_msg</span><span class="p">(</span>
-    <span class="n">msg</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">charset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Message</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="n">msg</span><span class="p">:</span> <span class="n">TASGIMessage</span><span class="p">,</span> <span class="n">charset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">TASGIMessage</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Prepare websocket message.&quot;&quot;&quot;</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
@@ -904,6 +877,10 @@
         <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">charset</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">msg</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">empty</span><span class="p">():</span>
+    <span class="k">yield</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
 
 
 <span class="c1"># pylama: ignore=E501</span>

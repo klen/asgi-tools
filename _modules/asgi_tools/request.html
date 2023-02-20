@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.request &#8212; asgi-tools 0.64.8 documentation</title>
+    <title>asgi_tools.request &#8212; asgi-tools 0.65.1 documentation</title>
   
   
   
@@ -308,7 +308,7 @@
 </form>
     </div>
     <div class="sidebar-start-items__item"><div class="sidebar-message pl-3">
-    Version: 0.64.8
+    Version: 0.65.1
 </div>
 
     </div>
@@ -347,7 +347,7 @@
 
 <span class="kn">from</span> <span class="nn">cgi</span> <span class="kn">import</span> <span class="n">parse_header</span>
 <span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">cookies</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AsyncGenerator</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AsyncGenerator</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">multidict</span> <span class="kn">import</span> <span class="n">MultiDict</span>
 <span class="kn">from</span> <span class="nn">yarl</span> <span class="kn">import</span> <span class="n">URL</span>
@@ -355,11 +355,11 @@
 <span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">DEFAULT_CHARSET</span><span class="p">,</span> <span class="n">ASGIDecodeError</span>
 <span class="kn">from</span> <span class="nn">asgi_tools._compat</span> <span class="kn">import</span> <span class="n">json_loads</span>
 <span class="kn">from</span> <span class="nn">asgi_tools.forms</span> <span class="kn">import</span> <span class="n">read_formdata</span>
-<span class="kn">from</span> <span class="nn">asgi_tools.typing</span> <span class="kn">import</span> <span class="n">JSONType</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Send</span>
+<span class="kn">from</span> <span class="nn">asgi_tools.types</span> <span class="kn">import</span> <span class="n">TJSON</span><span class="p">,</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">TASGISend</span>
 <span class="kn">from</span> <span class="nn">asgi_tools.utils</span> <span class="kn">import</span> <span class="n">CIMultiDict</span><span class="p">,</span> <span class="n">parse_headers</span>
 
 
-<div class="viewcode-block" id="Request"><a class="viewcode-back" href="../../api.html#asgi_tools.Request">[docs]</a><span class="k">class</span> <span class="nc">Request</span><span class="p">(</span><span class="n">MutableMapping</span><span class="p">):</span>
+<div class="viewcode-block" id="Request"><a class="viewcode-back" href="../../api.html#asgi_tools.Request">[docs]</a><span class="k">class</span> <span class="nc">Request</span><span class="p">(</span><span class="n">TASGIScope</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Represent a HTTP Request.</span>
 
 <span class="sd">    :param scope: HTTP ASGI Scope</span>
@@ -368,24 +368,32 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_is_read</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">URL</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">_body</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">_form</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MultiDict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">_headers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CIMultiDict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">_media</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">_cookies</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;scope&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;receive&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;send&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_is_read&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_url&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_body&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_form&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_headers&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_media&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_cookies&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span>
-        <span class="n">receive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Receive</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">send</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Send</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a request based on the given scope.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="n">scope</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">receive</span> <span class="o">=</span> <span class="n">receive</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">send</span> <span class="o">=</span> <span class="n">send</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_read</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">URL</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_body</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_form</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MultiDict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_headers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CIMultiDict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_media</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cookies</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Represent the request.&quot;&quot;&quot;</span>
@@ -433,18 +441,20 @@
 <span class="sd">            assert request.url.query_string is not None</span>
 
 <span class="sd">        See :py:mod:`yarl` documentation for further reference.</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">scope</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scope</span>
             <span class="n">host</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;host&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">host</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;server&quot;</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">):</span>
-                <span class="n">host</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;server&quot;</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">port</span><span class="p">:</span>
-                    <span class="n">host</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">host</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="n">host</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;server&quot;</span> <span class="ow">in</span> <span class="n">scope</span><span class="p">:</span>
+                    <span class="n">host</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;server&quot;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">port</span><span class="p">:</span>
+                        <span class="n">host</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">host</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">host</span> <span class="o">=</span> <span class="s2">&quot;localhost&quot;</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">_url</span> <span class="o">=</span> <span class="n">URL</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
-                <span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                <span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">,</span>
                 <span class="n">scheme</span><span class="o">=</span><span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scheme&quot;</span><span class="p">,</span> <span class="s2">&quot;http&quot;</span><span class="p">),</span>
                 <span class="n">encoded</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span> <span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;root_path&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="si">}{</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
@@ -488,7 +498,7 @@
             <span class="k">if</span> <span class="n">cookie</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">cookie</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">):</span>
                     <span class="n">key</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_cookies</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="n">cookies</span><span class="o">.</span><span class="n">_unquote</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>  <span class="c1"># type: ignore # noqa</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cookies</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="n">cookies</span><span class="o">.</span><span class="n">_unquote</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cookies</span>
 
@@ -531,9 +541,6 @@
 <span class="sd">            variable if you need.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Request doesnt have a receive coroutine&quot;</span><span class="p">)</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_read</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_body</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Stream has been read&quot;</span><span class="p">)</span>
@@ -553,11 +560,7 @@
 <span class="sd">        `body = await request.body()`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_body</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">():</span>
-                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">_body</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_body</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">chunk</span> <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">()])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_body</span></div>
 
@@ -572,7 +575,7 @@
         <span class="k">except</span> <span class="p">(</span><span class="ne">LookupError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ASGIDecodeError</span><span class="p">(</span><span class="s2">&quot;Invalid Encoding&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span></div>
 
-<div class="viewcode-block" id="Request.json"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.json">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">JSONType</span><span class="p">:</span>
+<div class="viewcode-block" id="Request.json"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.json">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TJSON</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Read and return the request&#39;s body as a JSON.</span>
 
 <span class="sd">        `json = await request.json()`</span>
@@ -609,7 +612,7 @@
 
 <div class="viewcode-block" id="Request.data"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.data">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">raise_errors</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">JSONType</span><span class="p">,</span> <span class="n">MultiDict</span><span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">MultiDict</span><span class="p">,</span> <span class="n">TJSON</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The method checks Content-Type Header and parse the request&#39;s data automatically.</span>
 
 <span class="sd">        `data = await request.data()`</span>

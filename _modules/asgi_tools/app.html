@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.app &#8212; asgi-tools 0.64.8 documentation</title>
+    <title>asgi_tools.app &#8212; asgi-tools 0.65.1 documentation</title>
   
   
   
@@ -308,7 +308,7 @@
 </form>
     </div>
     <div class="sidebar-start-items__item"><div class="sidebar-message pl-3">
-    Version: 0.64.8
+    Version: 0.65.1
 </div>
 
     </div>
@@ -341,102 +341,34 @@
   <h1>Source code for asgi_tools.app</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Simple Base for ASGI Apps.&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">ClassVar</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">http_router</span> <span class="kn">import</span> <span class="n">PrefixedRoute</span>
-<span class="kn">from</span> <span class="nn">http_router</span> <span class="kn">import</span> <span class="n">Router</span> <span class="k">as</span> <span class="n">HTTPRouter</span>
 <span class="kn">from</span> <span class="nn">http_router.types</span> <span class="kn">import</span> <span class="n">TMethods</span><span class="p">,</span> <span class="n">TPath</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">ASGIConnectionClosed</span><span class="p">,</span> <span class="n">ASGIError</span><span class="p">,</span> <span class="n">ASGIMethodNotAllowed</span><span class="p">,</span> <span class="n">ASGINotFound</span><span class="p">,</span> <span class="n">asgi_logger</span>
+<span class="kn">from</span> <span class="nn">asgi_tools.router</span> <span class="kn">import</span> <span class="n">Router</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">ASGIConnectionClosed</span><span class="p">,</span> <span class="n">ASGIMethodNotAllowed</span><span class="p">,</span> <span class="n">ASGINotFound</span><span class="p">,</span> <span class="n">asgi_logger</span>
 <span class="kn">from</span> <span class="nn">.middleware</span> <span class="kn">import</span> <span class="n">BaseMiddeware</span><span class="p">,</span> <span class="n">LifespanMiddleware</span><span class="p">,</span> <span class="n">StaticFilesMiddleware</span><span class="p">,</span> <span class="n">parse_response</span>
 <span class="kn">from</span> <span class="nn">.request</span> <span class="kn">import</span> <span class="n">Request</span>
 <span class="kn">from</span> <span class="nn">.response</span> <span class="kn">import</span> <span class="n">Response</span><span class="p">,</span> <span class="n">ResponseError</span>
-<span class="kn">from</span> <span class="nn">.typing</span> <span class="kn">import</span> <span class="n">DecoratedCallable</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">Send</span>
+<span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">TASGISend</span><span class="p">,</span> <span class="n">TResponseApp</span><span class="p">,</span> <span class="n">TVFn</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">iscoroutinefunction</span><span class="p">,</span> <span class="n">to_awaitable</span>
-
-<span class="n">HTTP_METHODS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;GET&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;HEAD&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;POST&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;PUT&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;DELETE&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;CONNECT&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;OPTIONS&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;TRACE&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;PATCH&quot;</span><span class="p">,</span>
-<span class="p">}</span>
-
-
-<span class="k">class</span> <span class="nc">Router</span><span class="p">(</span><span class="n">HTTPRouter</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Rebind router errors.&quot;&quot;&quot;</span>
-
-    <span class="n">NotFound</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]]</span> <span class="o">=</span> <span class="n">ASGINotFound</span>
-    <span class="n">RouterError</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]]</span> <span class="o">=</span> <span class="n">ASGIError</span>
-    <span class="n">MethodNotAllowed</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]]</span> <span class="o">=</span> <span class="n">ASGIMethodNotAllowed</span>
-
-
-<div class="viewcode-block" id="HTTPView"><a class="viewcode-back" href="../../api.html#asgi_tools.HTTPView">[docs]</a><span class="k">class</span> <span class="nc">HTTPView</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Class-based view pattern for handling HTTP method dispatching.</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        @app.route(&#39;/custom&#39;)</span>
-<span class="sd">        class CustomEndpoint(HTTPView):</span>
-
-<span class="sd">            async def get(self, request):</span>
-<span class="sd">                return &#39;Hello from GET&#39;</span>
-
-<span class="sd">            async def post(self, request):</span>
-<span class="sd">                return &#39;Hello from POST&#39;</span>
-
-<span class="sd">        # ...</span>
-<span class="sd">        async def test_my_endpoint(client):</span>
-<span class="sd">            response = await client.get(&#39;/custom&#39;)</span>
-<span class="sd">            assert await response.text() == &#39;Hello from GET&#39;</span>
-
-<span class="sd">            response = await client.post(&#39;/custom&#39;)</span>
-<span class="sd">            assert await response.text() == &#39;Hello from POST&#39;</span>
-
-<span class="sd">            response = await client.put(&#39;/custom&#39;)</span>
-<span class="sd">            assert response.status_code == 405</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Init the class and call it.&quot;&quot;&quot;</span>
-        <span class="bp">self</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span>
-
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">__route__</span><span class="p">(</span>
-        <span class="bp">cls</span><span class="p">,</span>
-        <span class="n">router</span><span class="p">:</span> <span class="n">Router</span><span class="p">,</span>
-        <span class="o">*</span><span class="n">paths</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">methods</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TMethods</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">params</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="s2">&quot;HTTPView&quot;</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Bind the class view to the given router.&quot;&quot;&quot;</span>
-        <span class="n">view_methods</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isfunction</span><span class="p">))</span>
-        <span class="n">methods</span> <span class="o">=</span> <span class="n">methods</span> <span class="ow">or</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">HTTP_METHODS</span> <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">view_methods</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">router</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">paths</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="n">methods</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Awaitable</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Dispatch the given request by HTTP method.&quot;&quot;&quot;</span>
-        <span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span></div>
 
 
 <span class="k">class</span> <span class="nc">AppInternalMiddleware</span><span class="p">(</span><span class="n">BaseMiddeware</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Process responses.&quot;&quot;&quot;</span>
 
     <span class="n">scopes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;http&quot;</span><span class="p">}</span>
+    <span class="n">app</span><span class="p">:</span> <span class="n">TResponseApp</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Send ASGI messages.&quot;&quot;&quot;</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+        <span class="n">response</span><span class="p">:</span> <span class="n">Response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 
 
@@ -498,7 +430,9 @@
         <span class="c1"># Setup logging</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
 
-        <span class="k">async</span> <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">__</span><span class="p">:</span> <span class="n">Send</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Response</span><span class="p">]:</span>
+        <span class="k">async</span> <span class="k">def</span> <span class="nf">process</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">__</span><span class="p">:</span> <span class="n">TASGISend</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Response</span><span class="p">]:</span>
             <span class="sd">&quot;&quot;&quot;Find and call a callback, parse a response, handle exceptions.&quot;&quot;&quot;</span>
             <span class="n">scope</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">scope</span>
             <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span> <span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;root_path&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="si">}{</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="si">}</span><span class="s2">&quot;</span>
@@ -510,7 +444,7 @@
                 <span class="k">raise</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">METHOD_NOT_ALLOWED</span><span class="p">()</span> <span class="kn">from</span> <span class="nn">exc</span>
 
             <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;path_params&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">match</span><span class="o">.</span><span class="n">params</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">match</span><span class="o">.</span><span class="n">target</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">match</span><span class="o">.</span><span class="n">target</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">request</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;websocket&quot;</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">None</span>
 
@@ -554,7 +488,9 @@
             <span class="n">router</span><span class="o">.</span><span class="n">dynamic</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">route</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">Scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">Receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">Send</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Convert the given scope into a request and process.&quot;&quot;&quot;</span>
         <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;app&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
@@ -579,7 +515,7 @@
 
         <span class="k">return</span> <span class="n">exc</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="n">Response</span><span class="p">)</span> <span class="k">else</span> <span class="o">...</span>
 
-<div class="viewcode-block" id="App.middleware"><a class="viewcode-back" href="../../api.html#asgi_tools.App.middleware">[docs]</a>    <span class="k">def</span> <span class="nf">middleware</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">md</span><span class="p">:</span> <span class="n">F</span><span class="p">,</span> <span class="n">insert_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">F</span><span class="p">:</span>
+<div class="viewcode-block" id="App.middleware"><a class="viewcode-back" href="../../api.html#asgi_tools.App.middleware">[docs]</a>    <span class="k">def</span> <span class="nf">middleware</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">md</span><span class="p">:</span> <span class="n">TVFn</span><span class="p">,</span> <span class="n">insert_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TVFn</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Register a middleware.&quot;&quot;&quot;</span>
         <span class="c1"># Register as a simple middleware</span>
         <span class="k">if</span> <span class="n">iscoroutinefunction</span><span class="p">(</span><span class="n">md</span><span class="p">):</span>
@@ -601,9 +537,7 @@
 
         <span class="k">return</span> <span class="n">md</span></div>
 
-<div class="viewcode-block" id="App.route"><a class="viewcode-back" href="../../api.html#asgi_tools.App.route">[docs]</a>    <span class="k">def</span> <span class="nf">route</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">paths</span><span class="p">:</span> <span class="n">TPath</span><span class="p">,</span> <span class="n">methods</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TMethods</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">DecoratedCallable</span><span class="p">],</span> <span class="n">DecoratedCallable</span><span class="p">]:</span>
+<div class="viewcode-block" id="App.route"><a class="viewcode-back" href="../../api.html#asgi_tools.App.route">[docs]</a>    <span class="k">def</span> <span class="nf">route</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">paths</span><span class="p">:</span> <span class="n">TPath</span><span class="p">,</span> <span class="n">methods</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TMethods</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Register a route.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="o">*</span><span class="n">paths</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="n">methods</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span></div>
 
@@ -617,7 +551,7 @@
 
 <div class="viewcode-block" id="App.on_error"><a class="viewcode-back" href="../../api.html#asgi_tools.App.on_error">[docs]</a>    <span class="k">def</span> <span class="nf">on_error</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">etype</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Type</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">]]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">DecoratedCallable</span><span class="p">],</span> <span class="n">DecoratedCallable</span><span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">TVFn</span><span class="p">],</span> <span class="n">TVFn</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Register an exception handler.</span>
 
 <span class="sd">        .. code-block::</span>
@@ -632,7 +566,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">recorder</span><span class="p">(</span><span class="n">handler</span><span class="p">:</span> <span class="n">F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">F</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">recorder</span><span class="p">(</span><span class="n">handler</span><span class="p">:</span> <span class="n">TVFn</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TVFn</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span><span class="p">[</span><span class="n">etype</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_awaitable</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">handler</span>
 
@@ -648,9 +582,7 @@
 
         <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">):</span>
             <span class="n">subrequest</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">__copy__</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="p">:])</span>
-            <span class="n">receive</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Receive</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">receive</span><span class="p">)</span>
-            <span class="n">send</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Send</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">send</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">target</span><span class="o">.</span><span class="n">__internal__</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">subrequest</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">target</span><span class="o">.</span><span class="n">__internal__</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">subrequest</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">receive</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">send</span><span class="p">)</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
 </pre></div>
