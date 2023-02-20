@@ -1,13 +1,13 @@
 import inspect
 from collections.abc import Awaitable
-from typing import Final, Optional
+from typing import Optional
 
 from http_router.types import TMethods
 
 from .request import Request
 from .router import Router
 
-HTTP_METHODS: Final = {
+HTTP_METHODS = {
     "GET",
     "HEAD",
     "POST",

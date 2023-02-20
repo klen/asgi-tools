@@ -29,7 +29,7 @@ class ASGIMethodNotAllowed(ASGIError):
     """Raise when http method not found."""
 
 
-DEFAULT_CHARSET: Final = "utf-8"
+DEFAULT_CHARSET = "utf-8"
 
 from http_router import MethodNotAllowed, NotFound  # noqa
 
