@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from cgi import parse_header
 from http import cookies
-from typing import Any, AsyncGenerator, Callable, Dict, Iterator, MutableMapping, Optional, Union
+from typing import Any, AsyncGenerator, Callable, Dict, Iterator, Optional, Union
 
 from multidict import MultiDict
 from yarl import URL
@@ -14,11 +14,11 @@ from yarl import URL
 from asgi_tools import DEFAULT_CHARSET, ASGIDecodeError
 from asgi_tools._compat import json_loads
 from asgi_tools.forms import read_formdata
-from asgi_tools.typing import JSONType, Receive, Scope, Send
+from asgi_tools.types import TJSON, TASGIReceive, TASGIScope, TASGISend
 from asgi_tools.utils import CIMultiDict, parse_headers
 
 
-class Request(MutableMapping):
+class Request(TASGIScope):
     """Represent a HTTP Request.
 
     :param scope: HTTP ASGI Scope
@@ -27,24 +27,32 @@ class Request(MutableMapping):
 
     """
 
-    _is_read: bool = False
-    _url: Optional[URL] = None
-    _body: Optional[bytes] = None
-    _form: Optional[MultiDict] = None
-    _headers: Optional[CIMultiDict] = None
-    _media: Optional[Dict[str, str]] = None
-    _cookies: Optional[Dict[str, str]] = None
+    __slots__ = (
+        "scope",
+        "receive",
+        "send",
+        "_is_read",
+        "_url",
+        "_body",
+        "_form",
+        "_headers",
+        "_media",
+        "_cookies",
+    )
 
-    def __init__(
-        self,
-        scope: Scope,
-        receive: Optional[Receive] = None,
-        send: Optional[Send] = None,
-    ) -> None:
+    def __init__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):
         """Create a request based on the given scope."""
         self.scope = scope
         self.receive = receive
         self.send = send
+
+        self._is_read: bool = False
+        self._url: Optional[URL] = None
+        self._body: Optional[bytes] = None
+        self._form: Optional[MultiDict] = None
+        self._headers: Optional[CIMultiDict] = None
+        self._media: Optional[Dict[str, str]] = None
+        self._cookies: Optional[Dict[str, str]] = None
 
     def __repr__(self):
         """Represent the request."""
@@ -92,18 +100,20 @@ class Request(MutableMapping):
             assert request.url.query_string is not None
 
         See :py:mod:`yarl` documentation for further reference.
-
         """
         if self._url is None:
             scope = self.scope
             host = self.headers.get("host")
-            if host is None and ("server" in scope):
-                host, port = scope["server"]
-                if port:
-                    host = f"{host}:{port}"
+            if host is None:
+                if "server" in scope:
+                    host, port = scope["server"]
+                    if port:
+                        host = f"{host}:{port}"
+                else:
+                    host = "localhost"
 
             self._url = URL.build(
-                host=host,  # type: ignore
+                host=host,
                 scheme=scope.get("scheme", "http"),
                 encoded=True,
                 path=f"{ scope.get('root_path', '') }{ scope['path'] }",
@@ -147,7 +157,7 @@ class Request(MutableMapping):
             if cookie:
                 for chunk in cookie.split(";"):
                     key, _, val = chunk.partition("=")
-                    self._cookies[key.strip()] = cookies._unquote(val.strip())  # type: ignore # noqa
+                    self._cookies[key.strip()] = cookies._unquote(val.strip())
 
         return self._cookies
 
@@ -190,9 +200,6 @@ class Request(MutableMapping):
             variable if you need.
 
         """
-        if not self.receive:
-            raise RuntimeError("Request doesnt have a receive coroutine")
-
         if self._is_read:
             if self._body is None:
                 raise RuntimeError("Stream has been read")
@@ -212,11 +219,7 @@ class Request(MutableMapping):
         `body = await request.body()`
         """
         if self._body is None:
-            chunks = []
-            async for chunk in self.stream():
-                chunks.append(chunk)
-
-            self._body = b"".join(chunks)
+            self._body = b"".join([chunk async for chunk in self.stream()])
 
         return self._body
 
@@ -231,7 +234,7 @@ class Request(MutableMapping):
         except (LookupError, ValueError) as exc:
             raise ASGIDecodeError("Invalid Encoding") from exc
 
-    async def json(self) -> JSONType:
+    async def json(self) -> TJSON:
         """Read and return the request's body as a JSON.
 
         `json = await request.json()`
@@ -268,7 +271,7 @@ class Request(MutableMapping):
 
     async def data(
         self, raise_errors: bool = False
-    ) -> Union[str, bytes, JSONType, MultiDict]:
+    ) -> Union[str, bytes, MultiDict, TJSON]:
         """The method checks Content-Type Header and parse the request's data automatically.
 
         `data = await request.data()`

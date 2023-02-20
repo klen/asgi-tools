@@ -296,7 +296,7 @@ async def test_app_middleware_classic(client, app):
 
 
 async def test_cbv(app, client):
-    from asgi_tools.app import HTTPView
+    from asgi_tools import HTTPView
 
     @app.route("/cbv")
     class Custom(HTTPView):

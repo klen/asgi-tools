@@ -4,7 +4,7 @@ import abc
 import inspect
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, List, Mapping, Optional, Set, Tuple, Union
+from typing import Any, Awaitable, Callable, List, Mapping, Optional, Set, Tuple, Union
 
 from http_router import Router
 
@@ -12,7 +12,7 @@ from asgi_tools import ASGIError, asgi_logger
 from asgi_tools.request import Request
 from asgi_tools.response import (Response, ResponseError, ResponseFile, ResponseRedirect,
                                  parse_response)
-from asgi_tools.typing import ASGIApp, Receive, Scope, Send
+from asgi_tools.types import TASGIApp, TASGIReceive, TASGIScope, TASGISend
 
 
 class BaseMiddeware(metaclass=abc.ABCMeta):
@@ -20,20 +20,24 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
 
     scopes: Set = {"http", "websocket"}
 
-    def __init__(self, app: Optional[ASGIApp] = None) -> None:
+    def __init__(self, app: Optional[TASGIApp] = None) -> None:
         """Save ASGI App."""
         self.bind(app)
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+    def __call__(
+        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
+    ) -> Awaitable:
         """Handle ASGI call."""
 
         if scope["type"] in self.scopes:
-            return await self.__process__(scope, receive, send)
+            return self.__process__(scope, receive, send)
 
-        return await self.app(scope, receive, send)
+        return self.app(scope, receive, send)
 
     @abc.abstractmethod
-    async def __process__(self, scope: Scope, receive: Receive, send: Send):
+    async def __process__(
+        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
+    ):
         """Do the middleware's logic."""
 
         raise NotImplementedError()
@@ -43,7 +47,7 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
         """Setup the middleware without an initialization."""
         return partial(cls, **params)
 
-    def bind(self, app: Optional[ASGIApp] = None):
+    def bind(self, app: Optional[TASGIApp] = None):
         """Rebind the middleware to an ASGI application if it has been inited already."""
         self.app = app or ResponseError.NOT_FOUND()
         return self
@@ -105,13 +109,15 @@ class ResponseMiddleware(BaseMiddeware):
 
     """
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+    async def __call__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):
         """Handle ASGI call."""
         response = await self.__process__(scope, receive, send)
         if isinstance(response, Response):
             await response(scope, receive, send)
 
-    async def __process__(self, scope: Scope, receive: Receive, send: Send):
+    async def __process__(
+        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
+    ):
         """Parse responses from callbacks."""
 
         try:
@@ -142,7 +148,9 @@ class RequestMiddleware(BaseMiddeware):
 
     """
 
-    async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __process__(
+        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
+    ):
         """Replace scope with request object."""
         return await self.app(Request(scope, receive, send), receive, send)
 
@@ -190,7 +198,7 @@ class LifespanMiddleware(BaseMiddeware):
 
     def __init__(
         self,
-        app: Optional[ASGIApp] = None,
+        app: Optional[TASGIApp] = None,
         ignore_errors: bool = False,
         logger=asgi_logger,
         on_startup: Union[Callable, List[Callable], None] = None,
@@ -205,7 +213,9 @@ class LifespanMiddleware(BaseMiddeware):
         self.__register__(on_startup, self.__startup__)
         self.__register__(on_shutdown, self.__shutdown__)
 
-    async def __process__(self, _: Scope, receive: Receive, send: Send) -> None:
+    async def __process__(
+        self, _: TASGIScope, receive: TASGIReceive, send: TASGISend
+    ) -> None:
         """Manage lifespan cycle."""
         while True:
             message = await receive()
@@ -240,7 +250,7 @@ class LifespanMiddleware(BaseMiddeware):
         """Use the lifespan middleware as a context manager."""
         await self.run("shutdown")
 
-    async def run(self, event: str, _: Optional[Send] = None):
+    async def run(self, event: str, _: Optional[TASGISend] = None):
         """Run startup/shutdown handlers."""
         assert event in {"startup", "shutdown"}
         handlers = getattr(self, f"__{event}__")
@@ -329,13 +339,15 @@ class RouterMiddleware(BaseMiddeware):
     """
 
     def __init__(
-        self, app: Optional[ASGIApp] = None, router: Optional[Router] = None
+        self, app: Optional[TASGIApp] = None, router: Optional[Router] = None
     ) -> None:
         """Initialize HTTP router."""
         super().__init__(app)
         self.router = router or Router()
 
-    async def __process__(self, scope: Scope, receive: Receive, send: Send):
+    async def __process__(
+        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
+    ):
         """Get an app and process."""
         app, path_params = self.__dispatch__(scope)
         if not callable(app):
@@ -344,7 +356,9 @@ class RouterMiddleware(BaseMiddeware):
         scope["path_params"] = path_params
         return await app(scope, receive, send)
 
-    def __dispatch__(self, scope: Scope) -> Tuple[Optional[Any], Optional[Mapping]]:
+    def __dispatch__(
+        self, scope: TASGIScope
+    ) -> Tuple[Optional[Any], Optional[Mapping]]:
         """Lookup for a callback."""
         try:
             match = self.router(
@@ -381,7 +395,7 @@ class StaticFilesMiddleware(BaseMiddeware):
 
     def __init__(
         self,
-        app: Optional[ASGIApp] = None,
+        app: Optional[TASGIApp] = None,
         url_prefix: str = "/static",
         folders: Union[str, List[str], None] = None,
     ) -> None:
@@ -393,12 +407,14 @@ class StaticFilesMiddleware(BaseMiddeware):
             folders = [folders]
         self.folders: List[Path] = [Path(folder) for folder in folders]
 
-    async def __process__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __process__(
+        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
+    ) -> None:
         """Serve static files for self url prefix."""
         path = scope["path"]
         url_prefix = self.url_prefix
         if not path.startswith(url_prefix):
-            return await self.app(scope, receive, send)
+            await self.app(scope, receive, send)
 
         response: Optional[Response] = None
         filename = path[len(url_prefix) :].strip("/")

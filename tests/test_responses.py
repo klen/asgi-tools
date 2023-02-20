@@ -203,7 +203,12 @@ async def test_file_response():
 
     response = ResponseFile(__file__, headers_only=True)
     messages = await read_response(response)
-    assert len(messages) == 2
+    assert len(messages) == 3
+    assert messages[1] == {
+        "type": "http.response.body",
+        "body": b"",
+        "more_body": True,
+    }
 
     with pytest.raises(ASGIError):
         response = ResponseFile("unknown")

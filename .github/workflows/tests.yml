@@ -59,13 +59,13 @@ jobs:
 
     - uses: actions/download-artifact@main
       if: matrix.python-version != 'pypy-3.7'
-  
+
     - name: Compile cython files
       run: python setup.py build_ext --inplace
       if: matrix.python-version != 'pypy-3.7'
 
     - name: Setup requirements
-      run: pip install .[tests]
+      run: pip install .[dev]
 
     - name: Check typing
       run: mypy --install-types --non-interactive asgi_tools

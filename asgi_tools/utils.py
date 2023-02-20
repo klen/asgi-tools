@@ -6,7 +6,7 @@ from typing import Awaitable, Callable
 
 from multidict import CIMultiDict
 
-from asgi_tools.typing import ScopeHeaders
+from asgi_tools.types import TASGIHeaders
 
 
 def is_awaitable(fn: Callable) -> bool:
@@ -26,6 +26,6 @@ def to_awaitable(fn: Callable) -> Callable[..., Awaitable]:
     return coro
 
 
-def parse_headers(headers: ScopeHeaders) -> CIMultiDict:
+def parse_headers(headers: TASGIHeaders) -> CIMultiDict:
     """Decode the given headers list."""
     return CIMultiDict([(n.decode("latin-1"), v.decode("latin-1")) for n, v in headers])

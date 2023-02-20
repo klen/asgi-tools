@@ -25,7 +25,7 @@ __all__ = (
 )
 
 try:
-    from orjson import dumps as json_dumps  # noqa
+    from orjson import dumps as json_dumps
     from orjson import loads as json_loads
 except ImportError:
     try:

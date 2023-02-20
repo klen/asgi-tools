@@ -17,7 +17,7 @@ Request
         from asgi_tools import Request, Response
 
         async def app(scope, receive, send):
-            request = Request(scope, receive)
+            request = Request(scope, receive, send)
             content = f"{ request.method } { request.url.path }"
             response = Response(content)
             await response(scope, receive, send)
@@ -26,7 +26,7 @@ Request
 
     .. code-block:: python
 
-        request = Request(scope)
+        request = Request(scope, receive, send)
         assert request['version'] == scope['version']
         assert request['method'] == scope['method']
         assert request['scheme'] == scope['scheme']
@@ -59,7 +59,7 @@ Request
             from asgi_tools import Request, Response
 
             async def app(scope, receive, send):
-                request = Request(scope, receive)
+                request = Request(scope, receive, send)
                 body = b''
                 async for chunk in request.stream():
                     body += chunk
@@ -171,7 +171,7 @@ ResponseRedirect
         from asgi_tools import ResponseRedirect, Request, ResponseMiddleware
 
         async def app(scope, receive, send):
-            request = Request(scope, receive)
+            request = Request(scope, receive, send)
             if not request.headers.get('authorization):
                 raise ResponseRedirect('/login')
 
@@ -206,7 +206,7 @@ ResponseError
         from asgi_tools import ResponseError, Request, ResponseMiddleware
 
         async def app(scope, receive, send):
-            request = Request(scope, receive)
+            request = Request(scope, receive, send)
             if not request.method == 'POST':
                 raise ResponseError('Invalid request data', 400)
 
@@ -380,7 +380,7 @@ Application
             @app.middleware
             def classic_middleware(app):
                 async def handler(scope, receive, send):
-                    if not Request(scope).headers['authorization']:
+                    if not Request(scope, receive, send).headers['authorization']:
                         response = ResponseError.UNAUTHORIZED()
                         await response(scope, receive, send)
                     else:

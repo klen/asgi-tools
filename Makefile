@@ -3,10 +3,12 @@ PACKAGE		?= asgi_tools
 
 all: $(VIRTUAL_ENV)
 
-$(VIRTUAL_ENV): setup.cfg requirements/requirements.txt requirements/requirements-tests.txt
+$(VIRTUAL_ENV): setup.cfg requirements/requirements.txt requirements/requirements-dev.txt
 	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
-	@$(VIRTUAL_ENV)/bin/pip install -e .[build,tests,examples,docs]
+	@$(VIRTUAL_ENV)/bin/pip install -e .[build,dev,examples,docs]
 	@$(VIRTUAL_ENV)/bin/mypy --install-types --non-interactive asgi_tools
+	@$(VIRTUAL_ENV)/bin/pip install pre-commit refurb
+	@$(VIRTUAL_ENV)/bin/pre-commit install
 	@touch $(VIRTUAL_ENV)
 
 VERSION	?= minor

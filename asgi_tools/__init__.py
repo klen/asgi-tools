@@ -4,6 +4,7 @@ __version__ = "0.64.8"
 __license__ = "MIT"
 
 import logging
+from typing import Final
 
 asgi_logger: logging.Logger = logging.getLogger("asgi-tools")
 
@@ -28,11 +29,11 @@ class ASGIMethodNotAllowed(ASGIError):
     """Raise when http method not found."""
 
 
-DEFAULT_CHARSET: str = "utf-8"
+DEFAULT_CHARSET: Final = "utf-8"
 
 from http_router import MethodNotAllowed, NotFound  # noqa
 
-from .app import App, HTTPView  # noqa
+from .app import App  # noqa
 from .middleware import RequestMiddleware  # noqa
 from .middleware import (LifespanMiddleware, ResponseMiddleware, RouterMiddleware,
                          StaticFilesMiddleware)
@@ -40,6 +41,7 @@ from .request import Request  # noqa
 from .response import ResponseFile  # noqa
 from .response import (Response, ResponseError, ResponseHTML, ResponseJSON, ResponseRedirect,
                        ResponseSSE, ResponseStream, ResponseText, ResponseWebSocket, parse_response)
+from .view import HTTPView  # noqa
 
 __all__ = (
     "App",

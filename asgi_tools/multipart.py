@@ -3,6 +3,7 @@
 
 The original code is licensed by Apache2 license.
 """
+from contextlib import suppress
 # Flags for the multipart parser.
 from typing import Dict
 
@@ -49,11 +50,9 @@ class BaseParser:
         self.callbacks = callbacks
 
     def callback(self, name: str, data: bytes, start: int, end: int):
-        try:
+        with suppress(KeyError):
             func = self.callbacks[name]
             func(data, start, end)
-        except KeyError:
-            pass
 
     def write(self, _: bytes):
         pass
@@ -329,7 +328,7 @@ class MultipartParser(BaseParser):
 
                 else:
                     raise ValueError(
-                        f"Did not find boundary character {chr(ch)} at index {idx}"
+                        f"Did not find boundary character {ch:c} at index {idx}"
                     )
 
             elif state == STATE_HEADER_FIELD_START:
@@ -390,7 +389,7 @@ class MultipartParser(BaseParser):
                 # The last character should be a LF.  If not, it's an error.
                 if ch != LF:
                     raise ValueError(
-                        f"Did not find \\n at end of header (found {chr(ch)})"
+                        f"Did not find \\n at end of header (found {ch:c})"
                     )
 
                 # Move back to the start of another header.  Note that if that
@@ -404,7 +403,7 @@ class MultipartParser(BaseParser):
                 # should be a LF, or it's an error.
                 if ch != LF:
                     raise ValueError(
-                        f"Did not find \\n at end of headers (found {chr(ch)})"
+                        f"Did not find \\n at end of headers (found {ch:c})"
                     )
 
                 self.callback("headers_finished", b"", 0, 0)

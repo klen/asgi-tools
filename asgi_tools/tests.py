@@ -6,33 +6,39 @@ import mimetypes
 import os
 import random
 from collections import deque
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from functools import partial
 from http.cookies import SimpleCookie
-from json import dumps, loads
+from json import loads
 from pathlib import Path
 from typing import (Any, AsyncGenerator, Awaitable, Callable, Coroutine, Dict, Mapping, Optional,
-                    Tuple, Union)
+                    Tuple, Union, cast)
 from urllib.parse import urlencode
 
+from multidict import MultiDict
 from yarl import URL
 
-from asgi_tools import ASGIConnectionClosed
+from asgi_tools import DEFAULT_CHARSET, ASGIConnectionClosed
 from asgi_tools._compat import FIRST_COMPLETED, aio_cancel, aio_sleep, aio_spawn, aio_wait
-from asgi_tools.response import Response, ResponseWebSocket, parse_websocket_msg
-from asgi_tools.typing import ASGIApp, JSONType, Message, Receive, Scope, Send
+from asgi_tools.response import Response, ResponseJSON, ResponseWebSocket, parse_websocket_msg
+from asgi_tools.types import TJSON, TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
 from asgi_tools.utils import CIMultiDict, parse_headers, to_awaitable
 
 
 class TestResponse(Response):
     """Response for test client."""
 
-    async def __call__(self, _: Scope, receive: Receive, __: Send):  # type: ignore
+    def __init__(
+        self,
+    ):
+        super().__init__(b"")
+
+    async def __call__(self, _: TASGIScope, receive: TASGIReceive, __: TASGISend):
         self._receive = receive
         msg = await self._receive()
         assert msg.get("type") == "http.response.start", "Invalid Response"
         self.status_code = int(msg.get("status", 502))
-        self.headers = parse_headers(msg.get("headers", []))  # type: ignore
+        self.headers = cast(MultiDict, parse_headers(msg.get("headers", [])))
         self.content_type = self.headers.get("content-type")
         for cookie in self.headers.getall("set-cookie", []):
             self.cookies.load(cookie)
@@ -57,9 +63,9 @@ class TestResponse(Response):
 
     async def text(self) -> str:
         body = await self.body()
-        return body.decode(self.charset)
+        return body.decode(DEFAULT_CHARSET)
 
-    async def json(self) -> JSONType:
+    async def json(self) -> TJSON:
         text = await self.text()
         return loads(text)
 
@@ -67,10 +73,7 @@ class TestResponse(Response):
 class TestWebSocketResponse(ResponseWebSocket):
     """Support websockets in tests."""
 
-    # Disable app methods for clients
-    accept = close = None  # type: ignore
-
-    def connect(self) -> Coroutine[Message, Any, Any]:
+    def connect(self) -> Coroutine[TASGIMessage, Any, Any]:
         return self.send({"type": "websocket.connect"})
 
     async def disconnect(self):
@@ -98,7 +101,7 @@ class TestWebSocketResponse(ResponseWebSocket):
             self.partner_state = self.STATES.DISCONNECTED
             raise ASGIConnectionClosed("Connection has been closed.")
 
-        return msg if raw else parse_websocket_msg(msg, charset=self.charset)
+        return msg if raw else parse_websocket_msg(msg, charset=DEFAULT_CHARSET)
 
 
 class ASGITestClient:
@@ -116,7 +119,7 @@ class ASGITestClient:
 
     """
 
-    def __init__(self, app: ASGIApp, base_url: str = "http://localhost"):
+    def __init__(self, app: TASGIApp, base_url: str = "http://localhost"):
         self.app = app
         self.base_url = URL(base_url)
         self.cookies: SimpleCookie = SimpleCookie()
@@ -133,7 +136,7 @@ class ASGITestClient:
         headers: Optional[Dict[str, str]] = None,
         cookies: Optional[Dict[str, str]] = None,
         data: Union[bytes, str, Dict, AsyncGenerator] = b"",
-        json: JSONType = None,
+        json: TJSON = None,
         follow_redirect: bool = True,
         timeout: float = 10.0,
     ) -> TestResponse:
@@ -143,7 +146,7 @@ class ASGITestClient:
         headers = headers or dict(self.headers)
 
         if isinstance(data, str):
-            data = data.encode(res.charset)
+            data = Response.process_content(data)
 
         elif isinstance(data, dict):
             is_multipart = any(isinstance(value, io.IOBase) for value in data.values())
@@ -152,11 +155,11 @@ class ASGITestClient:
 
             else:
                 headers["Content-Type"] = "application/x-www-form-urlencoded"
-                data = urlencode(data).encode(res.charset)
+                data = urlencode(data).encode(DEFAULT_CHARSET)
 
         elif json is not None:
             headers["Content-Type"] = "application/json"
-            data = dumps(json).encode(res.charset)
+            data = ResponseJSON.process_content(json)
 
         receive_from_client, send_to_app = simple_stream()
         receive_from_app, send_to_client = simple_stream()
@@ -232,7 +235,7 @@ class ASGITestClient:
         query: Union[str, Dict, None] = None,
         cookies: Optional[Dict] = None,
         **scope,
-    ) -> Scope:
+    ) -> TASGIScope:
         """Prepare a request scope."""
         headers = headers or {}
         headers.setdefault("User-Agent", "ASGI-Tools-Test-Client")
@@ -335,10 +338,8 @@ async def manage_lifespan(app, timeout: float = 3e-2):
     receive_from_app, send_to_client = simple_stream()
 
     async def safe_spawn():
-        try:
+        with suppress(BaseException):
             await app({"type": "lifespan"}, receive_from_client, send_to_client)
-        except BaseException:  # noqa
-            pass
 
     async with aio_spawn(safe_spawn) as task:
         await send_to_app({"type": "lifespan.startup"})

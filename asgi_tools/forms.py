@@ -99,7 +99,7 @@ class MultipartReader(FormReader):
 
     def init_parser(self, request: "Request", max_size: int) -> BaseParser:
         boundary = request.media.get("boundary", "")
-        if len(boundary) == 0:
+        if not boundary:
             raise ValueError("Invalid content type boundary")
 
         return MultipartParser(
@@ -135,13 +135,13 @@ class MultipartReader(FormReader):
             upload_to = self.upload_to
             if upload_to is not None:
                 filename = upload_to(options["filename"])
-                self.partdata = f = open(filename, "wb+")  # type: ignore
+                self.partdata = f = open(filename, "wb+")
 
             else:
-                self.partdata = f = SpooledTemporaryFile(self.file_memory_limit)  # type: ignore
-                f._file.name = options["filename"]  # type: ignore # noqa
+                self.partdata = f = SpooledTemporaryFile(self.file_memory_limit)
+                f._file.name = options["filename"]
 
-            f.content_type = self.headers[b"content-type"].decode(self.charset)  # type: ignore
+            f.content_type = self.headers[b"content-type"].decode(self.charset)
 
     def on_part_data(self, data: bytes, start: int, end: int):
         self.partdata.write(data[start:end])
