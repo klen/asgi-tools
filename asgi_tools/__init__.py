@@ -4,7 +4,6 @@ __version__ = "0.65.0"
 __license__ = "MIT"
 
 import logging
-from typing import Final
 
 asgi_logger: logging.Logger = logging.getLogger("asgi-tools")
 
