@@ -4,7 +4,6 @@ incoming request.
 
 from __future__ import annotations
 
-from cgi import parse_header
 from http import cookies
 from typing import Any, AsyncGenerator, Callable, Dict, Iterator, Optional, Union
 
@@ -15,7 +14,7 @@ from asgi_tools import DEFAULT_CHARSET, ASGIDecodeError
 from asgi_tools._compat import json_loads
 from asgi_tools.forms import read_formdata
 from asgi_tools.types import TJSON, TASGIReceive, TASGIScope, TASGISend
-from asgi_tools.utils import CIMultiDict, parse_headers
+from asgi_tools.utils import CIMultiDict, parse_headers, parse_options_header
 
 
 class Request(TASGIScope):
@@ -165,7 +164,8 @@ class Request(TASGIScope):
     def media(self) -> Dict[str, str]:
         """Prepare a media data for the request."""
         if self._media is None:
-            content_type, opts = parse_header(self.headers.get("content-type", ""))
+            conten_type_header = self.headers.get("content-type", "")
+            content_type, opts = parse_options_header(conten_type_header)
             self._media = dict(opts, content_type=content_type)
 
         return self._media

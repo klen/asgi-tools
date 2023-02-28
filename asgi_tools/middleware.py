@@ -12,7 +12,8 @@ from asgi_tools import ASGIError, asgi_logger
 from asgi_tools.request import Request
 from asgi_tools.response import (Response, ResponseError, ResponseFile, ResponseRedirect,
                                  parse_response)
-from asgi_tools.types import TASGIApp, TASGIReceive, TASGIScope, TASGISend
+from asgi_tools.types import TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
+from asgi_tools.utils import to_awaitable
 
 
 class BaseMiddeware(metaclass=abc.ABCMeta):
@@ -109,27 +110,26 @@ class ResponseMiddleware(BaseMiddeware):
 
     """
 
-    async def __call__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):
-        """Handle ASGI call."""
-        response = await self.__process__(scope, receive, send)
-        if isinstance(response, Response):
-            await response(scope, receive, send)
-
     async def __process__(
         self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
     ):
         """Parse responses from callbacks."""
 
         try:
-            response = await self.app(scope, receive, send)
-            if response is None and scope["type"] == "websocket":
-                return
-
-            # Prepare a response
-            return parse_response(response)
+            result = await self.app(scope, receive, self.send)
+            response = parse_response(result)
+            await response(scope, receive, send)
 
         except (ResponseError, ResponseRedirect) as exc:
-            return exc
+            await exc(scope, receive, send)
+
+    def send(self, msg: TASGIMessage):
+        raise RuntimeError("You can't use send() method in ResponseMiddleware")
+
+    def bind(self, app: Optional[TASGIApp] = None):
+        """Rebind the middleware to an ASGI application if it has been inited already."""
+        self.app = app or to_awaitable(lambda *args: ResponseError.NOT_FOUND())
+        return self
 
 
 class RequestMiddleware(BaseMiddeware):
@@ -213,9 +213,7 @@ class LifespanMiddleware(BaseMiddeware):
         self.__register__(on_startup, self.__startup__)
         self.__register__(on_shutdown, self.__shutdown__)
 
-    async def __process__(
-        self, _: TASGIScope, receive: TASGIReceive, send: TASGISend
-    ) -> None:
+    async def __process__(self, _: TASGIScope, receive: TASGIReceive, send: TASGISend):
         """Manage lifespan cycle."""
         while True:
             message = await receive()
@@ -225,7 +223,8 @@ class LifespanMiddleware(BaseMiddeware):
 
             elif message["type"] == "lifespan.shutdown":
                 msg = await self.run("shutdown", send)
-                return await send(msg)
+                await send(msg)
+                break
 
     def __register__(
         self,
@@ -343,27 +342,18 @@ class RouterMiddleware(BaseMiddeware):
     ) -> None:
         """Initialize HTTP router."""
         super().__init__(app)
-        self.router = router or Router()
+        self.router = router or Router(validator=callable)
 
-    async def __process__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
-    ):
+    async def __process__(self, scope: TASGIScope, *args):
         """Get an app and process."""
-        app, path_params = self.__dispatch__(scope)
-        if not callable(app):
-            app = self.app
+        app, scope["path_params"] = self.__dispatch__(scope)
+        return await app(scope, *args)
 
-        scope["path_params"] = path_params
-        return await app(scope, receive, send)
-
-    def __dispatch__(
-        self, scope: TASGIScope
-    ) -> Tuple[Optional[Any], Optional[Mapping]]:
+    def __dispatch__(self, scope: TASGIScope) -> Tuple[Callable, Optional[Mapping]]:
         """Lookup for a callback."""
+        path = f"{scope.get('root_path', '')}{scope['path']}"
         try:
-            match = self.router(
-                scope.get("root_path", "") + scope["path"], scope["method"]
-            )
+            match = self.router(path, scope["method"])
             return match.target, match.params
 
         except self.router.RouterError:
@@ -393,6 +383,8 @@ class StaticFilesMiddleware(BaseMiddeware):
 
     """
 
+    scopes = {"http"}
+
     def __init__(
         self,
         app: Optional[TASGIApp] = None,
@@ -413,24 +405,25 @@ class StaticFilesMiddleware(BaseMiddeware):
         """Serve static files for self url prefix."""
         path = scope["path"]
         url_prefix = self.url_prefix
-        if not path.startswith(url_prefix):
+        if path.startswith(url_prefix):
+            response: Optional[Response] = None
+            filename = path[len(url_prefix) :].strip("/")
+            for folder in self.folders:
+                filepath = folder.joinpath(filename).resolve()
+                try:
+                    response = ResponseFile(
+                        filepath, headers_only=scope["method"] == "HEAD"
+                    )
+                    break
+
+                except ASGIError:
+                    continue
+
+            response = response or ResponseError(status_code=404)
+            await response(scope, receive, send)
+
+        else:
             await self.app(scope, receive, send)
-
-        response: Optional[Response] = None
-        filename = path[len(url_prefix) :].strip("/")
-        for folder in self.folders:
-            filepath = folder.joinpath(filename).resolve()
-            try:
-                response = ResponseFile(
-                    filepath, headers_only=scope["method"] == "HEAD"
-                )
-                break
-
-            except ASGIError:
-                continue
-
-        response = response or ResponseError(status_code=404)
-        await response(scope, receive, send)
 
 
 # pylama: ignore=E203,E501

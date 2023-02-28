@@ -2,9 +2,7 @@ from typing import (TYPE_CHECKING, Any, Awaitable, Callable, List, Mapping, Muta
                     TypeVar, Union)
 
 if TYPE_CHECKING:
-    from .response import Response
-
-TVFn = TypeVar("TVFn", bound=Callable)
+    from .request import Request
 
 TASGIMessage = Mapping[str, Any]
 TASGISend = Callable[[TASGIMessage], Awaitable[None]]
@@ -13,7 +11,12 @@ TASGIScope = MutableMapping[str, Any]
 TASGIHeaders = List[Tuple[bytes, bytes]]
 TASGIApp = Callable[[TASGIScope, TASGIReceive, TASGISend], Awaitable[Any]]
 
-TResponseApp = Callable[[TASGIScope, TASGIReceive, TASGISend], Awaitable["Response"]]
 TResponseContent = Union[bytes, str]
 TMiddleware = Callable[[TASGIScope, TASGIReceive, TASGISend], Awaitable[Any]]
 TJSON = Union[None, bool, int, float, str, List["TJSON"], Mapping[str, "TJSON"]]
+TExceptionHandler = Callable[["Request", BaseException], Awaitable]
+
+TV = TypeVar("TV")
+TVCallable = TypeVar("TVCallable", bound=Callable)
+TVAsyncCallable = TypeVar("TVAsyncCallable", bound=Callable[..., Awaitable])
+TVExceptionHandler = TypeVar("TVExceptionHandler", bound=TExceptionHandler)

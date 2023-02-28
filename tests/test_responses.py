@@ -245,17 +245,16 @@ async def test_websocket_response(Client):
     import json
 
     from asgi_tools import ASGIConnectionClosed, ResponseWebSocket
-    from asgi_tools.tests import simple_stream
+    from asgi_tools.tests import Pipe
 
-    app_receive, send_to_app = simple_stream()
-    client_receive, send_to_client = simple_stream()
+    pipe = Pipe()
 
-    ws = ResponseWebSocket({}, app_receive, send_to_client)
-    await send_to_app({"type": "websocket.connect"})
+    ws = ResponseWebSocket({}, pipe.receive_from_app, pipe.send_to_client)
+    await pipe.send_to_app({"type": "websocket.connect"})
     await ws.accept()
-    msg = await client_receive()
+    msg = await pipe.receive_from_client()
     assert msg == {"type": "websocket.accept"}
-    await send_to_app({"type": "websocket.disconnect"})
+    await pipe.send_to_app({"type": "websocket.disconnect"})
     msg = await ws.receive()
     assert msg == {"type": "websocket.disconnect"}
     assert not ws.connected

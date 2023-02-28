@@ -1,9 +1,11 @@
 """ ASGI-Tools -- Tools to make ASGI Applications """
 
-__version__ = "0.65.2"
+__version__ = "0.69.0"
 __license__ = "MIT"
 
 import logging
+
+from typing_extensions import Final
 
 asgi_logger: logging.Logger = logging.getLogger("asgi-tools")
 
@@ -28,7 +30,8 @@ class ASGIMethodNotAllowed(ASGIError):
     """Raise when http method not found."""
 
 
-DEFAULT_CHARSET = "utf-8"
+DEFAULT_CHARSET: Final = "utf-8"
+BASE_ENCODING: Final = "latin-1"
 
 from http_router import MethodNotAllowed, NotFound  # noqa
 

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.70.0] - 2023-03-01
+
+### Changed
+
+- app.on_error only accepts exceptions
+
 ## [0.64.0] - 2022-02-09
 
 ### Changed
@@ -29,7 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-[unreleased]: https://github.com/klen/asgi-tools/compare/0.64.0...HEAD
+[unreleased]: https://github.com/klen/asgi-tools/compare/0.70.0...HEAD
+[0.70.0]: https://github.com/klen/asgi-tools/compare/0.64.0...0.70.0
 [0.64.0]: https://github.com/klen/asgi-tools/compare/0.63.3...0.64.0
 [0.63.3]: https://github.com/klen/asgi-tools/compare/0.63.2...0.63.3
 [0.63.2]: https://github.com/klen/asgi-tools/compare/0.1.0...0.63.2

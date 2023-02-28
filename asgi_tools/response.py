@@ -18,7 +18,7 @@ from urllib.parse import quote, quote_plus
 
 from multidict import MultiDict
 
-from asgi_tools import DEFAULT_CHARSET, ASGIConnectionClosed, ASGIError
+from asgi_tools import BASE_ENCODING, DEFAULT_CHARSET, ASGIConnectionClosed, ASGIError
 from asgi_tools._compat import FIRST_COMPLETED, aio_stream_file, aio_wait, json_dumps
 from asgi_tools.request import Request
 from asgi_tools.types import TASGIMessage, TASGIReceive, TASGIScope, TASGISend
@@ -89,7 +89,7 @@ class Response:
         """Stringify the response."""
         return f"<{ self.__class__.__name__ } '{ self }'>"
 
-    async def __call__(self, scope, receive, send: TASGISend) -> None:
+    async def __call__(self, scope, receive, send: TASGISend):
         """Behave as an ASGI application."""
         self.headers.setdefault("content-length", str(len(self.content)))
 
@@ -105,13 +105,13 @@ class Response:
     def msg_start(self) -> TASGIMessage:
         """Get ASGI response start message."""
         headers = [
-            (key.encode("latin-1"), str(val).encode("latin-1"))
+            (key.encode(BASE_ENCODING), str(val).encode(BASE_ENCODING))
             for key, val in self.headers.items()
         ]
 
         for cookie in self.cookies.values():
             headers.append(
-                (b"set-cookie", cookie.output(header="").strip().encode("latin-1"))
+                (b"set-cookie", cookie.output(header="").strip().encode(BASE_ENCODING))
             )
 
         return {
@@ -501,10 +501,10 @@ CAST_RESPONSE: Mapping[Type, Type[Response]] = {
 
 def parse_response(response, headers: Optional[Dict] = None) -> Response:
     """Parse the given object and convert it into a asgi_tools.Response."""
-    rtype = type(response)
-    if issubclass(rtype, Response):
+    if isinstance(response, Response):
         return response
 
+    rtype = type(response)
     response_type = CAST_RESPONSE.get(rtype)
     if response_type:
         return response_type(response, headers=headers)

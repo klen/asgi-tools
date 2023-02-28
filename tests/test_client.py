@@ -205,7 +205,8 @@ async def test_stream_request(app, client):
 
     @app.route("/stream")
     async def stream(request):
-        pass
+        data = await request.data()
+        assert data
 
     res = await client.post("/stream", data=source())
     assert res.status_code == 200
@@ -213,7 +214,6 @@ async def test_stream_request(app, client):
 
 async def test_websocket(app, Client):
     from asgi_tools import ASGIConnectionClosed, ResponseWebSocket
-    from asgi_tools._compat import aio_sleep
 
     @app.route("/websocket")
     async def websocket(request):
@@ -312,3 +312,15 @@ async def test_lifespan(Client):
 
     assert SIDE_EFFECTS["started"]
     assert SIDE_EFFECTS["finished"]
+
+
+async def test_invalid_app(Client):
+    from asgi_tools import Response
+
+    async def invalid(scope, receive, send):
+        await Response("test")(scope, receive, send)
+        await Response("test")(scope, receive, send)
+
+    client = Client(invalid)
+    with pytest.raises(RuntimeError):
+        await client.get("/")

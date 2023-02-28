@@ -159,7 +159,8 @@ async def test_app_handle_exception(Client):
 
     @app.route("/501")
     async def raise_response_error(request):
-        raise ResponseError(501)
+        res = ResponseError(status_code=501)
+        raise res
 
     # By default we handle all exceptions as INTERNAL SERVER ERROR 500 Response
     client = Client(app)
@@ -171,12 +172,10 @@ async def test_app_handle_exception(Client):
     async def handle_unknown(request, exc):
         return "UNKNOWN: %s" % exc
 
-    @app.on_error(404)
-    async def handle_response_error(request, exc):
-        return "Response 404"
-
     @app.on_error(ResponseError)
-    async def handler(request, exc):
+    async def handler(request, response):
+        if response.status_code == 404:
+            return "Response 404"
         return "Custom Server Error"
 
     async with client.lifespan():
@@ -264,22 +263,20 @@ async def test_app_middleware_classic(client, app):
         raise RuntimeError("Handle me")
 
     @app.on_error(Exception)
-    async def custom_exc(exc):
+    async def custom_exc(request, exc):
         return ResponseHTML("App Exception")
 
     @app.middleware
     def classic_md(app):
         async def middleware(scope, receive, send):
-            if not scope.headers.get("authorization"):
+            headers = scope["headers"]
+            auth = [v for k, v in headers if k == b"authorization"]
+            if not auth:
                 response = ResponseError.UNAUTHORIZED()
                 await response(scope, receive, send)
                 return
 
-            try:
-                await app(scope, receive, send)
-            except RuntimeError:
-                response = ResponseHTML("Middleware Exception")
-                await response(scope, receive, send)
+            await app(scope, receive, send)
 
         return middleware
 
@@ -292,7 +289,7 @@ async def test_app_middleware_classic(client, app):
 
     res = await client.get("/err", headers={"authorization": "any"})
     assert res.status_code == 200
-    assert await res.text() == "Middleware Exception"
+    assert await res.text() == "App Exception"
 
 
 async def test_cbv(app, client):

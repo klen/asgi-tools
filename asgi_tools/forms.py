@@ -1,6 +1,5 @@
 """Work with multipart."""
 
-from cgi import parse_header
 from io import BytesIO
 from tempfile import SpooledTemporaryFile
 from typing import TYPE_CHECKING, Callable, Dict, Optional
@@ -9,6 +8,7 @@ from urllib.parse import unquote_to_bytes
 from multidict import MultiDict
 
 from asgi_tools.multipart import BaseParser, MultipartParser, QueryStringParser
+from asgi_tools.utils import parse_options_header
 
 if TYPE_CHECKING:
     from asgi_tools.request import Request  # noqa
@@ -103,7 +103,7 @@ class MultipartReader(FormReader):
             raise ValueError("Invalid content type boundary")
 
         return MultipartParser(
-            request.media.get("boundary"),
+            boundary,
             {
                 "header_end": self.on_header_end,
                 "header_field": self.on_header_field,
@@ -127,7 +127,7 @@ class MultipartReader(FormReader):
         self.curvalue.clear()
 
     def on_headers_finished(self, *_):
-        _, options = parse_header(
+        _, options = parse_options_header(
             self.headers[b"content-disposition"].decode(self.charset)
         )
         self.name = options["name"]

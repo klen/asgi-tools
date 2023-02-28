@@ -11,18 +11,18 @@ from functools import partial
 from http.cookies import SimpleCookie
 from json import loads
 from pathlib import Path
-from typing import (Any, AsyncGenerator, Awaitable, Callable, Coroutine, Dict, Mapping, Optional,
-                    Tuple, Union, cast)
+from typing import (Any, AsyncGenerator, Awaitable, Callable, Coroutine, Deque, Dict, Mapping,
+                    Optional, Tuple, Union, cast)
 from urllib.parse import urlencode
 
 from multidict import MultiDict
 from yarl import URL
 
-from asgi_tools import DEFAULT_CHARSET, ASGIConnectionClosed
+from asgi_tools import BASE_ENCODING, DEFAULT_CHARSET, ASGIConnectionClosed
 from asgi_tools._compat import FIRST_COMPLETED, aio_cancel, aio_sleep, aio_spawn, aio_wait
 from asgi_tools.response import Response, ResponseJSON, ResponseWebSocket, parse_websocket_msg
 from asgi_tools.types import TJSON, TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
-from asgi_tools.utils import CIMultiDict, parse_headers, to_awaitable
+from asgi_tools.utils import CIMultiDict, parse_headers
 
 
 class TestResponse(Response):
@@ -142,7 +142,6 @@ class ASGITestClient:
     ) -> TestResponse:
         """Make a HTTP requests."""
 
-        res = TestResponse()
         headers = headers or dict(self.headers)
 
         if isinstance(data, str):
@@ -161,8 +160,7 @@ class ASGITestClient:
             headers["Content-Type"] = "application/json"
             data = ResponseJSON.process_content(json)
 
-        receive_from_client, send_to_app = simple_stream()
-        receive_from_app, send_to_client = simple_stream()
+        pipe = Pipe()
 
         if isinstance(data, bytes):
             headers.setdefault("Content-Length", str(len(data)))
@@ -178,14 +176,15 @@ class ASGITestClient:
 
         await aio_wait(
             aio_wait(
-                self.app(scope, receive_from_client, send_to_client),
-                stream_data(data, send_to_app),
+                stream_data(data, pipe.send_to_app),
+                self.app(scope, pipe.receive_from_app, pipe.send_to_client),
             ),
             raise_timeout(timeout),
             strategy=FIRST_COMPLETED,
         )
-        await send_to_client({"type": "http.response.body", "more_body": False})
-        await res(scope, receive_from_app, send_to_app)
+
+        res = TestResponse()
+        await res(scope, pipe.receive_from_client, pipe.send_to_app)
         for n, v in res.cookies.items():
             self.cookies[n] = v
 
@@ -204,8 +203,7 @@ class ASGITestClient:
         cookies: Optional[Dict] = None,
     ):
         """Connect to a websocket."""
-        receive_from_client, send_to_app = simple_stream()
-        receive_from_app, send_to_client = simple_stream()
+        pipe = Pipe()
 
         ci_headers = CIMultiDict(headers or {})
 
@@ -217,8 +215,10 @@ class ASGITestClient:
             type="websocket",
             subprotocols=str(ci_headers.get("Sec-WebSocket-Protocol", "")).split(","),
         )
-        ws = TestWebSocketResponse(scope, receive_from_app, send_to_app)
-        async with aio_spawn(self.app, scope, receive_from_client, send_to_client):
+        ws = TestWebSocketResponse(scope, pipe.receive_from_client, pipe.send_to_app)
+        async with aio_spawn(
+            self.app, scope, pipe.receive_from_app, pipe.send_to_client
+        ):
             await ws.connect()
             yield ws
             await ws.disconnect()
@@ -265,7 +265,7 @@ class ASGITestClient:
                 "root_path": "",
                 "scheme": scope.get("type") == "http" and self.base_url.scheme or "ws",
                 "headers": [
-                    (key.lower().encode("latin-1"), str(val).encode("latin-1"))
+                    (key.lower().encode(BASE_ENCODING), str(val).encode(BASE_ENCODING))
                     for key, val in (headers or {}).items()
                 ],
                 "server": ("127.0.0.1", self.base_url.port),
@@ -301,15 +301,53 @@ def encode_multipart(data: Dict) -> Tuple[bytes, str]:
     return body.getvalue(), (b"multipart/form-data; boundary=%s" % boundary).decode()
 
 
-def simple_stream(maxlen=None):
-    queue = deque(maxlen=maxlen)
+class Pipe:
 
-    async def receive():
-        while not queue:
-            await aio_sleep(1e-3)
-        return queue.popleft()
+    __slots__ = (
+        "delay",
+        "app_is_closed",
+        "client_is_closed",
+        "app_queue",
+        "client_queue",
+    )
 
-    return receive, to_awaitable(queue.append)
+    def __init__(self, delay: float = 1e-3):
+        self.delay = delay
+        self.app_is_closed = False
+        self.client_is_closed = False
+        self.app_queue: Deque[TASGIMessage] = deque()
+        self.client_queue: Deque[TASGIMessage] = deque()
+
+    async def send_to_client(self, msg: TASGIMessage):
+        if self.client_is_closed:
+            raise RuntimeError(f"Unexpected ASGI message to client '{msg.get('type')}'")
+
+        if msg.get("type") == "websocket.close":
+            self.client_is_closed = True
+
+        elif msg.get("type") == "http.response.body":
+            self.client_is_closed = not msg.get("more_body", False)
+
+        self.client_queue.append(msg)
+
+    async def send_to_app(self, msg: TASGIMessage):
+        if self.app_is_closed:
+            raise RuntimeError(f"Unexpected ASGI message to app '{msg.get('type')}'")
+
+        if msg.get("type") == "http.disconnect":
+            self.app_is_closed = True
+
+        self.app_queue.append(msg)
+
+    async def receive_from_client(self):
+        while not self.client_queue:
+            await aio_sleep(self.delay)
+        return self.client_queue.popleft()
+
+    async def receive_from_app(self):
+        while not self.app_queue:
+            await aio_sleep(self.delay)
+        return self.app_queue.popleft()
 
 
 async def raise_timeout(timeout: Union[int, float]):
@@ -319,7 +357,7 @@ async def raise_timeout(timeout: Union[int, float]):
 
 async def stream_data(
     data: Union[bytes, AsyncGenerator[Any, bytes]],
-    send: Callable[..., Awaitable],
+    send: Callable[[TASGIMessage], Awaitable[None]],
 ):
     """Stream a data to an application."""
 
@@ -334,17 +372,18 @@ async def stream_data(
 @asynccontextmanager
 async def manage_lifespan(app, timeout: float = 3e-2):
     """Manage `Lifespan <https://asgi.readthedocs.io/en/latest/specs/lifespan.html>`_ protocol."""
-    receive_from_client, send_to_app = simple_stream()
-    receive_from_app, send_to_client = simple_stream()
+    pipe = Pipe()
+
+    scope = {"type": "lifespan"}
 
     async def safe_spawn():
         with suppress(BaseException):
-            await app({"type": "lifespan"}, receive_from_client, send_to_client)
+            await app(scope, pipe.receive_from_app, pipe.send_to_client)
 
     async with aio_spawn(safe_spawn) as task:
-        await send_to_app({"type": "lifespan.startup"})
+        await pipe.send_to_app({"type": "lifespan.startup"})
         msg = await aio_wait(
-            receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED
+            pipe.receive_from_client(), aio_sleep(timeout), strategy=FIRST_COMPLETED
         )
         if msg and isinstance(msg, Mapping):
             if msg["type"] == "lifespan.startup.failed":
@@ -354,9 +393,9 @@ async def manage_lifespan(app, timeout: float = 3e-2):
 
         yield
 
-        await send_to_app({"type": "lifespan.shutdown"})
+        await pipe.send_to_app({"type": "lifespan.shutdown"})
         msg = await aio_wait(
-            receive_from_app(), aio_sleep(timeout), strategy=FIRST_COMPLETED
+            pipe.receive_from_client(), aio_sleep(timeout), strategy=FIRST_COMPLETED
         )
         if msg and isinstance(msg, Mapping):
             assert msg["type"] == "lifespan.shutdown.complete"

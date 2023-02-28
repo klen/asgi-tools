@@ -8,7 +8,7 @@ $(VIRTUAL_ENV): setup.cfg requirements/requirements.txt requirements/requirement
 	@$(VIRTUAL_ENV)/bin/pip install -e .[build,dev,examples,docs]
 	@$(VIRTUAL_ENV)/bin/mypy --install-types --non-interactive asgi_tools
 	@$(VIRTUAL_ENV)/bin/pip install pre-commit refurb
-	@$(VIRTUAL_ENV)/bin/pre-commit install
+	@$(VIRTUAL_ENV)/bin/pre-commit install --hook-type pre-push
 	@touch $(VIRTUAL_ENV)
 
 VERSION	?= minor
