@@ -131,7 +131,7 @@ See also: :py:class:`~asgi_tools.HTTPView`.
 Dynamic URLs
 ------------
 
-All the URLs support regexp. You can use any regular expression to customize your URLs: 
+All the URLs support regexp. You can use any regular expression to customize your URLs:
 
 .. code-block:: python
 
@@ -233,9 +233,11 @@ decorator:
 
 .. code-block:: python
 
-    @app.on_error(404)
-    async def page_not_found(request, error):
+    @app.on_error(ResponseError)
+    async def process_http_errors(request, error):
+      if error.status_code == 404:
         return render_template('page_not_found.html'), 404
+      return error
 
 It's possible to bind the handlers not only for status codes, but for the
 exceptions themself:
@@ -379,6 +381,6 @@ supported for nested apps).
 .. Links
 
 .. _ASGI: https://asgi.readthedocs.io/en/latest/
-.. _uvicorn: http://www.uvicorn.org/ 
+.. _uvicorn: http://www.uvicorn.org/
 .. _daphne: https://github.com/django/daphne/
 .. _hypercorn: https://pgjones.gitlab.io/hypercorn/
