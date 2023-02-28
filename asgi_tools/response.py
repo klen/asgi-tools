@@ -406,7 +406,9 @@ class ResponseErrorMeta(type):
     def __getattr__(cls, name: str) -> Callable[..., ResponseError]:
         """Generate Response Errors by HTTP names."""
         status = HTTPStatus[name]  # noqa
-        return partial(cls, status_code=status.value)
+        return partial(
+            lambda *args, **kwargs: cls(*args, **kwargs), status_code=status.value
+        )
 
 
 class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):

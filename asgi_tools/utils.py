@@ -7,7 +7,6 @@ from typing import Awaitable, Callable, Dict, Tuple, overload
 from urllib.parse import unquote_to_bytes
 
 from multidict import CIMultiDict
-from typing_extensions import Final
 
 from asgi_tools import BASE_ENCODING
 from asgi_tools.types import TV, TASGIHeaders, TVAsyncCallable
@@ -47,7 +46,7 @@ def parse_headers(headers: TASGIHeaders) -> CIMultiDict:
     )
 
 
-OPTION_HEADER_PIECE_RE: Final = re.compile(
+OPTION_HEADER_PIECE_RE = re.compile(
     r"""
     \s*,?\s*  # newlines were replaced with commas
     (?P<key>

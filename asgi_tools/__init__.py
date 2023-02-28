@@ -5,8 +5,6 @@ __license__ = "MIT"
 
 import logging
 
-from typing_extensions import Final
-
 asgi_logger: logging.Logger = logging.getLogger("asgi-tools")
 
 
@@ -30,8 +28,8 @@ class ASGIMethodNotAllowed(ASGIError):
     """Raise when http method not found."""
 
 
-DEFAULT_CHARSET: Final = "utf-8"
-BASE_ENCODING: Final = "latin-1"
+DEFAULT_CHARSET = "utf-8"
+BASE_ENCODING = "latin-1"
 
 from http_router import MethodNotAllowed, NotFound  # noqa
 
