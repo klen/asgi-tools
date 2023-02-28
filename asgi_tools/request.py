@@ -53,9 +53,17 @@ class Request(TASGIScope):
         self._media: Optional[Dict[str, str]] = None
         self._cookies: Optional[Dict[str, str]] = None
 
+    def __str__(self) -> str:
+        """Return the request's params."""
+        scope_type = self.scope["type"]
+        if scope_type == "websocket":
+            return f"{scope_type} {self.path}"
+
+        return f"{scope_type} {self.method} {self.url.path}"
+
     def __repr__(self):
         """Represent the request."""
-        return f"<Request {self.content_type} {self.method} {self.url.path}>"
+        return f"<Request {self}>"
 
     def __getitem__(self, key: str) -> Any:
         """Proxy the method to the scope."""
