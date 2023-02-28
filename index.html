@@ -9,7 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Welcome to asgi-tools’s documentation! &#8212; asgi-tools 0.70.1 documentation</title>
+    <title>Welcome to asgi-tools’s documentation! &#8212; asgi-tools 0.70.3 documentation</title>
   
   
   
@@ -351,7 +351,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 0.70.1
+    Version: 0.70.3
 </div>
 </div>
     </div>
@@ -387,13 +387,13 @@ faster.</p>
 <ul class="simple">
 <li><p>All popular async python libraries are supported (<a class="reference external" href="https://docs.python.org/3/library/asyncio.html">Asyncio</a>, <a class="reference external" href="https://trio.readthedocs.io/en/stable/index.html">Trio</a>, <a class="reference external" href="https://github.com/dabeaz/curio">Curio</a>);</p></li>
 <li><p>Competitive Performance;</p></li>
-<li><p>HTTP Headers/Cookies/Form data support (<code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code>);</p></li>
-<li><p>HTTP (<code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code>), Static files (<code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseFile</span></code>), Streaming (<code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseStream</span></code>) responses;</p></li>
-<li><p>WebSockets (<code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseWebSocket</span></code>) and SSE (server side events <code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseSSE</span></code>) support;</p></li>
-<li><p>ASGI Lifespan support (<code class="xref py py-class docutils literal notranslate"><span class="pre">LifespanMiddleware</span></code>) with startup and shutdown events;</p></li>
-<li><p>ASGI Routing support (<code class="xref py py-class docutils literal notranslate"><span class="pre">RouterMiddleware</span></code>) to route your handlers by http urls;</p></li>
-<li><p>Auto parsing for app responses (<code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseMiddleware</span></code>);</p></li>
-<li><p>Test client (<code class="xref py py-class docutils literal notranslate"><span class="pre">ASGITestClient</span></code>) to test <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> applications;</p></li>
+<li><p>HTTP Headers/Cookies/Form data support (<a class="reference internal" href="api.html#asgi_tools.Request" title="asgi_tools.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>);</p></li>
+<li><p>HTTP (<a class="reference internal" href="api.html#asgi_tools.Response" title="asgi_tools.Response"><code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code></a>), Static files (<a class="reference internal" href="api.html#asgi_tools.ResponseFile" title="asgi_tools.ResponseFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseFile</span></code></a>), Streaming (<a class="reference internal" href="api.html#asgi_tools.ResponseStream" title="asgi_tools.ResponseStream"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseStream</span></code></a>) responses;</p></li>
+<li><p>WebSockets (<a class="reference internal" href="api.html#asgi_tools.ResponseWebSocket" title="asgi_tools.ResponseWebSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseWebSocket</span></code></a>) and SSE (server side events <a class="reference internal" href="api.html#asgi_tools.ResponseSSE" title="asgi_tools.ResponseSSE"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseSSE</span></code></a>) support;</p></li>
+<li><p>ASGI Lifespan support (<a class="reference internal" href="api.html#asgi_tools.LifespanMiddleware" title="asgi_tools.LifespanMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">LifespanMiddleware</span></code></a>) with startup and shutdown events;</p></li>
+<li><p>ASGI Routing support (<a class="reference internal" href="api.html#asgi_tools.RouterMiddleware" title="asgi_tools.RouterMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">RouterMiddleware</span></code></a>) to route your handlers by http urls;</p></li>
+<li><p>Auto parsing for app responses (<a class="reference internal" href="api.html#asgi_tools.ResponseMiddleware" title="asgi_tools.ResponseMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseMiddleware</span></code></a>);</p></li>
+<li><p>Test client (<a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient" title="asgi_tools.tests.ASGITestClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">ASGITestClient</span></code></a>) to test <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> applications;</p></li>
 <li><p>And more</p></li>
 </ul>
 <a class="reference external image-reference" href="https://github.com/klen/asgi-tools/actions" id="badges"><img alt="Tests Status" src="https://github.com/klen/asgi-tools/workflows/tests/badge.svg" /></a>
@@ -436,33 +436,116 @@ method, this part of the documentation is for you.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api.html#request">Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#request">Request</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#asgi_tools.Request"><code class="docutils literal notranslate"><span class="pre">Request</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.headers"><code class="docutils literal notranslate"><span class="pre">Request.headers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.cookies"><code class="docutils literal notranslate"><span class="pre">Request.cookies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.query"><code class="docutils literal notranslate"><span class="pre">Request.query</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.charset"><code class="docutils literal notranslate"><span class="pre">Request.charset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.content_type"><code class="docutils literal notranslate"><span class="pre">Request.content_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.url"><code class="docutils literal notranslate"><span class="pre">Request.url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.stream"><code class="docutils literal notranslate"><span class="pre">Request.stream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.body"><code class="docutils literal notranslate"><span class="pre">Request.body()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.text"><code class="docutils literal notranslate"><span class="pre">Request.text()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.form"><code class="docutils literal notranslate"><span class="pre">Request.form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.json"><code class="docutils literal notranslate"><span class="pre">Request.json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.data"><code class="docutils literal notranslate"><span class="pre">Request.data()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#responses">Responses</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsetext">ResponseText</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsehtml">ResponseHTML</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsejson">ResponseJSON</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responseredirect">ResponseRedirect</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#asgi_tools.Response"><code class="docutils literal notranslate"><span class="pre">Response</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Response.headers"><code class="docutils literal notranslate"><span class="pre">Response.headers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Response.cookies"><code class="docutils literal notranslate"><span class="pre">Response.cookies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Response.__call__"><code class="docutils literal notranslate"><span class="pre">Response.__call__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsetext">ResponseText</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseText"><code class="docutils literal notranslate"><span class="pre">ResponseText</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsehtml">ResponseHTML</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseHTML"><code class="docutils literal notranslate"><span class="pre">ResponseHTML</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsejson">ResponseJSON</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseJSON"><code class="docutils literal notranslate"><span class="pre">ResponseJSON</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responseredirect">ResponseRedirect</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseRedirect"><code class="docutils literal notranslate"><span class="pre">ResponseRedirect</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="api.html#responseerror">ResponseError</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseError"><code class="docutils literal notranslate"><span class="pre">ResponseError</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsestream">ResponseStream</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsesse">ResponseSSE</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsefile">ResponseFile</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsewebsocket">ResponseWebSocket</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsestream">ResponseStream</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseStream"><code class="docutils literal notranslate"><span class="pre">ResponseStream</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsesse">ResponseSSE</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseSSE"><code class="docutils literal notranslate"><span class="pre">ResponseSSE</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsefile">ResponseFile</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseFile"><code class="docutils literal notranslate"><span class="pre">ResponseFile</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsewebsocket">ResponseWebSocket</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseWebSocket"><code class="docutils literal notranslate"><span class="pre">ResponseWebSocket</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#middlewares">Middlewares</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api.html#requestmiddleware">RequestMiddleware</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsemiddleware">ResponseMiddleware</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#lifespanmiddleware">LifespanMiddleware</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#routermiddleware">RouterMiddleware</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#staticfilesmiddleware">StaticFilesMiddleware</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#requestmiddleware">RequestMiddleware</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.RequestMiddleware"><code class="docutils literal notranslate"><span class="pre">RequestMiddleware</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#application">Application</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#class-based-views">Class Based Views</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#testclient">TestClient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#responsemiddleware">ResponseMiddleware</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseMiddleware"><code class="docutils literal notranslate"><span class="pre">ResponseMiddleware</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#lifespanmiddleware">LifespanMiddleware</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.LifespanMiddleware"><code class="docutils literal notranslate"><span class="pre">LifespanMiddleware</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#routermiddleware">RouterMiddleware</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.RouterMiddleware"><code class="docutils literal notranslate"><span class="pre">RouterMiddleware</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#staticfilesmiddleware">StaticFilesMiddleware</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.StaticFilesMiddleware"><code class="docutils literal notranslate"><span class="pre">StaticFilesMiddleware</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#application">Application</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#asgi_tools.App"><code class="docutils literal notranslate"><span class="pre">App</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.App.route"><code class="docutils literal notranslate"><span class="pre">App.route()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.App.on_startup"><code class="docutils literal notranslate"><span class="pre">App.on_startup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.App.on_shutdown"><code class="docutils literal notranslate"><span class="pre">App.on_shutdown()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.App.on_error"><code class="docutils literal notranslate"><span class="pre">App.on_error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.App.middleware"><code class="docutils literal notranslate"><span class="pre">App.middleware()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#class-based-views">Class Based Views</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#asgi_tools.HTTPView"><code class="docutils literal notranslate"><span class="pre">HTTPView</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#testclient">TestClient</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient"><code class="docutils literal notranslate"><span class="pre">ASGITestClient</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient.request"><code class="docutils literal notranslate"><span class="pre">ASGITestClient.request()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient.websocket"><code class="docutils literal notranslate"><span class="pre">ASGITestClient.websocket()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient.lifespan"><code class="docutils literal notranslate"><span class="pre">ASGITestClient.lifespan()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
