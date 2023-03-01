@@ -11,8 +11,6 @@ TASGIScope = MutableMapping[str, Any]
 TASGIHeaders = List[Tuple[bytes, bytes]]
 TASGIApp = Callable[[TASGIScope, TASGIReceive, TASGISend], Awaitable[Any]]
 
-TResponseContent = Union[bytes, str]
-TMiddleware = Callable[[TASGIScope, TASGIReceive, TASGISend], Awaitable[Any]]
 TJSON = Union[None, bool, int, float, str, List["TJSON"], Mapping[str, "TJSON"]]
 TExceptionHandler = Callable[["Request", BaseException], Awaitable]
 
