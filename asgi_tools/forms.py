@@ -7,8 +7,8 @@ from urllib.parse import unquote_to_bytes
 
 from multidict import MultiDict
 
-from asgi_tools.multipart import BaseParser, MultipartParser, QueryStringParser
-from asgi_tools.utils import parse_options_header
+from .multipart import BaseParser, MultipartParser, QueryStringParser
+from .utils import parse_options_header
 
 if TYPE_CHECKING:
     from asgi_tools.request import Request  # noqa

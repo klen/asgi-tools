@@ -3,7 +3,6 @@
 """Work with multipart."""
 
 from io import BytesIO
-from cgi import parse_header
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
 from urllib.parse import unquote_to_bytes
@@ -11,6 +10,7 @@ from urllib.parse import unquote_to_bytes
 from multidict import MultiDict
 
 from .multipart cimport QueryStringParser, MultipartParser, BaseParser
+from .utils import parse_options_header
 
 
 async def read_formdata(object request, int max_size, object upload_to,
@@ -112,7 +112,7 @@ cdef class MultipartReader(FormReader):
         self.curvalue.clear()
 
     def on_headers_finished(self, data: bytes, start: int, end: int):
-        _, options = parse_header(self.headers[b'content-disposition'].decode(self.charset))
+        _, options = parse_options_header(self.headers[b'content-disposition'].decode(self.charset))
         self.name = options['name']
         upload_to = self.upload_to
         if 'filename' in options:
