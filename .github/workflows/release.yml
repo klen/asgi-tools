@@ -27,7 +27,7 @@ jobs:
     - name: Build sdist
       run: python -m build --sdist
       env:
-        ASGI_TOOLS_NO_EXTENSIONS=1
+        ASGI_TOOLS_NO_EXTENSIONS: '1'
 
     - uses: actions/upload-artifact@v2
       with:
