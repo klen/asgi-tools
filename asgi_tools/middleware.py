@@ -4,16 +4,16 @@ import abc
 import inspect
 from functools import partial
 from pathlib import Path
-from typing import Any, Awaitable, Callable, List, Mapping, Optional, Set, Tuple, Union
+from typing import Awaitable, Callable, List, Mapping, Optional, Set, Tuple, Union
 
 from http_router import Router
 
-from asgi_tools import ASGIError, asgi_logger
-from asgi_tools.request import Request
-from asgi_tools.response import (Response, ResponseError, ResponseFile, ResponseRedirect,
-                                 parse_response)
-from asgi_tools.types import TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
-from asgi_tools.utils import to_awaitable
+from .errors import ASGIError
+from .logs import logger
+from .request import Request
+from .response import Response, ResponseError, ResponseFile, ResponseRedirect, parse_response
+from .types import TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
+from .utils import to_awaitable
 
 
 class BaseMiddeware(metaclass=abc.ABCMeta):
@@ -200,7 +200,7 @@ class LifespanMiddleware(BaseMiddeware):
         self,
         app: Optional[TASGIApp] = None,
         ignore_errors: bool = False,
-        logger=asgi_logger,
+        logger=logger,
         on_startup: Union[Callable, List[Callable], None] = None,
         on_shutdown: Union[Callable, List[Callable], None] = None,
     ) -> None:

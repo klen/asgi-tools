@@ -1,0 +1,2 @@
+BASE_ENCODING = "latin-1"
+DEFAULT_CHARSET = "utf-8"

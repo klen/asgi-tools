@@ -8,8 +8,8 @@ from urllib.parse import unquote_to_bytes
 
 from multidict import CIMultiDict
 
-from asgi_tools import BASE_ENCODING
-from asgi_tools.types import TV, TASGIHeaders, TVAsyncCallable
+from .constants import BASE_ENCODING
+from .types import TV, TASGIHeaders, TVAsyncCallable
 
 
 def is_awaitable(fn: Callable) -> bool:

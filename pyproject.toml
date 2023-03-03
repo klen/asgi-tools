@@ -1,0 +1,96 @@
+[build-system]
+requires = ["setuptools", "wheel", "Cython"]
+
+[project]
+name = "asgi-tools"
+version = "0.70.6"
+description = "ASGI Toolkit to build web applications"
+readme = "README.rst"
+requires-python = ">=3.7"
+license = {"text" = "MIT License"}
+authors = [{ name = "Kirill Klenov", email = "horneds@gmail.com" }]
+keywords = ["asgi", "asgi-tools", "request", "response", "asyncio", "trio"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Programming Language :: Cython",
+  "Topic :: Internet :: WWW/HTTP",
+  "Framework :: AsyncIO",
+  "Framework :: Trio",
+]
+dependencies = [
+  "http-router >= 3.0.1",
+  "multidict",
+  "sniffio",
+  "yarl >= 1.8.2",
+]
+
+[project.urls]
+homepage = "https://github.com/klen/asgi-tools"
+repository = "https://github.com/klen/asgi-tools"
+documentation = "https://klen.github.io/asgi-tools"
+
+[project.optional-dependencies]
+tests = [
+  "aiofile",
+  "pytest",
+  "pytest-aio[curio,trio] >= 1.1.0",
+  "pytest-benchmark",
+  "PyYAML",
+  "uvloop; implementation_name == 'cpython'",
+  "pytest-mypy; implementation_name == 'cpython'",
+]
+ujson = ["ujson"]
+orjson = ["orjson"]
+examples = ["uvicorn[standard]", "jinja2", "httpx"]
+dev = [
+  "bump2version", "refurb; python_version >= '3.9'", "tox", "cython",
+  "pre-commit", "sphinx", "pydata-sphinx-theme"]
+
+[tool.setuptools]
+packages = ['asgi_tools']
+
+[tool.setuptools.package-data]
+asgi_tools = [
+  "py.typed",
+  "multipart.pxd",
+  "multipart.pyx",
+  "forms.pyx"
+]
+[tool.pytest.ini_options]
+addopts = "-xsv"
+
+[tool.mypy]
+packages = ["asgi_tools"]
+install_types = true
+non_interactive = true
+ignore_missing_imports = true
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py37,py38,py39,py310,py311,pypy39
+
+[testenv]
+deps = -e .[tests]
+commands =
+        mypy
+	pytest tests
+
+[testenv:pypy39]
+deps = -e .[tests]
+commands =
+	pytest tests
+"""
+
+[tool.ruff]
+line-length = 100

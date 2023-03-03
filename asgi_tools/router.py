@@ -2,7 +2,7 @@ from typing import ClassVar, Type  # py37
 
 from http_router import Router as HTTPRouter
 
-from . import ASGIError, ASGIMethodNotAllowed, ASGINotFound
+from .errors import ASGIError, ASGIMethodNotAllowed, ASGINotFound
 
 
 class Router(HTTPRouter):

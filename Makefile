@@ -3,19 +3,17 @@ PACKAGE		?= asgi_tools
 
 all: $(VIRTUAL_ENV)
 
-$(VIRTUAL_ENV): setup.cfg requirements/requirements.txt requirements/requirements-dev.txt
+$(VIRTUAL_ENV): pyproject.toml
 	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
-	@$(VIRTUAL_ENV)/bin/pip install -e .[build,dev,examples,docs]
+	@$(VIRTUAL_ENV)/bin/pip install -e .[tests,dev,examples,docs]
 	@$(VIRTUAL_ENV)/bin/mypy --install-types --non-interactive asgi_tools
-	@$(VIRTUAL_ENV)/bin/pip install pre-commit refurb
 	@$(VIRTUAL_ENV)/bin/pre-commit install --hook-type pre-push
 	@touch $(VIRTUAL_ENV)
 
 VERSION	?= minor
 
 .PHONY: version
-version:
-	$(VIRTUAL_ENV)/bin/pip install bump2version
+version: $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/bump2version $(VERSION)
 	git checkout master
 	git pull
@@ -57,7 +55,7 @@ test t: cyt $(VIRTUAL_ENV)
 
 
 mypy: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/mypy --install-types --non-interactive asgi_tools
+	$(VIRTUAL_ENV)/bin/mypy
 
 
 EXAMPLE = rates

@@ -18,10 +18,11 @@ from urllib.parse import quote, quote_plus
 
 from multidict import MultiDict
 
-from asgi_tools import BASE_ENCODING, DEFAULT_CHARSET, ASGIConnectionClosed, ASGIError
-from asgi_tools._compat import FIRST_COMPLETED, aio_stream_file, aio_wait, json_dumps
-from asgi_tools.request import Request
-from asgi_tools.types import TASGIMessage, TASGIReceive, TASGIScope, TASGISend
+from ._compat import FIRST_COMPLETED, aio_stream_file, aio_wait, json_dumps
+from .constants import BASE_ENCODING, DEFAULT_CHARSET
+from .errors import ASGIConnectionClosed, ASGIError
+from .request import Request
+from .types import TASGIMessage, TASGIReceive, TASGIScope, TASGISend
 
 
 class Response:

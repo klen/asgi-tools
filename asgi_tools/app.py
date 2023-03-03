@@ -10,7 +10,8 @@ from http_router.types import TMethods, TPath
 
 from asgi_tools.router import Router
 
-from . import ASGIConnectionClosed, ASGIMethodNotAllowed, ASGINotFound, asgi_logger
+from .errors import ASGIConnectionClosed, ASGIMethodNotAllowed, ASGINotFound
+from .logs import logger
 from .middleware import LifespanMiddleware, StaticFilesMiddleware, parse_response
 from .request import Request
 from .response import Response, ResponseError
@@ -54,7 +55,7 @@ class App:
         self,
         *,
         debug: bool = False,
-        logger: logging.Logger = asgi_logger,
+        logger: logging.Logger = logger,
         static_url_prefix: str = "/static",
         static_folders: Union[str, List[str], None] = None,
         trim_last_slash: bool = False,

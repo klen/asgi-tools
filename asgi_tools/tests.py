@@ -18,11 +18,12 @@ from urllib.parse import urlencode
 from multidict import MultiDict
 from yarl import URL
 
-from asgi_tools import BASE_ENCODING, DEFAULT_CHARSET, ASGIConnectionClosed
-from asgi_tools._compat import FIRST_COMPLETED, aio_cancel, aio_sleep, aio_spawn, aio_wait
-from asgi_tools.response import Response, ResponseJSON, ResponseWebSocket, parse_websocket_msg
-from asgi_tools.types import TJSON, TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
-from asgi_tools.utils import CIMultiDict, parse_headers
+from ._compat import FIRST_COMPLETED, aio_cancel, aio_sleep, aio_spawn, aio_wait
+from .constants import BASE_ENCODING, DEFAULT_CHARSET
+from .errors import ASGIConnectionClosed
+from .response import Response, ResponseJSON, ResponseWebSocket, parse_websocket_msg
+from .types import TJSON, TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
+from .utils import CIMultiDict, parse_headers
 
 
 class TestResponse(Response):

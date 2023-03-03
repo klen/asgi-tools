@@ -1,60 +1,29 @@
-"""Setup the package."""
+"""Setup the library."""
 
-
-import pathlib
-
-# Parse requirements
-# ------------------
-import pkg_resources
-
-
-def parse_requirements(path: str) -> "list[str]":
-    with pathlib.Path(path).open() as requirements:
-        return [str(req) for req in pkg_resources.parse_requirements(requirements)]
-
-
-# Setup extensions
-# ----------------
 import os
 import sys
 
-from setuptools import Extension
-
-NO_EXTENSIONS = sys.implementation.name != "cpython" or bool(
-    os.environ.get("ASGI_TOOLS_NO_EXTENSIONS")
-)
-EXT_MODULES = (
-    []
-    if NO_EXTENSIONS
-    else [
-        Extension(
-            "asgi_tools.multipart",
-            ["asgi_tools/multipart.c"],
-            extra_compile_args=["-O2"],
-        ),
-        Extension(
-            "asgi_tools.forms", ["asgi_tools/forms.c"], extra_compile_args=["-O2"]
-        ),
-    ]
-)
-
-
-# Setup package
-# -------------
 from setuptools import setup
+
+try:
+    from Cython.Build import cythonize
+except ImportError:
+    cythonize = None
+
+
+NO_EXTENSIONS = (
+    sys.implementation.name != "cpython"
+    or bool(os.environ.get("ASGI_TOOLS_NO_EXTENSIONS"))
+    or cythonize is None
+)
+
+print("*********************")
+print("* Pure Python build *" if NO_EXTENSIONS else "* Accelerated build *")
+print("*********************")
 
 setup(
     setup_requires=["wheel"],
-    ext_modules=EXT_MODULES,
-    install_requires=parse_requirements("requirements/requirements.txt"),
-    extras_require={
-        "dev": parse_requirements("requirements/requirements-dev.txt"),
-        "build": parse_requirements("requirements/requirements-build.txt"),
-        "docs": parse_requirements("requirements/requirements-docs.txt"),
-        "examples": parse_requirements("requirements/requirements-examples.txt"),
-        "orjson": parse_requirements("requirements/requirements-orjson.txt"),
-        "ujson": parse_requirements("requirements/requirements-ujson.txt"),
-    },
+    ext_modules=[]
+    if NO_EXTENSIONS or cythonize is None
+    else cythonize("asgi_tools/*.pyx", language_level=3),
 )
-
-# pylama:ignore=E402,D
