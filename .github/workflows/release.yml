@@ -1,4 +1,4 @@
-name: publish
+name: release
 
 on:
   workflow_run:
@@ -7,7 +7,7 @@ on:
     types: [completed]
 
 concurrency:
-  group: publish
+  group: release
   cancel-in-progress: true
 
 jobs:
@@ -26,6 +26,8 @@ jobs:
 
     - name: Build sdist
       run: python -m build --sdist
+      env:
+        ASGI_TOOLS_NO_EXTENSIONS=1
 
     - uses: actions/upload-artifact@v2
       with:
@@ -96,11 +98,6 @@ jobs:
       uses: docker/setup-qemu-action@master
       with:
         platforms: arm64
-
-    - uses: actions/download-artifact@main
-      with:
-        name: asgi_tools
-        path: asgi_tools
 
     - uses: pypa/cibuildwheel@main
       env:
