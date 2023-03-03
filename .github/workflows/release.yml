@@ -34,14 +34,6 @@ jobs:
         name: dist
         path: dist/*.tar.*
 
-    - name: Build sdist
-      run: python3 setup.py sdist
-
-    - uses: actions/upload-artifact@main
-      with:
-        name: dist
-        path: dist/*.tar.*
-
     - name: Notify Failure
       if: ${{ failure() }}
       uses: archive/github-actions-slack@master
