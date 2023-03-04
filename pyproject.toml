@@ -49,6 +49,7 @@ tests = [
   "ruff",
   "uvloop; implementation_name == 'cpython'",
   "pytest-mypy; implementation_name == 'cpython'",
+  "ujson; implementation_name == 'cpython'",
 ]
 ujson = ["ujson"]
 orjson = ["orjson"]
