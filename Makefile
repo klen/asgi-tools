@@ -6,7 +6,6 @@ all: $(VIRTUAL_ENV)
 $(VIRTUAL_ENV): pyproject.toml
 	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
 	@$(VIRTUAL_ENV)/bin/pip install -e .[tests,dev,examples,docs]
-	@$(VIRTUAL_ENV)/bin/mypy --install-types --non-interactive asgi_tools
 	@$(VIRTUAL_ENV)/bin/pre-commit install --hook-type pre-push
 	@touch $(VIRTUAL_ENV)
 

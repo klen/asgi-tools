@@ -42,9 +42,10 @@ except ImportError:
     except ImportError:
         from json import dumps, loads  # type: ignore
 
-        def json_dumps(content) -> bytes:  # type: ignore
+        def json_dumps(content) -> bytes: # type: ignore
             """Emulate orjson."""
-            return dumps(content, ensure_ascii=False).encode("utf-8")
+            return dumps(
+                content, ensure_ascii=False, separators=(",", ":")).encode("utf-8")  # type: ignore
 
     def json_loads(obj: Union[bytes, str]) -> Any:  # type: ignore
         """Emulate orjson."""
