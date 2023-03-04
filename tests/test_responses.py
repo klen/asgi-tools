@@ -1,4 +1,5 @@
 """ASGI Tools Responses Tests."""
+from __future__ import annotations
 
 import pytest
 
@@ -219,7 +220,7 @@ async def test_sse_response(Client):
     from asgi_tools._compat import aio_sleep
 
     async def filler(timeout=0.001):
-        for idx in range(2):
+        for _idx in range(2):
             await aio_sleep(timeout)
             yield "data: test"
             yield {"event": "ping"}
@@ -244,7 +245,7 @@ async def test_sse_response(Client):
 async def test_websocket_response(Client):
     import json
 
-    from asgi_tools import ASGIConnectionClosed, ResponseWebSocket
+    from asgi_tools import ASGIConnectionClosedError, ResponseWebSocket
     from asgi_tools.tests import Pipe
 
     pipe = Pipe()
@@ -273,7 +274,7 @@ async def test_websocket_response(Client):
         assert msg == "pong"
         msg = json.loads(await ws.receive())
         assert msg == ["ping", "pong"]
-        with pytest.raises(ASGIConnectionClosed):
+        with pytest.raises(ASGIConnectionClosedError):
             await ws.receive()
 
 
@@ -308,3 +309,6 @@ async def read_response(response):
     messages = []
     await response(None, partial(aio_sleep, 10), to_awaitable(messages.append))
     return messages
+
+
+# ruff: noqa: N803

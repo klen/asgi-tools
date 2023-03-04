@@ -1,5 +1,17 @@
-from typing import (TYPE_CHECKING, Any, Awaitable, Callable, List, Mapping, MutableMapping, Tuple,
-                    TypeVar, Union)
+from __future__ import annotations
+
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Awaitable,
+    Callable,
+    List,
+    Mapping,
+    MutableMapping,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 if TYPE_CHECKING:
     from .request import Request

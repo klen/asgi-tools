@@ -1,8 +1,11 @@
+from __future__ import annotations
+
+
 class ASGIError(Exception):
     """Base class for ASGI-Tools Errors."""
 
 
-class ASGIConnectionClosed(ASGIError):
+class ASGIConnectionClosedError(ASGIError):
     """ASGI-Tools connection closed error."""
 
 
@@ -10,9 +13,13 @@ class ASGIDecodeError(ASGIError, ValueError):
     """ASGI-Tools decoding error."""
 
 
-class ASGINotFound(ASGIError):
+class ASGINotFoundError(ASGIError):
     """Raise when http handler not found."""
 
 
-class ASGIMethodNotAllowed(ASGIError):
+class ASGIInvalidMethodError(ASGIError):
     """Raise when http method not found."""
+
+
+class ASGIInvalidMessageError(ASGIError):
+    """Raise when unexpected message received."""

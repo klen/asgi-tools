@@ -1,6 +1,8 @@
 """Test Request."""
+from __future__ import annotations
 
 from copy import copy
+from pathlib import Path
 
 import pytest
 
@@ -56,8 +58,7 @@ async def test_request(receive, send):
     assert formdata["name"] == "test passed"
 
     with pytest.raises(RuntimeError):
-        body = await request.body()
-        assert body
+        assert await request.body()
 
     r2 = copy(request)
     assert r2 is not request
@@ -73,7 +74,8 @@ async def test_multipart(Client):
         return await response(scope, receive, send)
 
     client = Client(app)
-    res = await client.post("/", data={"test": open(__file__)})
+    with Path(__file__).open() as f:
+        res = await client.post("/", data={"test": f})
     assert res.status_code == 200
     assert await res.text() == '"""Test Request."""'
     assert res.headers["content-length"] == str(len('"""Test Request."""'))
@@ -92,13 +94,11 @@ async def test_media(GenRequest):
 
 
 async def test_json(GenRequest):
-    from asgi_tools import ASGIError
+    from asgi_tools.errors import ASGIDecodeError
 
     req = GenRequest(body=[b"invalid"])
-    try:
+    with pytest.raises(ASGIDecodeError):
         await req.json()
-    except ASGIError as exc:
-        assert exc.args[0] == "Invalid JSON"
 
     req = GenRequest(body=[b'{"test": 42}'])
     json = await req.json()
@@ -133,13 +133,18 @@ async def test_data(Client, GenRequest):
 
     # Invalid data
     res = await client.post(
-        "/", data="invalid", headers={"content-type": "application/json"}
+        "/", data="invalid", headers={"content-type": "application/json"},
     )
     assert res.status_code == 200
     assert await res.text() == "invalid"
 
     req = GenRequest(body=[b"invalid"], headers={"content-type": "application/json"})
-    await req.data() == "invalid"
+    assert await req.data() == b"invalid"
 
-    with pytest.raises(ValueError):
-        await req.data(True)
+    from asgi_tools.errors import ASGIDecodeError
+
+    with pytest.raises(ASGIDecodeError):
+        await req.data(raise_errors=True)
+
+
+# ruff: noqa: N803

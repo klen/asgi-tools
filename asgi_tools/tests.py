@@ -1,4 +1,5 @@
 """Testing tools."""
+from __future__ import annotations
 
 import binascii
 import io
@@ -11,8 +12,21 @@ from functools import partial
 from http.cookies import SimpleCookie
 from json import loads
 from pathlib import Path
-from typing import (Any, AsyncGenerator, Awaitable, Callable, Coroutine, Deque, Dict, Mapping,
-                    Optional, Tuple, Union, cast)
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncGenerator,
+    Awaitable,
+    Callable,
+    Coroutine,
+    Deque,
+    Dict,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 from urllib.parse import urlencode
 
 from multidict import MultiDict
@@ -20,10 +34,12 @@ from yarl import URL
 
 from ._compat import FIRST_COMPLETED, aio_cancel, aio_sleep, aio_spawn, aio_wait
 from .constants import BASE_ENCODING, DEFAULT_CHARSET
-from .errors import ASGIConnectionClosed
+from .errors import ASGIConnectionClosedError, ASGIInvalidMessageError
 from .response import Response, ResponseJSON, ResponseWebSocket, parse_websocket_msg
-from .types import TJSON, TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
 from .utils import CIMultiDict, parse_headers
+
+if TYPE_CHECKING:
+    from .types import TJSON, TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
 
 
 class TestResponse(Response):
@@ -34,7 +50,7 @@ class TestResponse(Response):
     ):
         super().__init__(b"")
 
-    async def __call__(self, _: TASGIScope, receive: TASGIReceive, __: TASGISend):
+    async def __call__(self, _: TASGIScope, receive: TASGIReceive, send: TASGISend): # noqa: ARG
         self._receive = receive
         msg = await self._receive()
         assert msg.get("type") == "http.response.start", "Invalid Response"
@@ -81,18 +97,18 @@ class TestWebSocketResponse(ResponseWebSocket):
         await self.send({"type": "websocket.disconnect", "code": 1005})
         self.state = self.STATES.DISCONNECTED
 
-    def send(self, msg, type="websocket.receive"):  # noqa
+    def send(self, msg, msg_type="websocket.receive"):
         """Send a message to a client."""
-        return super().send(msg, type=type)
+        return super().send(msg, msg_type=msg_type)
 
-    async def receive(self, raw=False):
+    async def receive(self, *, raw=False):
         """Receive messages from a client."""
         if self.partner_state == self.STATES.DISCONNECTED:
-            raise ASGIConnectionClosed
+            raise ASGIConnectionClosedError
 
         msg = await self._receive()
         if not msg["type"].startswith("websocket."):
-            raise ValueError(f"Invalid websocket message: {msg!r}")
+            raise ASGIInvalidMessageError(msg)
 
         if msg["type"] == "websocket.accept":
             self.partner_state = self.STATES.CONNECTED
@@ -100,7 +116,7 @@ class TestWebSocketResponse(ResponseWebSocket):
 
         if msg["type"] == "websocket.close":
             self.partner_state = self.STATES.DISCONNECTED
-            raise ASGIConnectionClosed("Connection has been closed.")
+            raise ASGIConnectionClosedError
 
         return msg if raw else parse_websocket_msg(msg, charset=DEFAULT_CHARSET)
 
@@ -133,6 +149,7 @@ class ASGITestClient:
         self,
         path: str,
         method: str = "GET",
+        *,
         query: Union[str, Dict] = "",
         headers: Optional[Dict[str, str]] = None,
         cookies: Optional[Dict[str, str]] = None,
@@ -218,7 +235,7 @@ class ASGITestClient:
         )
         ws = TestWebSocketResponse(scope, pipe.receive_from_client, pipe.send_to_app)
         async with aio_spawn(
-            self.app, scope, pipe.receive_from_app, pipe.send_to_client
+            self.app, scope, pipe.receive_from_app, pipe.send_to_client,
         ):
             await ws.connect()
             yield ws
@@ -278,7 +295,8 @@ class ASGITestClient:
 def encode_multipart(data: Dict) -> Tuple[bytes, str]:
     body = io.BytesIO()
     boundary = binascii.hexlify(os.urandom(16))
-    for name, value in data.items():
+    for name, data_value in data.items():
+        value = data_value
         headers = f'Content-Disposition: form-data; name="{ name }"'
         if hasattr(value, "read"):
             filename = getattr(value, "name", None)
@@ -321,7 +339,7 @@ class Pipe:
 
     async def send_to_client(self, msg: TASGIMessage):
         if self.client_is_closed:
-            raise RuntimeError(f"Unexpected ASGI message to client '{msg.get('type')}'")
+            raise ASGIInvalidMessageError(msg.get("type"))
 
         if msg.get("type") == "websocket.close":
             self.client_is_closed = True
@@ -333,7 +351,7 @@ class Pipe:
 
     async def send_to_app(self, msg: TASGIMessage):
         if self.app_is_closed:
-            raise RuntimeError(f"Unexpected ASGI message to app '{msg.get('type')}'")
+            raise ASGIInvalidMessageError(msg.get("type"))
 
         if msg.get("type") == "http.disconnect":
             self.app_is_closed = True
@@ -353,7 +371,7 @@ class Pipe:
 
 async def raise_timeout(timeout: Union[int, float]):
     await aio_sleep(timeout)
-    raise TimeoutError("Timeout occured")
+    raise TimeoutError
 
 
 async def stream_data(
@@ -368,6 +386,7 @@ async def stream_data(
     async for chunk in data:
         await send({"type": "http.request", "body": chunk, "more_body": True})
     await send({"type": "http.request", "body": b"", "more_body": False})
+    return None
 
 
 @asynccontextmanager
@@ -384,7 +403,7 @@ async def manage_lifespan(app, timeout: float = 3e-2):
     async with aio_spawn(safe_spawn) as task:
         await pipe.send_to_app({"type": "lifespan.startup"})
         msg = await aio_wait(
-            pipe.receive_from_client(), aio_sleep(timeout), strategy=FIRST_COMPLETED
+            pipe.receive_from_client(), aio_sleep(timeout), strategy=FIRST_COMPLETED,
         )
         if msg and isinstance(msg, Mapping):
             if msg["type"] == "lifespan.startup.failed":
@@ -396,10 +415,7 @@ async def manage_lifespan(app, timeout: float = 3e-2):
 
         await pipe.send_to_app({"type": "lifespan.shutdown"})
         msg = await aio_wait(
-            pipe.receive_from_client(), aio_sleep(timeout), strategy=FIRST_COMPLETED
+            pipe.receive_from_client(), aio_sleep(timeout), strategy=FIRST_COMPLETED,
         )
         if msg and isinstance(msg, Mapping):
             assert msg["type"] == "lifespan.shutdown.complete"
-
-
-# pylama:ignore=D

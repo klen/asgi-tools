@@ -33,6 +33,9 @@ jobs:
     - name: Setup requirements
       run: pip install .[tests]
 
+    - name: Check code
+      run: ruff asgi_tools
+
     - name: Check types
       run: mypy
       if: ${{ matrix.python-version != 'pypy-3.9' }}

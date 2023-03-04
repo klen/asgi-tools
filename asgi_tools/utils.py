@@ -1,15 +1,18 @@
 """ASGI-Tools Utils."""
+from __future__ import annotations
 
 import re
 from functools import wraps
 from inspect import isasyncgenfunction, iscoroutinefunction
-from typing import Awaitable, Callable, Dict, Tuple, overload
+from typing import TYPE_CHECKING, Awaitable, Callable, Dict, Tuple, overload
 from urllib.parse import unquote_to_bytes
 
 from multidict import CIMultiDict
 
 from .constants import BASE_ENCODING
-from .types import TV, TASGIHeaders, TVAsyncCallable
+
+if TYPE_CHECKING:
+    from .types import TV, TASGIHeaders, TVAsyncCallable
 
 
 def is_awaitable(fn: Callable) -> bool:
@@ -42,7 +45,7 @@ def to_awaitable(fn: Callable):
 def parse_headers(headers: TASGIHeaders) -> CIMultiDict:
     """Decode the given headers list."""
     return CIMultiDict(
-        [(n.decode(BASE_ENCODING), v.decode(BASE_ENCODING)) for n, v in headers]
+        [(n.decode(BASE_ENCODING), v.decode(BASE_ENCODING)) for n, v in headers],
     )
 
 
@@ -104,6 +107,6 @@ def parse_options_header(value: str) -> Tuple[str, Dict[str, str]]:
                 value = options.get(option, "") + value
 
         options[option] = value.strip('" ').replace("\\\\", "\\").replace('\\"', '"')
-        rest = rest[match.end() :]  # noqa
+        rest = rest[match.end() :]
 
     return ctype, options

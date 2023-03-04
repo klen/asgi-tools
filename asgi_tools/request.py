@@ -5,9 +5,8 @@ incoming request.
 from __future__ import annotations
 
 from http import cookies
-from typing import Any, AsyncGenerator, Callable, Dict, Iterator, Optional, Union
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Callable, Dict, Iterator, Optional, Union
 
-from multidict import MultiDict
 from yarl import URL
 
 from ._compat import json_loads
@@ -16,6 +15,9 @@ from .errors import ASGIDecodeError
 from .forms import read_formdata
 from .types import TJSON, TASGIReceive, TASGIScope, TASGISend
 from .utils import CIMultiDict, parse_headers, parse_options_header
+
+if TYPE_CHECKING:
+    from multidict import MultiDict
 
 
 class Request(TASGIScope):
@@ -211,7 +213,7 @@ class Request(TASGIScope):
         """
         if self._is_read:
             if self._body is None:
-                raise RuntimeError("Stream has been read")
+                raise RuntimeError("Stream has been read")  # noqa:
             yield self._body
 
         else:
@@ -241,7 +243,7 @@ class Request(TASGIScope):
         try:
             return body.decode(self.charset or DEFAULT_CHARSET)
         except (LookupError, ValueError) as exc:
-            raise ASGIDecodeError("Invalid Encoding") from exc
+            raise ASGIDecodeError from exc
 
     async def json(self) -> TJSON:
         """Read and return the request's body as a JSON.
@@ -252,7 +254,7 @@ class Request(TASGIScope):
         try:
             return json_loads(await self.body())
         except (LookupError, ValueError) as exc:
-            raise ASGIDecodeError("Invalid JSON") from exc
+            raise ASGIDecodeError from exc
 
     async def form(
         self,
@@ -271,16 +273,14 @@ class Request(TASGIScope):
         if self._form is None:
             try:
                 self._form = await read_formdata(
-                    self, max_size, upload_to, file_memory_limit
+                    self, max_size, upload_to, file_memory_limit,
                 )
             except (LookupError, ValueError) as exc:
-                raise ASGIDecodeError("Invalid Encoding") from exc
+                raise ASGIDecodeError from exc
 
         return self._form
 
-    async def data(
-        self, raise_errors: bool = False
-    ) -> Union[str, bytes, MultiDict, TJSON]:
+    async def data(self, *, raise_errors: bool = False) -> Union[str, bytes, MultiDict, TJSON]:
         """The method checks Content-Type Header and parse the request's data automatically.
 
         `data = await request.data()`
@@ -301,9 +301,11 @@ class Request(TASGIScope):
             if self.content_type == "application/json":
                 return await self.json()
 
-            return await self.text()
 
         except ASGIDecodeError:
             if raise_errors:
                 raise
             return await self.body()
+
+        else:
+            return await self.text()

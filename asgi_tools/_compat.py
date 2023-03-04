@@ -1,12 +1,16 @@
 """Compatability layer."""
+from __future__ import annotations
 
 import asyncio
 import inspect
 import sys
 from concurrent.futures import ALL_COMPLETED, FIRST_COMPLETED
 from contextlib import asynccontextmanager
-from pathlib import Path
-from typing import Any, AsyncGenerator, Awaitable, Callable, Coroutine, Union, cast
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Awaitable, Callable, Coroutine, Union, cast
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
 
 from sniffio import current_async_library
 
@@ -40,7 +44,8 @@ except ImportError:
 
         def json_dumps(content) -> bytes:  # type: ignore
             """Emulate orjson."""
-            return dumps(content, ensure_ascii=False, separators=(",", ":")).encode("utf-8")  # type: ignore # noqa
+            return dumps(
+                content, ensure_ascii=False, separators=(",", ":")).encode("utf-8")  # type: ignore
 
     def json_loads(obj: Union[bytes, str]) -> Any:  # type: ignore
         """Emulate orjson."""
@@ -114,7 +119,7 @@ async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:
     Only ALL_COMPLETED, FIRST_COMPLETED are supported.
     """
     if not aws:
-        return
+        return None
 
     if trio and current_async_library() == "trio":
 
@@ -158,11 +163,12 @@ async def aio_cancel(task: Union[asyncio.Task, Any]):
 
     if curio and current_async_library() == "curio":
         return await task.cancel()
+    return None
 
 
 async def aio_stream_file(
-    filepath: Union[str, Path], chunk_size: int = 32 * 1024
-) -> AsyncGenerator[bytes, None]:  # noqa
+    filepath: Union[str, Path], chunk_size: int = 32 * 1024,
+) -> AsyncGenerator[bytes, None]:
 
     if trio and current_async_library() == "trio":
         async with await trio.open_file(filepath, "rb") as fp:
@@ -182,9 +188,10 @@ async def aio_stream_file(
 
     else:
         if aiofile is None:
-            raise RuntimeError("`aiofile` is required to return files with asyncio")
+            raise RuntimeError("`aiofile` is required to return files with asyncio")  # noqa: TRY003
 
         async with aiofile.AIOFile(filepath, mode="rb") as fp:
+
             async for chunk in aiofile.Reader(fp, chunk_size=chunk_size):
                 yield chunk
 
@@ -192,3 +199,6 @@ async def aio_stream_file(
 async def trio_jockey(coro: Awaitable, channel):
     """Wait for the given coroutine and send result back to the given channel."""
     await channel.send(await coro)
+
+
+# ruff: noqa: PGH003

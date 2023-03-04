@@ -10,19 +10,31 @@ from hashlib import md5
 from http import HTTPStatus
 from http.cookies import SimpleCookie
 from mimetypes import guess_type
-from pathlib import Path
 from stat import S_ISDIR
-from typing import (TYPE_CHECKING, Any, AsyncGenerator, Callable, Dict, Mapping, Optional, Type,
-                    Union)
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncGenerator,
+    Callable,
+    Dict,
+    Mapping,
+    Optional,
+    Type,
+    Union,
+)
 from urllib.parse import quote, quote_plus
 
 from multidict import MultiDict
 
 from ._compat import FIRST_COMPLETED, aio_stream_file, aio_wait, json_dumps
 from .constants import BASE_ENCODING, DEFAULT_CHARSET
-from .errors import ASGIConnectionClosed, ASGIError
+from .errors import ASGIConnectionClosedError, ASGIError
 from .request import Request
-from .types import TASGIMessage, TASGIReceive, TASGIScope, TASGISend
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from .types import TASGIMessage, TASGIReceive, TASGIScope, TASGISend
 
 
 class Response:
@@ -90,7 +102,7 @@ class Response:
         """Stringify the response."""
         return f"<{ self.__class__.__name__ } '{ self }'>"
 
-    async def __call__(self, scope, receive, send: TASGISend):
+    async def __call__(self, _, __, send: TASGISend):
         """Behave as an ASGI application."""
         self.headers.setdefault("content-length", str(len(self.content)))
 
@@ -112,7 +124,7 @@ class Response:
 
         for cookie in self.cookies.values():
             headers.append(
-                (b"set-cookie", cookie.output(header="").strip().encode(BASE_ENCODING))
+                (b"set-cookie", cookie.output(header="").strip().encode(BASE_ENCODING)),
             )
 
         return {
@@ -178,7 +190,7 @@ class ResponseStream(Response):
                     "type": "http.response.body",
                     "body": self.process_content(chunk),
                     "more_body": True,
-                }
+                },
             )
 
         await send({"type": "http.response.body", "body": b""})
@@ -243,15 +255,15 @@ class ResponseFile(ResponseStream):
     ) -> None:
         """Store filepath to self."""
         try:
-            stat = os.stat(filepath)
+            stat = os.stat(filepath)  # noqa: PTH
         except FileNotFoundError as exc:
             raise ASGIError(*exc.args) from exc
 
         if S_ISDIR(stat.st_mode):
-            raise ASGIError(f"It's a directory: {filepath}")
+            raise ASGIError(f"It's a directory: {filepath}")  # noqa:
 
         super().__init__(
-            empty() if headers_only else aio_stream_file(filepath, chunk_size), **kwargs
+            empty() if headers_only else aio_stream_file(filepath, chunk_size), **kwargs,
         )
 
         headers = self.headers
@@ -266,7 +278,7 @@ class ResponseFile(ResponseStream):
         headers.setdefault("content-length", str(stat.st_size))
         headers.setdefault("last-modified", formatdate(stat.st_mtime, usegmt=True))
         etag = str(stat.st_mtime) + "-" + str(stat.st_size)
-        headers.setdefault("etag", md5(etag.encode()).hexdigest())
+        headers.setdefault("etag", md5(etag.encode()).hexdigest())  # noqa: S324
 
 
 class ResponseWebSocket(Response):
@@ -295,8 +307,10 @@ class ResponseWebSocket(Response):
         if isinstance(scope, Request):
             receive, send = scope.receive, scope.send
 
+        if not receive or not send:
+            raise ASGIError("Invalid initialization")  # noqa:
+
         super().__init__(b"")
-        assert receive and send, "Invalid initialization"
         self._receive: TASGIReceive = receive
         self._send: TASGISend = send
         self.state = self.STATES.CONNECTING
@@ -344,16 +358,14 @@ class ResponseWebSocket(Response):
         self.state = self.STATES.DISCONNECTED
 
     async def send(
-        self, msg: Union[Dict, str, bytes], type="websocket.send"  # noqa
+        self, msg: Union[Dict, str, bytes], msg_type="websocket.send",
     ) -> None:
         """Send the given message to a client."""
         if self.state == self.STATES.DISCONNECTED:
-            raise ASGIConnectionClosed(
-                "Cannot send once the connection has been disconnected."
-            )
+            raise ASGIConnectionClosedError
 
         if not isinstance(msg, dict):
-            msg = {"type": type, (isinstance(msg, str) and "text" or "bytes"): msg}
+            msg = {"type": msg_type, (isinstance(msg, str) and "text" or "bytes"): msg}
 
         return await self._send(msg)
 
@@ -361,15 +373,13 @@ class ResponseWebSocket(Response):
         """Serialize the given data to JSON and send to a client."""
         return await self._send({"type": "websocket.send", "bytes": json_dumps(data)})
 
-    async def receive(self, raw: bool = False) -> Union[TASGIMessage, str]:
+    async def receive(self, *, raw: bool = False) -> Union[TASGIMessage, str]:
         """Receive messages from a client.
 
         :param raw: Receive messages as is.
         """
         if self.partner_state == self.STATES.DISCONNECTED:
-            raise ASGIConnectionClosed(
-                "Cannot receive once a connection has been disconnected."
-            )
+            raise ASGIConnectionClosedError
 
         if self.partner_state == self.STATES.CONNECTING:
             await self._connect()
@@ -396,7 +406,7 @@ class ResponseRedirect(Response, BaseException):
         super().__init__(b"", status_code=status_code, **kwargs)
         assert (
             300 <= self.status_code < 400
-        ), f"Invalid status code for redirection: {self.status_code}"  # noqa
+        ), f"Invalid status code for redirection: {self.status_code}"
         self.headers["location"] = quote_plus(url, safe=":/%#?&=@[]!$&'()*+,;")
 
 
@@ -406,9 +416,9 @@ class ResponseErrorMeta(type):
     # XXX: From python 3.9 -> partial['ResponseError]
     def __getattr__(cls, name: str) -> Callable[..., ResponseError]:
         """Generate Response Errors by HTTP names."""
-        status = HTTPStatus[name]  # noqa
+        status = HTTPStatus[name]
         return partial(
-            lambda *args, **kwargs: cls(*args, **kwargs), status_code=status.value
+            lambda *args, **kwargs: cls(*args, **kwargs), status_code=status.value,
         )
 
 
@@ -518,7 +528,7 @@ def parse_response(response, headers: Optional[Dict] = None) -> Response:
         if len(contents) > 1:
             headers, *contents = contents
         response = parse_response(
-            contents[0] or "" if contents else "", headers=headers
+            contents[0] or "" if contents else "", headers=headers,
         )
         response.status_code = status
         return response
@@ -527,7 +537,7 @@ def parse_response(response, headers: Optional[Dict] = None) -> Response:
 
 
 def parse_websocket_msg(
-    msg: TASGIMessage, charset: Optional[str] = None
+    msg: TASGIMessage, charset: Optional[str] = None,
 ) -> Union[TASGIMessage, str]:
     """Prepare websocket message."""
     data = msg.get("text")
@@ -545,4 +555,4 @@ async def empty():
     yield b""
 
 
-# pylama: ignore=E501
+# ruff: noqa: ERA001

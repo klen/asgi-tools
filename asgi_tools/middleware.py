@@ -1,10 +1,11 @@
 """ASGI-Tools Middlewares."""
+from __future__ import annotations
 
 import abc
 import inspect
 from functools import partial
 from pathlib import Path
-from typing import Awaitable, Callable, List, Mapping, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Awaitable, Callable, List, Mapping, Optional, Set, Tuple, Union
 
 from http_router import Router
 
@@ -12,8 +13,10 @@ from .errors import ASGIError
 from .logs import logger
 from .request import Request
 from .response import Response, ResponseError, ResponseFile, ResponseRedirect, parse_response
-from .types import TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
 from .utils import to_awaitable
+
+if TYPE_CHECKING:
+    from .types import TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
 
 
 class BaseMiddeware(metaclass=abc.ABCMeta):
@@ -26,7 +29,7 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
         self.bind(app)
 
     def __call__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
+        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend,
     ) -> Awaitable:
         """Handle ASGI call."""
 
@@ -37,7 +40,7 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     async def __process__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
+        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend,
     ):
         """Do the middleware's logic."""
 
@@ -111,7 +114,7 @@ class ResponseMiddleware(BaseMiddeware):
     """
 
     async def __process__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
+        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend,
     ):
         """Parse responses from callbacks."""
 
@@ -123,12 +126,12 @@ class ResponseMiddleware(BaseMiddeware):
         except (ResponseError, ResponseRedirect) as exc:
             await exc(scope, receive, send)
 
-    def send(self, msg: TASGIMessage):
-        raise RuntimeError("You can't use send() method in ResponseMiddleware")
+    def send(self, _: TASGIMessage):
+        raise RuntimeError("You can't use send() method in ResponseMiddleware")  # noqa:
 
     def bind(self, app: Optional[TASGIApp] = None):
         """Rebind the middleware to an ASGI application if it has been inited already."""
-        self.app = app or to_awaitable(lambda *args: ResponseError.NOT_FOUND())
+        self.app = app or to_awaitable(lambda *_: ResponseError.NOT_FOUND())
         return self
 
 
@@ -149,7 +152,7 @@ class RequestMiddleware(BaseMiddeware):
     """
 
     async def __process__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
+        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend,
     ):
         """Replace scope with request object."""
         return await self.app(Request(scope, receive, send), receive, send)
@@ -199,8 +202,9 @@ class LifespanMiddleware(BaseMiddeware):
     def __init__(
         self,
         app: Optional[TASGIApp] = None,
-        ignore_errors: bool = False,
+        *,
         logger=logger,
+        ignore_errors: bool = False,
         on_startup: Union[Callable, List[Callable], None] = None,
         on_shutdown: Union[Callable, List[Callable], None] = None,
     ) -> None:
@@ -259,16 +263,16 @@ class LifespanMiddleware(BaseMiddeware):
                 res = handler()
                 if inspect.isawaitable(res):
                     await res
-            except Exception as exc:  # noqa
-                self.logger.error(
-                    f"{ event.title() } method '{ handler }' raises an exception."
+            except Exception as exc:
+                self.logger.exception(
+                    "%s method '%s' raises an exception.",
+                    event.title(), handler,
                 )
-                self.logger.exception(exc)
 
                 if self.ignore_errors:
                     continue
 
-                self.logger.error("Lifespans process failed")
+                self.logger.exception("Lifespans process failed")
                 return {"type": f"lifespan.{event}.failed", "message": str(exc)}
 
         return {"type": f"lifespan.{event}.complete"}
@@ -338,7 +342,7 @@ class RouterMiddleware(BaseMiddeware):
     """
 
     def __init__(
-        self, app: Optional[TASGIApp] = None, router: Optional[Router] = None
+        self, app: Optional[TASGIApp] = None, router: Optional[Router] = None,
     ) -> None:
         """Initialize HTTP router."""
         super().__init__(app)
@@ -354,10 +358,12 @@ class RouterMiddleware(BaseMiddeware):
         path = f"{scope.get('root_path', '')}{scope['path']}"
         try:
             match = self.router(path, scope["method"])
-            return match.target, match.params
 
         except self.router.RouterError:
             return self.app, {}
+
+        else:
+            return match.target, match.params
 
     def route(self, *args, **kwargs):
         """Register a route."""
@@ -400,7 +406,7 @@ class StaticFilesMiddleware(BaseMiddeware):
         self.folders: List[Path] = [Path(folder) for folder in folders]
 
     async def __process__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
+        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend,
     ) -> None:
         """Serve static files for self url prefix."""
         path = scope["path"]
@@ -412,7 +418,7 @@ class StaticFilesMiddleware(BaseMiddeware):
                 filepath = folder.joinpath(filename).resolve()
                 try:
                     response = ResponseFile(
-                        filepath, headers_only=scope["method"] == "HEAD"
+                        filepath, headers_only=scope["method"] == "HEAD",
                     )
                     break
 
@@ -424,6 +430,3 @@ class StaticFilesMiddleware(BaseMiddeware):
 
         else:
             await self.app(scope, receive, send)
-
-
-# pylama: ignore=E203,E501

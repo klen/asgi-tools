@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 import inspect
-from collections.abc import Awaitable
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
-from http_router.types import TMethods
+if TYPE_CHECKING:
+    from collections.abc import Awaitable
 
-from .request import Request
-from .router import Router
+    from http_router.types import TMethods
+
+    from .request import Request
+    from .router import Router
 
 HTTP_METHODS = {
     "GET",

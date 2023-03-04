@@ -3,7 +3,10 @@
 
 The original code is licensed by Apache2 license.
 """
+from __future__ import annotations
+
 from contextlib import suppress
+
 # Flags for the multipart parser.
 from typing import Dict
 
@@ -108,7 +111,7 @@ class QueryStringParser(BaseParser):
 
         self.state = STATE_BEFORE_FIELD
 
-    def write(self, data: bytes):
+    def write(self, data: bytes):  # noqa: C901, PLR0912
         data_len = prune_data(len(data), self.cursize, self.max_size)
 
         idx = 0
@@ -138,16 +141,15 @@ class QueryStringParser(BaseParser):
                     idx = equals_pos
                     state = STATE_FIELD_DATA
 
-                else:
-                    if sep_pos == -1:
-                        self.callback("field_name", data, idx, data_len)
-                        idx = data_len
+                elif sep_pos == -1:
+                    self.callback("field_name", data, idx, data_len)
+                    idx = data_len
 
-                    else:
-                        self.callback("field_name", data, idx, sep_pos)
-                        self.callback("field_end", b"", 0, 0)
-                        idx = sep_pos - 1
-                        state = STATE_BEFORE_FIELD
+                else:
+                    self.callback("field_name", data, idx, sep_pos)
+                    self.callback("field_end", b"", 0, 0)
+                    idx = sep_pos - 1
+                    state = STATE_BEFORE_FIELD
 
             elif state == STATE_FIELD_DATA:
                 sep_pos = data.find(AMPERSAND, idx)
@@ -293,7 +295,7 @@ class MultipartParser(BaseParser):
         # '--\r\n' is 8 bytes.
         self.lookbehind = [EMPTY for _ in range(len(boundary) + 8)]
 
-    def write(self, data):  # noqa
+    def write(self, data):  # noqa: C901, PLR0912, PLR0915
         data_len = prune_data(len(data), self.cursize, self.max_size)
 
         idx = 0
@@ -328,7 +330,7 @@ class MultipartParser(BaseParser):
 
                 else:
                     raise ValueError(
-                        f"Did not find boundary character {ch:c} at index {idx}"
+                        f"Did not find boundary character {ch:c} at index {idx}",
                     )
 
             elif state == STATE_HEADER_FIELD_START:
@@ -389,7 +391,7 @@ class MultipartParser(BaseParser):
                 # The last character should be a LF.  If not, it's an error.
                 if ch != LF:
                     raise ValueError(
-                        f"Did not find \\n at end of header (found {ch:c})"
+                        f"Did not find \\n at end of header (found {ch:c})",
                     )
 
                 # Move back to the start of another header.  Note that if that
@@ -403,7 +405,7 @@ class MultipartParser(BaseParser):
                 # should be a LF, or it's an error.
                 if ch != LF:
                     raise ValueError(
-                        f"Did not find \\n at end of headers (found {ch:c})"
+                        f"Did not find \\n at end of headers (found {ch:c})",
                     )
 
                 self.callback("headers_finished", b"", 0, 0)
@@ -583,9 +585,9 @@ class MultipartParser(BaseParser):
 
 def prune_data(data_len: int, cursize: int, max_size: int) -> int:
     if max_size and (cursize + data_len) > max_size:
-        data_len = max_size - cursize
+        return max_size - cursize
 
     return data_len
 
 
-#  pylama:ignore=D,E221
+# ruff: noqa: TRY003

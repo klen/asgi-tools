@@ -28,7 +28,7 @@ classifiers = [
   "Framework :: Trio",
 ]
 dependencies = [
-  "http-router >= 3.0.1",
+  "http-router >= 4.0.0",
   "multidict",
   "sniffio",
   "yarl >= 1.8.2",
@@ -46,6 +46,7 @@ tests = [
   "pytest-aio[curio,trio] >= 1.1.0",
   "pytest-benchmark",
   "PyYAML",
+  "ruff",
   "uvloop; implementation_name == 'cpython'",
   "pytest-mypy; implementation_name == 'cpython'",
 ]
@@ -93,4 +94,12 @@ commands =
 """
 
 [tool.ruff]
+fix = false
 line-length = 100
+target-version = "py37"
+exclude = [".venv", "docs", "examples"]
+select = ["ALL"]
+ignore = ["D", "UP", "ANN", "DJ", "EM", "RSE", "SLF", "S101", "PLR2004"]
+
+[tool.ruff.isort]
+required-imports = ["from __future__ import annotations"]

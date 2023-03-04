@@ -1,6 +1,8 @@
 """Simple Test Client."""
+from __future__ import annotations
 
 import io
+from pathlib import Path
 
 import pytest
 
@@ -90,7 +92,7 @@ async def test_client(app, client):
     # Custom methods
     # --------------
     @app.route("/caldav", methods="PROPFIND")
-    async def propfind(request):
+    async def propfind(_):
         return "PROPFIND"
 
     res = await client.propfind("/caldav")
@@ -116,7 +118,7 @@ async def test_files(app, client):
         return formdata["test_client.py"].read()
 
     res = await client.post(
-        "/files", data={"field": "value", "test_client.py": open(__file__)}
+        "/files", data={"field": "value", "test_client.py": Path(__file__).open()},
     )
     assert res.status_code == 200
     assert "test_files" in await res.text()
@@ -124,7 +126,7 @@ async def test_files(app, client):
     fakefile = io.BytesIO(b"file content")
     fakefile.name = "test_client.py"
     res = await client.post(
-        "/files", data={"field": "value", "test_client.py": fakefile}
+        "/files", data={"field": "value", "test_client.py": fakefile},
     )
     assert res.status_code == 200
     assert "file content" in await res.text()
@@ -134,7 +136,7 @@ async def test_cookies(app, client):
     from asgi_tools import ResponseRedirect
 
     @app.route("/set-cookie")
-    async def set_cookie(request):
+    async def set_cookie(_):
         res = ResponseRedirect("/")
         res.cookies["c1"] = "c1"
         res.cookies["c2"] = "c2"
@@ -162,7 +164,7 @@ async def test_redirects(app, client):
     # Follow Redirect
     # ---------------
     @app.route("/redirect")
-    async def redirect(request):
+    async def redirect(_):
         raise ResponseRedirect("/")
 
     res = await client.get("/redirect")
@@ -184,7 +186,7 @@ async def test_stream_response(app, client):
             yield idx
 
     @app.route("/stream")
-    async def stream(request):
+    async def stream(_):
         return ResponseStream(source(), content_type="plain/text")
 
     res = await client.get("/stream")
@@ -213,7 +215,7 @@ async def test_stream_request(app, client):
 
 
 async def test_websocket(app, Client):
-    from asgi_tools import ASGIConnectionClosed, ResponseWebSocket
+    from asgi_tools import ASGIConnectionClosedError, ResponseWebSocket
 
     @app.route("/websocket")
     async def websocket(request):
@@ -224,13 +226,13 @@ async def test_websocket(app, Client):
             await ws.send("pong")
 
     async with Client(app).websocket(
-        "/websocket", headers={"sec-websocket-protocol": "ship,done"}
+        "/websocket", headers={"sec-websocket-protocol": "ship,done"},
     ) as ws:
         await ws.send("ping")
         msg = await ws.receive()
         assert msg == "pong"
 
-        with pytest.raises(ASGIConnectionClosed):
+        with pytest.raises(ASGIConnectionClosedError):
             await ws.receive()
 
 
@@ -243,7 +245,7 @@ async def test_websocket_disconnect(app, Client):
             msg = await ws.receive()
             assert msg == {"type": "websocket.disconnect", "code": 1005}
 
-    async with Client(app).websocket("/websocket") as ws:
+    async with Client(app).websocket("/websocket"):
         pass
 
 
@@ -281,18 +283,18 @@ async def test_lifespan_unsupported(Client):
 async def test_lifespan(Client):
     from asgi_tools import Response
 
-    SIDE_EFFECTS = {"started": False, "finished": False}
+    side_effects = {"started": False, "finished": False}
 
     async def app(scope, receive, send):
         if scope["type"] == "lifespan":
             while True:
                 msg = await receive()
                 if msg["type"] == "lifespan.startup":
-                    SIDE_EFFECTS["started"] = True
+                    side_effects["started"] = True
                     await send({"type": "lifespan.startup.complete"})
 
                 elif msg["type"] == "lifespan.shutdown":
-                    SIDE_EFFECTS["finished"] = True
+                    side_effects["finished"] = True
                     await send({"type": "lifespan.shutdown.complete"})
                     return
 
@@ -300,27 +302,31 @@ async def test_lifespan(Client):
 
     client = Client(app)
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError):  # noqa: PT012
         async with client.lifespan():
             raise AssertionError("test")
 
     async with client.lifespan():
-        assert SIDE_EFFECTS["started"]
-        assert not SIDE_EFFECTS["finished"]
+        assert side_effects["started"]
+        assert not side_effects["finished"]
         res = await client.get("/")
         assert res.status_code == 200
 
-    assert SIDE_EFFECTS["started"]
-    assert SIDE_EFFECTS["finished"]
+    assert side_effects["started"]
+    assert side_effects["finished"]
 
 
 async def test_invalid_app(Client):
     from asgi_tools import Response
+    from asgi_tools.errors import ASGIInvalidMessageError
 
     async def invalid(scope, receive, send):
         await Response("test")(scope, receive, send)
         await Response("test")(scope, receive, send)
 
     client = Client(invalid)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ASGIInvalidMessageError):
         await client.get("/")
+
+
+# ruff: noqa: N803

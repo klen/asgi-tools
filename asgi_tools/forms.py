@@ -1,4 +1,5 @@
 """Work with multipart."""
+from __future__ import annotations
 
 from io import BytesIO
 from tempfile import SpooledTemporaryFile
@@ -11,7 +12,7 @@ from .multipart import BaseParser, MultipartParser, QueryStringParser
 from .utils import parse_options_header
 
 if TYPE_CHECKING:
-    from asgi_tools.request import Request  # noqa
+    from asgi_tools.request import Request
 
 
 async def read_formdata(
@@ -23,7 +24,7 @@ async def read_formdata(
     """Read formdata from the given request."""
     if request.content_type == "multipart/form-data":
         reader: FormReader = MultipartReader(
-            request.charset, upload_to, file_memory_limit
+            request.charset, upload_to, file_memory_limit,
         )
     else:
         reader = FormReader(request.charset)
@@ -88,7 +89,7 @@ class MultipartReader(FormReader):
     )
 
     def __init__(
-        self, charset: str, upload_to: Optional[Callable], file_memory_limit: int
+        self, charset: str, upload_to: Optional[Callable], file_memory_limit: int,
     ):
         super().__init__(charset)
         self.name = ""
@@ -100,7 +101,7 @@ class MultipartReader(FormReader):
     def init_parser(self, request: "Request", max_size: int) -> BaseParser:
         boundary = request.media.get("boundary", "")
         if not boundary:
-            raise ValueError("Invalid content type boundary")
+            raise ValueError("Invalid content type boundary")  # noqa:
 
         return MultipartParser(
             boundary,
@@ -128,14 +129,14 @@ class MultipartReader(FormReader):
 
     def on_headers_finished(self, *_):
         _, options = parse_options_header(
-            self.headers[b"content-disposition"].decode(self.charset)
+            self.headers[b"content-disposition"].decode(self.charset),
         )
         self.name = options["name"]
         if "filename" in options:
             upload_to = self.upload_to
             if upload_to is not None:
                 filename = upload_to(options["filename"])
-                self.partdata = f = open(filename, "wb+")
+                self.partdata = f = open(filename, "wb+")  # noqa: SIM
 
             else:
                 self.partdata = f = SpooledTemporaryFile(self.file_memory_limit)
@@ -162,6 +163,3 @@ class MultipartReader(FormReader):
 def unquote_plus(value: bytearray) -> bytes:
     value = value.replace(b"+", b" ")
     return unquote_to_bytes(bytes(value))
-
-
-# pylama: ignore=D

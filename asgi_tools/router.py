@@ -1,13 +1,15 @@
+from __future__ import annotations
+
 from typing import ClassVar, Type  # py37
 
 from http_router import Router as HTTPRouter
 
-from .errors import ASGIError, ASGIMethodNotAllowed, ASGINotFound
+from .errors import ASGIError, ASGIInvalidMethodError, ASGINotFoundError
 
 
 class Router(HTTPRouter):
     """Rebind router errors."""
 
-    NotFound: ClassVar[Type[Exception]] = ASGINotFound
+    NotFoundError: ClassVar[Type[Exception]] = ASGINotFoundError
     RouterError: ClassVar[Type[Exception]] = ASGIError
-    MethodNotAllowed: ClassVar[Type[Exception]] = ASGIMethodNotAllowed
+    InvalidMethodError: ClassVar[Type[Exception]] = ASGIInvalidMethodError

@@ -133,16 +133,15 @@ cdef class QueryStringParser(BaseParser):
                     idx = equals_pos
                     state = STATE_FIELD_DATA
 
-                else:
-                    if sep_pos == -1:
-                        self.callback('field_name', data, idx, data_len)
-                        idx = data_len
+                elif sep_pos == -1:
+                    self.callback('field_name', data, idx, data_len)
+                    idx = data_len
 
-                    else:
-                        self.callback('field_name', data, idx, sep_pos)
-                        self.callback('field_end', b'', 0, 0)
-                        idx = sep_pos - 1
-                        state = STATE_BEFORE_FIELD
+                else:
+                    self.callback('field_name', data, idx, sep_pos)
+                    self.callback('field_end', b'', 0, 0)
+                    idx = sep_pos - 1
+                    state = STATE_BEFORE_FIELD
 
             elif state == STATE_FIELD_DATA:
                 sep_pos = data.find(AMPERSAND, idx)
