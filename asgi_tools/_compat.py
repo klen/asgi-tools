@@ -44,8 +44,8 @@ except ImportError:
 
         def json_dumps(content) -> bytes: # type: ignore
             """Emulate orjson."""
-            return dumps(
-                content, ensure_ascii=False, separators=(",", ":")).encode("utf-8")  # type: ignore
+            return dumps(  # type: ignore [call-arg]
+                content, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
 
     def json_loads(obj: Union[bytes, str]) -> Any:  # type: ignore
         """Emulate orjson."""
