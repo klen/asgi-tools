@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.tests &#8212; asgi-tools 0.70.10 documentation</title>
+    <title>asgi_tools.tests &#8212; asgi-tools 0.71.0 documentation</title>
   
   
   
@@ -345,7 +345,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 0.70.10
+    Version: 0.71.0
 </div>
 </div>
     </div>
@@ -404,6 +404,7 @@ document.write(`
                   
   <h1>Source code for asgi_tools.tests</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Testing tools.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span> <span class="nn">binascii</span>
 <span class="kn">import</span> <span class="nn">io</span>
@@ -416,8 +417,21 @@ document.write(`
 <span class="kn">from</span> <span class="nn">http.cookies</span> <span class="kn">import</span> <span class="n">SimpleCookie</span>
 <span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">loads</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="n">AsyncGenerator</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Coroutine</span><span class="p">,</span> <span class="n">Deque</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span>
-                    <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TYPE_CHECKING</span><span class="p">,</span>
+    <span class="n">Any</span><span class="p">,</span>
+    <span class="n">AsyncGenerator</span><span class="p">,</span>
+    <span class="n">Awaitable</span><span class="p">,</span>
+    <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">Coroutine</span><span class="p">,</span>
+    <span class="n">Deque</span><span class="p">,</span>
+    <span class="n">Dict</span><span class="p">,</span>
+    <span class="n">Mapping</span><span class="p">,</span>
+    <span class="n">Optional</span><span class="p">,</span>
+    <span class="n">Tuple</span><span class="p">,</span>
+    <span class="n">Union</span><span class="p">,</span>
+    <span class="n">cast</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlencode</span>
 
 <span class="kn">from</span> <span class="nn">multidict</span> <span class="kn">import</span> <span class="n">MultiDict</span>
@@ -425,10 +439,12 @@ document.write(`
 
 <span class="kn">from</span> <span class="nn">._compat</span> <span class="kn">import</span> <span class="n">FIRST_COMPLETED</span><span class="p">,</span> <span class="n">aio_cancel</span><span class="p">,</span> <span class="n">aio_sleep</span><span class="p">,</span> <span class="n">aio_spawn</span><span class="p">,</span> <span class="n">aio_wait</span>
 <span class="kn">from</span> <span class="nn">.constants</span> <span class="kn">import</span> <span class="n">BASE_ENCODING</span><span class="p">,</span> <span class="n">DEFAULT_CHARSET</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">ASGIConnectionClosed</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">ASGIConnectionClosedError</span><span class="p">,</span> <span class="n">ASGIInvalidMessageError</span>
 <span class="kn">from</span> <span class="nn">.response</span> <span class="kn">import</span> <span class="n">Response</span><span class="p">,</span> <span class="n">ResponseJSON</span><span class="p">,</span> <span class="n">ResponseWebSocket</span><span class="p">,</span> <span class="n">parse_websocket_msg</span>
-<span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="n">TJSON</span><span class="p">,</span> <span class="n">TASGIApp</span><span class="p">,</span> <span class="n">TASGIMessage</span><span class="p">,</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">TASGISend</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">CIMultiDict</span><span class="p">,</span> <span class="n">parse_headers</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="n">TJSON</span><span class="p">,</span> <span class="n">TASGIApp</span><span class="p">,</span> <span class="n">TASGIMessage</span><span class="p">,</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">TASGISend</span>
 
 
 <span class="k">class</span> <span class="nc">TestResponse</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
@@ -439,7 +455,7 @@ document.write(`
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">__</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">):</span> <span class="c1"># noqa: ARG</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span> <span class="o">=</span> <span class="n">receive</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">()</span>
         <span class="k">assert</span> <span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;http.response.start&quot;</span><span class="p">,</span> <span class="s2">&quot;Invalid Response&quot;</span>
@@ -486,18 +502,18 @@ document.write(`
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;websocket.disconnect&quot;</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="mi">1005</span><span class="p">})</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">DISCONNECTED</span>
 
-    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;websocket.receive&quot;</span><span class="p">):</span>  <span class="c1"># noqa</span>
+    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">msg_type</span><span class="o">=</span><span class="s2">&quot;websocket.receive&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Send a message to a client.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">msg_type</span><span class="o">=</span><span class="n">msg_type</span><span class="p">)</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Receive messages from a client.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">DISCONNECTED</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ASGIConnectionClosed</span>
+            <span class="k">raise</span> <span class="n">ASGIConnectionClosedError</span>
 
         <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;websocket.&quot;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid websocket message: </span><span class="si">{</span><span class="n">msg</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ASGIInvalidMessageError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;websocket.accept&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">CONNECTED</span>
@@ -505,7 +521,7 @@ document.write(`
 
         <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;websocket.close&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">DISCONNECTED</span>
-            <span class="k">raise</span> <span class="n">ASGIConnectionClosed</span><span class="p">(</span><span class="s2">&quot;Connection has been closed.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ASGIConnectionClosedError</span>
 
         <span class="k">return</span> <span class="n">msg</span> <span class="k">if</span> <span class="n">raw</span> <span class="k">else</span> <span class="n">parse_websocket_msg</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">charset</span><span class="o">=</span><span class="n">DEFAULT_CHARSET</span><span class="p">)</span>
 
@@ -538,6 +554,7 @@ document.write(`
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;GET&quot;</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
         <span class="n">query</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">headers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">cookies</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -623,7 +640,7 @@ document.write(`
         <span class="p">)</span>
         <span class="n">ws</span> <span class="o">=</span> <span class="n">TestWebSocketResponse</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_client</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_app</span><span class="p">)</span>
         <span class="k">async</span> <span class="k">with</span> <span class="n">aio_spawn</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_app</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_client</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_app</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_client</span><span class="p">,</span>
         <span class="p">):</span>
             <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
             <span class="k">yield</span> <span class="n">ws</span>
@@ -683,7 +700,8 @@ document.write(`
 <span class="k">def</span> <span class="nf">encode_multipart</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
     <span class="n">body</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
     <span class="n">boundary</span> <span class="o">=</span> <span class="n">binascii</span><span class="o">.</span><span class="n">hexlify</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">data_value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">data_value</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Content-Disposition: form-data; name=&quot;</span><span class="si">{</span> <span class="n">name</span> <span class="si">}</span><span class="s1">&quot;&#39;</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;read&quot;</span><span class="p">):</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -726,7 +744,7 @@ document.write(`
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">send_to_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">TASGIMessage</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_is_closed</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected ASGI message to client &#39;</span><span class="si">{</span><span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ASGIInvalidMessageError</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;websocket.close&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">client_is_closed</span> <span class="o">=</span> <span class="kc">True</span>
@@ -738,7 +756,7 @@ document.write(`
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">send_to_app</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">TASGIMessage</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_is_closed</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected ASGI message to app &#39;</span><span class="si">{</span><span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ASGIInvalidMessageError</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;http.disconnect&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">app_is_closed</span> <span class="o">=</span> <span class="kc">True</span>
@@ -758,7 +776,7 @@ document.write(`
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">raise_timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]):</span>
     <span class="k">await</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
-    <span class="k">raise</span> <span class="ne">TimeoutError</span><span class="p">(</span><span class="s2">&quot;Timeout occured&quot;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TimeoutError</span>
 
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">stream_data</span><span class="p">(</span>
@@ -773,6 +791,7 @@ document.write(`
     <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.request&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">chunk</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
     <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.request&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+    <span class="k">return</span> <span class="kc">None</span>
 
 
 <span class="nd">@asynccontextmanager</span>
@@ -789,7 +808,7 @@ document.write(`
     <span class="k">async</span> <span class="k">with</span> <span class="n">aio_spawn</span><span class="p">(</span><span class="n">safe_spawn</span><span class="p">)</span> <span class="k">as</span> <span class="n">task</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_app</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.startup&quot;</span><span class="p">})</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span>
-            <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_client</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span>
+            <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_client</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">msg</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;lifespan.startup.failed&quot;</span><span class="p">:</span>
@@ -801,13 +820,10 @@ document.write(`
 
         <span class="k">await</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_app</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.shutdown&quot;</span><span class="p">})</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span>
-            <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_client</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span>
+            <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_client</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">msg</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
             <span class="k">assert</span> <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;lifespan.shutdown.complete&quot;</span>
-
-
-<span class="c1"># pylama:ignore=D</span>
 </pre></div>
 
                 </article>

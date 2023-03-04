@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.app &#8212; asgi-tools 0.70.10 documentation</title>
+    <title>asgi_tools.app &#8212; asgi-tools 0.71.0 documentation</title>
   
   
   
@@ -345,7 +345,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 0.70.10
+    Version: 0.71.0
 </div>
 </div>
     </div>
@@ -404,25 +404,36 @@ document.write(`
                   
   <h1>Source code for asgi_tools.app</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Simple Base for ASGI Apps.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">isclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">http_router</span> <span class="kn">import</span> <span class="n">PrefixedRoute</span>
-<span class="kn">from</span> <span class="nn">http_router.types</span> <span class="kn">import</span> <span class="n">TMethods</span><span class="p">,</span> <span class="n">TPath</span>
 
 <span class="kn">from</span> <span class="nn">asgi_tools.router</span> <span class="kn">import</span> <span class="n">Router</span>
 
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">ASGIConnectionClosed</span><span class="p">,</span> <span class="n">ASGIMethodNotAllowed</span><span class="p">,</span> <span class="n">ASGINotFound</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">ASGIConnectionClosedError</span><span class="p">,</span> <span class="n">ASGIInvalidMethodError</span><span class="p">,</span> <span class="n">ASGINotFoundError</span>
 <span class="kn">from</span> <span class="nn">.logs</span> <span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span> <span class="nn">.middleware</span> <span class="kn">import</span> <span class="n">LifespanMiddleware</span><span class="p">,</span> <span class="n">StaticFilesMiddleware</span><span class="p">,</span> <span class="n">parse_response</span>
 <span class="kn">from</span> <span class="nn">.request</span> <span class="kn">import</span> <span class="n">Request</span>
 <span class="kn">from</span> <span class="nn">.response</span> <span class="kn">import</span> <span class="n">Response</span><span class="p">,</span> <span class="n">ResponseError</span>
-<span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="p">(</span><span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">TASGISend</span><span class="p">,</span> <span class="n">TExceptionHandler</span><span class="p">,</span> <span class="n">TVCallable</span><span class="p">,</span>
-                    <span class="n">TVExceptionHandler</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">iscoroutinefunction</span><span class="p">,</span> <span class="n">to_awaitable</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">logging</span>
+
+    <span class="kn">from</span> <span class="nn">http_router.types</span> <span class="kn">import</span> <span class="n">TMethods</span><span class="p">,</span> <span class="n">TPath</span>
+
+    <span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">TASGIReceive</span><span class="p">,</span>
+        <span class="n">TASGIScope</span><span class="p">,</span>
+        <span class="n">TASGISend</span><span class="p">,</span>
+        <span class="n">TExceptionHandler</span><span class="p">,</span>
+        <span class="n">TVCallable</span><span class="p">,</span>
+        <span class="n">TVExceptionHandler</span><span class="p">,</span>
+    <span class="p">)</span>
 
 
 <div class="viewcode-block" id="App"><a class="viewcode-back" href="../../api.html#asgi_tools.App">[docs]</a><span class="k">class</span> <span class="nc">App</span><span class="p">:</span>
@@ -469,12 +480,12 @@ document.write(`
 
         <span class="c1"># Register base exception handlers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">ASGIConnectionClosed</span><span class="p">:</span> <span class="n">to_awaitable</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">ASGIConnectionClosedError</span><span class="p">:</span> <span class="n">to_awaitable</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span><span class="p">:</span> <span class="kc">None</span><span class="p">),</span>
         <span class="p">}</span>
 
         <span class="c1"># Setup routing</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="p">(</span>
-            <span class="n">trim_last_slash</span><span class="o">=</span><span class="n">trim_last_slash</span><span class="p">,</span> <span class="n">validator</span><span class="o">=</span><span class="n">callable</span><span class="p">,</span> <span class="n">converter</span><span class="o">=</span><span class="n">to_awaitable</span>
+            <span class="n">trim_last_slash</span><span class="o">=</span><span class="n">trim_last_slash</span><span class="p">,</span> <span class="n">validator</span><span class="o">=</span><span class="n">callable</span><span class="p">,</span> <span class="n">converter</span><span class="o">=</span><span class="n">to_awaitable</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Setup logging</span>
@@ -485,13 +496,13 @@ document.write(`
 
         <span class="c1"># Setup lifespan</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lifespan</span> <span class="o">=</span> <span class="n">LifespanMiddleware</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__process__</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="ow">not</span> <span class="n">debug</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__process__</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="ow">not</span> <span class="n">debug</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Enable middleware for static files</span>
         <span class="k">if</span> <span class="n">static_folders</span> <span class="ow">and</span> <span class="n">static_url_prefix</span><span class="p">:</span>
             <span class="n">md</span> <span class="o">=</span> <span class="n">StaticFilesMiddleware</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span>
-                <span class="n">folders</span><span class="o">=</span><span class="n">static_folders</span><span class="p">,</span> <span class="n">url_prefix</span><span class="o">=</span><span class="n">static_url_prefix</span>
+                <span class="n">folders</span><span class="o">=</span><span class="n">static_folders</span><span class="p">,</span> <span class="n">url_prefix</span><span class="o">=</span><span class="n">static_url_prefix</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">middleware</span><span class="p">(</span><span class="n">md</span><span class="p">)</span>
 
@@ -502,7 +513,7 @@ document.write(`
         <span class="k">if</span> <span class="ow">not</span> <span class="n">debug</span><span class="p">:</span>
 
             <span class="k">async</span> <span class="k">def</span> <span class="nf">handle_unknown_exception</span><span class="p">(</span>
-                <span class="n">_</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="ne">BaseException</span>
+                <span class="n">_</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">,</span>
             <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="p">()</span>
@@ -512,13 +523,13 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Convert the given scope into a request and process.&quot;&quot;&quot;</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifespan</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Send ASGI messages.&quot;&quot;&quot;</span>
         <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;app&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
@@ -529,11 +540,11 @@ document.write(`
                 <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 
         <span class="c1"># Handle exceptions</span>
-        <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># noqa</span>
+        <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span> <span class="c1"># noqa: BLE001</span>
             <span class="k">for</span> <span class="n">etype</span> <span class="ow">in</span> <span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="n">mro</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">etype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span><span class="p">:</span>
                     <span class="k">await</span> <span class="n">parse_response</span><span class="p">(</span>
-                        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span><span class="p">[</span><span class="n">etype</span><span class="p">](</span><span class="n">request</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+                        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span><span class="p">[</span><span class="n">etype</span><span class="p">](</span><span class="n">request</span><span class="p">,</span> <span class="n">exc</span><span class="p">),</span>
                     <span class="p">)(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
                     <span class="k">break</span>
             <span class="k">else</span><span class="p">:</span>
@@ -543,7 +554,7 @@ document.write(`
                     <span class="k">raise</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">__match__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Response</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Find and call a callback, parse a response, handle exceptions.&quot;&quot;&quot;</span>
         <span class="n">scope</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">scope</span>
@@ -551,22 +562,22 @@ document.write(`
         <span class="k">try</span><span class="p">:</span>
             <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;method&quot;</span><span class="p">,</span> <span class="s2">&quot;GET&quot;</span><span class="p">))</span>
 
-        <span class="k">except</span> <span class="n">ASGINotFound</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">ASGINotFoundError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">NOT_FOUND</span><span class="p">()</span> <span class="kn">from</span> <span class="nn">exc</span>
 
-        <span class="k">except</span> <span class="n">ASGIMethodNotAllowed</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">ASGIInvalidMethodError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">METHOD_NOT_ALLOWED</span><span class="p">()</span> <span class="kn">from</span> <span class="nn">exc</span>
 
         <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;path_params&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">match</span><span class="o">.</span><span class="n">params</span>
         <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">match</span><span class="o">.</span><span class="n">target</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
         <span class="n">scope_type</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">scope_type</span> <span class="o">==</span> <span class="s2">&quot;http&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">parse_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
 
         <span class="c1"># TODO: Do we need to close websockets automatically?</span>
-        <span class="c1"># if scope_type == &quot;websocket&quot;:</span>
-        <span class="c1">#     await send({&quot;type&quot;: &quot;websocket.close&quot;})</span>
+        <span class="c1"># if scope_type == &quot;websocket&quot; send websocket.close</span>
 
         <span class="k">return</span> <span class="kc">None</span>
 
@@ -577,7 +588,7 @@ document.write(`
             <span class="n">router</span><span class="o">.</span><span class="n">dynamic</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">route</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-<div class="viewcode-block" id="App.middleware"><a class="viewcode-back" href="../../api.html#asgi_tools.App.middleware">[docs]</a>    <span class="k">def</span> <span class="nf">middleware</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">md</span><span class="p">:</span> <span class="n">TVCallable</span><span class="p">,</span> <span class="n">insert_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TVCallable</span><span class="p">:</span>
+<div class="viewcode-block" id="App.middleware"><a class="viewcode-back" href="../../api.html#asgi_tools.App.middleware">[docs]</a>    <span class="k">def</span> <span class="nf">middleware</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">md</span><span class="p">:</span> <span class="n">TVCallable</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">insert_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TVCallable</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Register a middleware.&quot;&quot;&quot;</span>
         <span class="c1"># Register as a simple middleware</span>
         <span class="k">if</span> <span class="n">iscoroutinefunction</span><span class="p">(</span><span class="n">md</span><span class="p">):</span>
@@ -627,9 +638,8 @@ document.write(`
 <span class="sd">                return response_error</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="n">isclass</span><span class="p">(</span><span class="n">etype</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span>
-            <span class="n">etype</span><span class="p">,</span> <span class="ne">BaseException</span>
-        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Invalid exception type: </span><span class="si">{</span><span class="n">etype</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="n">isclass</span><span class="p">(</span><span class="n">etype</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Invalid exception type: </span><span class="si">{</span><span class="n">etype</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">etype</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Invalid exception type: </span><span class="si">{</span><span class="n">etype</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="k">def</span> <span class="nf">recorder</span><span class="p">(</span><span class="n">handler</span><span class="p">:</span> <span class="n">TVExceptionHandler</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TVExceptionHandler</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span><span class="p">[</span><span class="n">etype</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_awaitable</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
@@ -646,7 +656,7 @@ document.write(`
         <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">):</span>
-            <span class="n">subrequest</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">__copy__</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="p">:])</span>  <span class="c1"># noqa</span>
+            <span class="n">subrequest</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">__copy__</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="p">:])</span>
             <span class="k">return</span> <span class="n">target</span><span class="o">.</span><span class="n">__app__</span><span class="p">(</span><span class="n">subrequest</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">receive</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">send</span><span class="p">)</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>

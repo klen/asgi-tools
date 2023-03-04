@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.response &#8212; asgi-tools 0.70.10 documentation</title>
+    <title>asgi_tools.response &#8212; asgi-tools 0.71.0 documentation</title>
   
   
   
@@ -345,7 +345,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 0.70.10
+    Version: 0.71.0
 </div>
 </div>
     </div>
@@ -415,19 +415,31 @@ document.write(`
 <span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">HTTPStatus</span>
 <span class="kn">from</span> <span class="nn">http.cookies</span> <span class="kn">import</span> <span class="n">SimpleCookie</span>
 <span class="kn">from</span> <span class="nn">mimetypes</span> <span class="kn">import</span> <span class="n">guess_type</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISDIR</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="p">(</span><span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AsyncGenerator</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span>
-                    <span class="n">Union</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TYPE_CHECKING</span><span class="p">,</span>
+    <span class="n">Any</span><span class="p">,</span>
+    <span class="n">AsyncGenerator</span><span class="p">,</span>
+    <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">Dict</span><span class="p">,</span>
+    <span class="n">Mapping</span><span class="p">,</span>
+    <span class="n">Optional</span><span class="p">,</span>
+    <span class="n">Type</span><span class="p">,</span>
+    <span class="n">Union</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote</span><span class="p">,</span> <span class="n">quote_plus</span>
 
 <span class="kn">from</span> <span class="nn">multidict</span> <span class="kn">import</span> <span class="n">MultiDict</span>
 
 <span class="kn">from</span> <span class="nn">._compat</span> <span class="kn">import</span> <span class="n">FIRST_COMPLETED</span><span class="p">,</span> <span class="n">aio_stream_file</span><span class="p">,</span> <span class="n">aio_wait</span><span class="p">,</span> <span class="n">json_dumps</span>
 <span class="kn">from</span> <span class="nn">.constants</span> <span class="kn">import</span> <span class="n">BASE_ENCODING</span><span class="p">,</span> <span class="n">DEFAULT_CHARSET</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">ASGIConnectionClosed</span><span class="p">,</span> <span class="n">ASGIError</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">ASGIConnectionClosedError</span><span class="p">,</span> <span class="n">ASGIError</span>
 <span class="kn">from</span> <span class="nn">.request</span> <span class="kn">import</span> <span class="n">Request</span>
-<span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="n">TASGIMessage</span><span class="p">,</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">TASGISend</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+    <span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="n">TASGIMessage</span><span class="p">,</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">TASGISend</span>
 
 
 <div class="viewcode-block" id="Response"><a class="viewcode-back" href="../../api.html#asgi_tools.Response">[docs]</a><span class="k">class</span> <span class="nc">Response</span><span class="p">:</span>
@@ -495,7 +507,7 @@ document.write(`
         <span class="sd">&quot;&quot;&quot;Stringify the response.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="si">}</span><span class="s2"> &#39;</span><span class="si">{</span> <span class="bp">self</span> <span class="si">}</span><span class="s2">&#39;&gt;&quot;</span>
 
-<div class="viewcode-block" id="Response.__call__"><a class="viewcode-back" href="../../api.html#asgi_tools.Response.__call__">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">):</span>
+<div class="viewcode-block" id="Response.__call__"><a class="viewcode-back" href="../../api.html#asgi_tools.Response.__call__">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Behave as an ASGI application.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;content-length&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)))</span>
 
@@ -517,7 +529,7 @@ document.write(`
 
         <span class="k">for</span> <span class="n">cookie</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="p">(</span><span class="sa">b</span><span class="s2">&quot;set-cookie&quot;</span><span class="p">,</span> <span class="n">cookie</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="n">header</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">BASE_ENCODING</span><span class="p">))</span>
+                <span class="p">(</span><span class="sa">b</span><span class="s2">&quot;set-cookie&quot;</span><span class="p">,</span> <span class="n">cookie</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="n">header</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">BASE_ENCODING</span><span class="p">)),</span>
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="p">{</span>
@@ -583,7 +595,7 @@ document.write(`
                     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span>
                     <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_content</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span>
                     <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="p">}</span>
+                <span class="p">},</span>
             <span class="p">)</span>
 
         <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.response.body&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">})</span>
@@ -648,15 +660,15 @@ document.write(`
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Store filepath to self.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">stat</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+            <span class="n">stat</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>  <span class="c1"># noqa: PTH</span>
         <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ASGIError</span><span class="p">(</span><span class="o">*</span><span class="n">exc</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
 
         <span class="k">if</span> <span class="n">S_ISDIR</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mode</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">ASGIError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;It&#39;s a directory: </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ASGIError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;It&#39;s a directory: </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># noqa:</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">empty</span><span class="p">()</span> <span class="k">if</span> <span class="n">headers_only</span> <span class="k">else</span> <span class="n">aio_stream_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span>
+            <span class="n">empty</span><span class="p">()</span> <span class="k">if</span> <span class="n">headers_only</span> <span class="k">else</span> <span class="n">aio_stream_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="n">headers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span>
@@ -671,7 +683,7 @@ document.write(`
         <span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;content-length&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_size</span><span class="p">))</span>
         <span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;last-modified&quot;</span><span class="p">,</span> <span class="n">formatdate</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">,</span> <span class="n">usegmt</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
         <span class="n">etag</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_size</span><span class="p">)</span>
-        <span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;etag&quot;</span><span class="p">,</span> <span class="n">md5</span><span class="p">(</span><span class="n">etag</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">())</span></div>
+        <span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;etag&quot;</span><span class="p">,</span> <span class="n">md5</span><span class="p">(</span><span class="n">etag</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">())</span>  <span class="c1"># noqa: S324</span></div>
 
 
 <div class="viewcode-block" id="ResponseWebSocket"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseWebSocket">[docs]</a><span class="k">class</span> <span class="nc">ResponseWebSocket</span><span class="p">(</span><span class="n">Response</span><span class="p">):</span>
@@ -700,8 +712,10 @@ document.write(`
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">Request</span><span class="p">):</span>
             <span class="n">receive</span><span class="p">,</span> <span class="n">send</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">receive</span><span class="p">,</span> <span class="n">scope</span><span class="o">.</span><span class="n">send</span>
 
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">receive</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">send</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ASGIError</span><span class="p">(</span><span class="s2">&quot;Invalid initialization&quot;</span><span class="p">)</span>  <span class="c1"># noqa:</span>
+
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">receive</span> <span class="ow">and</span> <span class="n">send</span><span class="p">,</span> <span class="s2">&quot;Invalid initialization&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">:</span> <span class="n">TASGIReceive</span> <span class="o">=</span> <span class="n">receive</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">:</span> <span class="n">TASGISend</span> <span class="o">=</span> <span class="n">send</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">CONNECTING</span>
@@ -749,16 +763,14 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">DISCONNECTED</span></div>
 
 <div class="viewcode-block" id="ResponseWebSocket.send"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseWebSocket.send">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">send</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;websocket.send&quot;</span>  <span class="c1"># noqa</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span> <span class="n">msg_type</span><span class="o">=</span><span class="s2">&quot;websocket.send&quot;</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Send the given message to a client.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">DISCONNECTED</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ASGIConnectionClosed</span><span class="p">(</span>
-                <span class="s2">&quot;Cannot send once the connection has been disconnected.&quot;</span>
-            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ASGIConnectionClosedError</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;text&quot;</span> <span class="ow">or</span> <span class="s2">&quot;bytes&quot;</span><span class="p">):</span> <span class="n">msg</span><span class="p">}</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">msg_type</span><span class="p">,</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;text&quot;</span> <span class="ow">or</span> <span class="s2">&quot;bytes&quot;</span><span class="p">):</span> <span class="n">msg</span><span class="p">}</span>
 
         <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
@@ -766,15 +778,13 @@ document.write(`
         <span class="sd">&quot;&quot;&quot;Serialize the given data to JSON and send to a client.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;websocket.send&quot;</span><span class="p">,</span> <span class="s2">&quot;bytes&quot;</span><span class="p">:</span> <span class="n">json_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)})</span></div>
 
-<div class="viewcode-block" id="ResponseWebSocket.receive"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseWebSocket.receive">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">TASGIMessage</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="ResponseWebSocket.receive"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseWebSocket.receive">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">TASGIMessage</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Receive messages from a client.</span>
 
 <span class="sd">        :param raw: Receive messages as is.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">DISCONNECTED</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ASGIConnectionClosed</span><span class="p">(</span>
-                <span class="s2">&quot;Cannot receive once a connection has been disconnected.&quot;</span>
-            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ASGIConnectionClosedError</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">partner_state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">CONNECTING</span><span class="p">:</span>
             <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">()</span>
@@ -801,7 +811,7 @@ document.write(`
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">assert</span> <span class="p">(</span>
             <span class="mi">300</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">400</span>
-        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Invalid status code for redirection: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span>  <span class="c1"># noqa</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Invalid status code for redirection: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">quote_plus</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">safe</span><span class="o">=</span><span class="s2">&quot;:/%#?&amp;=@[]!$&amp;&#39;()*+,;&quot;</span><span class="p">)</span></div>
 
 
@@ -811,9 +821,9 @@ document.write(`
     <span class="c1"># XXX: From python 3.9 -&gt; partial[&#39;ResponseError]</span>
     <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ResponseError</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Generate Response Errors by HTTP names.&quot;&quot;&quot;</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>  <span class="c1"># noqa</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">partial</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">lambda</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
         <span class="p">)</span>
 
 
@@ -923,7 +933,7 @@ document.write(`
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">headers</span><span class="p">,</span> <span class="o">*</span><span class="n">contents</span> <span class="o">=</span> <span class="n">contents</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">parse_response</span><span class="p">(</span>
-            <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">contents</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span>
+            <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">contents</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status</span>
         <span class="k">return</span> <span class="n">response</span>
@@ -932,7 +942,7 @@ document.write(`
 
 
 <span class="k">def</span> <span class="nf">parse_websocket_msg</span><span class="p">(</span>
-    <span class="n">msg</span><span class="p">:</span> <span class="n">TASGIMessage</span><span class="p">,</span> <span class="n">charset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">msg</span><span class="p">:</span> <span class="n">TASGIMessage</span><span class="p">,</span> <span class="n">charset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">TASGIMessage</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Prepare websocket message.&quot;&quot;&quot;</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
@@ -950,7 +960,7 @@ document.write(`
     <span class="k">yield</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
 
 
-<span class="c1"># pylama: ignore=E501</span>
+<span class="c1"># ruff: noqa: ERA001</span>
 </pre></div>
 
                 </article>

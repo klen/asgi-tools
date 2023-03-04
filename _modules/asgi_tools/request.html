@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.request &#8212; asgi-tools 0.70.10 documentation</title>
+    <title>asgi_tools.request &#8212; asgi-tools 0.71.0 documentation</title>
   
   
   
@@ -345,7 +345,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 0.70.10
+    Version: 0.71.0
 </div>
 </div>
     </div>
@@ -410,9 +410,8 @@ document.write(`
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">cookies</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AsyncGenerator</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AsyncGenerator</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">multidict</span> <span class="kn">import</span> <span class="n">MultiDict</span>
 <span class="kn">from</span> <span class="nn">yarl</span> <span class="kn">import</span> <span class="n">URL</span>
 
 <span class="kn">from</span> <span class="nn">._compat</span> <span class="kn">import</span> <span class="n">json_loads</span>
@@ -421,6 +420,9 @@ document.write(`
 <span class="kn">from</span> <span class="nn">.forms</span> <span class="kn">import</span> <span class="n">read_formdata</span>
 <span class="kn">from</span> <span class="nn">.types</span> <span class="kn">import</span> <span class="n">TJSON</span><span class="p">,</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">TASGISend</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">CIMultiDict</span><span class="p">,</span> <span class="n">parse_headers</span><span class="p">,</span> <span class="n">parse_options_header</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">multidict</span> <span class="kn">import</span> <span class="n">MultiDict</span>
 
 
 <div class="viewcode-block" id="Request"><a class="viewcode-back" href="../../api.html#asgi_tools.Request">[docs]</a><span class="k">class</span> <span class="nc">Request</span><span class="p">(</span><span class="n">TASGIScope</span><span class="p">):</span>
@@ -616,7 +618,7 @@ document.write(`
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_read</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_body</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Stream has been read&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Stream has been read&quot;</span><span class="p">)</span>  <span class="c1"># noqa:</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">_body</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -646,7 +648,7 @@ document.write(`
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">body</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">charset</span> <span class="ow">or</span> <span class="n">DEFAULT_CHARSET</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">LookupError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ASGIDecodeError</span><span class="p">(</span><span class="s2">&quot;Invalid Encoding&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span></div>
+            <span class="k">raise</span> <span class="n">ASGIDecodeError</span> <span class="kn">from</span> <span class="nn">exc</span></div>
 
 <div class="viewcode-block" id="Request.json"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.json">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TJSON</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Read and return the request&#39;s body as a JSON.</span>
@@ -657,7 +659,7 @@ document.write(`
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">json_loads</span><span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">())</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">LookupError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ASGIDecodeError</span><span class="p">(</span><span class="s2">&quot;Invalid JSON&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span></div>
+            <span class="k">raise</span> <span class="n">ASGIDecodeError</span> <span class="kn">from</span> <span class="nn">exc</span></div>
 
 <div class="viewcode-block" id="Request.form"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.form">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">form</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -676,16 +678,14 @@ document.write(`
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_form</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_form</span> <span class="o">=</span> <span class="k">await</span> <span class="n">read_formdata</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">upload_to</span><span class="p">,</span> <span class="n">file_memory_limit</span>
+                    <span class="bp">self</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">upload_to</span><span class="p">,</span> <span class="n">file_memory_limit</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">except</span> <span class="p">(</span><span class="ne">LookupError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">ASGIDecodeError</span><span class="p">(</span><span class="s2">&quot;Invalid Encoding&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
+                <span class="k">raise</span> <span class="n">ASGIDecodeError</span> <span class="kn">from</span> <span class="nn">exc</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_form</span></div>
 
-<div class="viewcode-block" id="Request.data"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.data">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">data</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">raise_errors</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">MultiDict</span><span class="p">,</span> <span class="n">TJSON</span><span class="p">]:</span>
+<div class="viewcode-block" id="Request.data"><a class="viewcode-back" href="../../api.html#asgi_tools.Request.data">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">raise_errors</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">MultiDict</span><span class="p">,</span> <span class="n">TJSON</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The method checks Content-Type Header and parse the request&#39;s data automatically.</span>
 
 <span class="sd">        `data = await request.data()`</span>
@@ -706,12 +706,14 @@ document.write(`
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="s2">&quot;application/json&quot;</span><span class="p">:</span>
                 <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 
-            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
 
         <span class="k">except</span> <span class="n">ASGIDecodeError</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">raise_errors</span><span class="p">:</span>
                 <span class="k">raise</span>
-            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">()</span></div></div>
+            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">()</span></div></div>
 </pre></div>
 
                 </article>
