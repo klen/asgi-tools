@@ -9,7 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>API Reference &#8212; asgi-tools 0.71.0 documentation</title>
+    <title>API Reference &#8212; asgi-tools 0.72.2 documentation</title>
   
   
   
@@ -351,7 +351,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 0.71.0
+    Version: 0.72.2
 </div>
 </div>
     </div>
@@ -1278,10 +1278,42 @@ will be catched and returned as a response</p>
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="s1">&#39;OK)</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 
+<span class="c1"># Files from static folder will be served from /static</span>
 <span class="n">app</span> <span class="o">=</span> <span class="n">StaticFilesMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">folders</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;static&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
+</dd></dl>
+
+</section>
+<section id="backgroundmiddleware">
+<h3>BackgroundMiddleware<a class="headerlink" href="#backgroundmiddleware" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="asgi_tools.BackgroundMiddleware">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">BackgroundMiddleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#BackgroundMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.BackgroundMiddleware" title="Permalink to this definition">#</a></dt>
+<dd><p>Run background tasks.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_tools</span> <span class="kn">import</span> <span class="n">BackgroundMiddleware</span><span class="p">,</span> <span class="n">ResponseText</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseText</span><span class="p">(</span><span class="s1">&#39;OK)</span>
+
+    <span class="c1"># Schedule any awaitable for later execution</span>
+    <span class="n">BackgroundMiddleware</span><span class="o">.</span><span class="n">set_task</span><span class="p">(</span><span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="c1"># Return response immediately</span>
+    <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+
+    <span class="c1"># The task will be executed after the response is sent</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">BackgroundMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>app</strong> (<em>Optional</em><em>[</em><em>TASGIApp</em><em>]</em>) – </p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -1771,6 +1803,10 @@ protocol.</p>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#staticfilesmiddleware">StaticFilesMiddleware</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#asgi_tools.StaticFilesMiddleware"><code class="docutils literal notranslate"><span class="pre">StaticFilesMiddleware</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#backgroundmiddleware">BackgroundMiddleware</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#asgi_tools.BackgroundMiddleware"><code class="docutils literal notranslate"><span class="pre">BackgroundMiddleware</span></code></a></li>
 </ul>
 </li>
 </ul>

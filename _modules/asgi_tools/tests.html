@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.tests &#8212; asgi-tools 0.71.0 documentation</title>
+    <title>asgi_tools.tests &#8212; asgi-tools 0.72.2 documentation</title>
   
   
   
@@ -345,7 +345,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 0.71.0
+    Version: 0.72.2
 </div>
 </div>
     </div>
@@ -455,7 +455,7 @@ document.write(`
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">):</span> <span class="c1"># noqa: ARG</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">):</span>  <span class="c1"># noqa: ARG</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span> <span class="o">=</span> <span class="n">receive</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receive</span><span class="p">()</span>
         <span class="k">assert</span> <span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;http.response.start&quot;</span><span class="p">,</span> <span class="s2">&quot;Invalid Response&quot;</span>
@@ -640,7 +640,10 @@ document.write(`
         <span class="p">)</span>
         <span class="n">ws</span> <span class="o">=</span> <span class="n">TestWebSocketResponse</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_client</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_app</span><span class="p">)</span>
         <span class="k">async</span> <span class="k">with</span> <span class="n">aio_spawn</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_app</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_client</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">,</span>
+            <span class="n">scope</span><span class="p">,</span>
+            <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_app</span><span class="p">,</span>
+            <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_client</span><span class="p">,</span>
         <span class="p">):</span>
             <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
             <span class="k">yield</span> <span class="n">ws</span>
@@ -707,9 +710,7 @@ document.write(`
             <span class="n">filename</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
                 <span class="n">headers</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span> <span class="n">headers</span> <span class="si">}</span><span class="s1">; filename=&quot;</span><span class="si">{</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">name</span> <span class="si">}</span><span class="s1">&quot;&#39;</span>
-                <span class="n">content_type</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;application/octet-stream&quot;</span>
-                <span class="p">)</span>
+                <span class="n">content_type</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;application/octet-stream&quot;</span>
                 <span class="n">headers</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span> <span class="n">headers</span> <span class="si">}</span><span class="se">\r\n</span><span class="s2">Content-Type: </span><span class="si">{</span> <span class="n">content_type</span> <span class="si">}</span><span class="s2">&quot;</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
@@ -726,7 +727,6 @@ document.write(`
 
 
 <span class="k">class</span> <span class="nc">Pipe</span><span class="p">:</span>
-
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s2">&quot;delay&quot;</span><span class="p">,</span>
         <span class="s2">&quot;app_is_closed&quot;</span><span class="p">,</span>
@@ -808,7 +808,9 @@ document.write(`
     <span class="k">async</span> <span class="k">with</span> <span class="n">aio_spawn</span><span class="p">(</span><span class="n">safe_spawn</span><span class="p">)</span> <span class="k">as</span> <span class="n">task</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_app</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.startup&quot;</span><span class="p">})</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span>
-            <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_client</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">,</span>
+            <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_client</span><span class="p">(),</span>
+            <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span>
+            <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">msg</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;lifespan.startup.failed&quot;</span><span class="p">:</span>
@@ -820,7 +822,9 @@ document.write(`
 
         <span class="k">await</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_app</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.shutdown&quot;</span><span class="p">})</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span>
-            <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_client</span><span class="p">(),</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">,</span>
+            <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_client</span><span class="p">(),</span>
+            <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span>
+            <span class="n">strategy</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">msg</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
             <span class="k">assert</span> <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;lifespan.shutdown.complete&quot;</span>

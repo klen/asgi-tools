@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.response &#8212; asgi-tools 0.71.0 documentation</title>
+    <title>asgi_tools.response &#8212; asgi-tools 0.72.2 documentation</title>
   
   
   
@@ -345,7 +345,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 0.71.0
+    Version: 0.72.2
 </div>
 </div>
     </div>
@@ -668,7 +668,8 @@ document.write(`
             <span class="k">raise</span> <span class="n">ASGIError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;It&#39;s a directory: </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># noqa:</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">empty</span><span class="p">()</span> <span class="k">if</span> <span class="n">headers_only</span> <span class="k">else</span> <span class="n">aio_stream_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="n">empty</span><span class="p">()</span> <span class="k">if</span> <span class="n">headers_only</span> <span class="k">else</span> <span class="n">aio_stream_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">),</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="n">headers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span>
@@ -676,9 +677,7 @@ document.write(`
             <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;content-disposition&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;attachment; filename=&quot;</span><span class="si">{</span><span class="n">quote</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
 
         <span class="k">if</span> <span class="s2">&quot;content-type&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
-            <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;content-type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">guess_type</span><span class="p">(</span><span class="n">filename</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">filepath</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;text/plain&quot;</span>
-            <span class="p">)</span>
+            <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;content-type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">guess_type</span><span class="p">(</span><span class="n">filename</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">filepath</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;text/plain&quot;</span>
 
         <span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;content-length&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_size</span><span class="p">))</span>
         <span class="n">headers</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;last-modified&quot;</span><span class="p">,</span> <span class="n">formatdate</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">,</span> <span class="n">usegmt</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
@@ -763,7 +762,9 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">DISCONNECTED</span></div>
 
 <div class="viewcode-block" id="ResponseWebSocket.send"><a class="viewcode-back" href="../../api.html#asgi_tools.ResponseWebSocket.send">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">send</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span> <span class="n">msg_type</span><span class="o">=</span><span class="s2">&quot;websocket.send&quot;</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">msg</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span>
+        <span class="n">msg_type</span><span class="o">=</span><span class="s2">&quot;websocket.send&quot;</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Send the given message to a client.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATES</span><span class="o">.</span><span class="n">DISCONNECTED</span><span class="p">:</span>
@@ -823,7 +824,8 @@ document.write(`
         <span class="sd">&quot;&quot;&quot;Generate Response Errors by HTTP names.&quot;&quot;&quot;</span>
         <span class="n">status</span> <span class="o">=</span> <span class="n">HTTPStatus</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">partial</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
         <span class="p">)</span>
 
 
@@ -901,9 +903,7 @@ document.write(`
         <span class="sd">&quot;&quot;&quot;Check error status.&quot;&quot;&quot;</span>
         <span class="n">content</span> <span class="o">=</span> <span class="n">message</span> <span class="ow">or</span> <span class="n">HTTPStatus</span><span class="p">(</span><span class="n">status_code</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span><span class="o">.</span><span class="n">description</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span>
-        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Invalid status code for an error: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span></div>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Invalid status code for an error: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 
 <span class="n">CAST_RESPONSE</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Type</span><span class="p">,</span> <span class="n">Type</span><span class="p">[</span><span class="n">Response</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
@@ -933,7 +933,8 @@ document.write(`
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">headers</span><span class="p">,</span> <span class="o">*</span><span class="n">contents</span> <span class="o">=</span> <span class="n">contents</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">parse_response</span><span class="p">(</span>
-            <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">contents</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+            <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">contents</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status</span>
         <span class="k">return</span> <span class="n">response</span>
@@ -942,7 +943,8 @@ document.write(`
 
 
 <span class="k">def</span> <span class="nf">parse_websocket_msg</span><span class="p">(</span>
-    <span class="n">msg</span><span class="p">:</span> <span class="n">TASGIMessage</span><span class="p">,</span> <span class="n">charset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">msg</span><span class="p">:</span> <span class="n">TASGIMessage</span><span class="p">,</span>
+    <span class="n">charset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">TASGIMessage</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Prepare websocket message.&quot;&quot;&quot;</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>

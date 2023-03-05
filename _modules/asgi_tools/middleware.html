@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.middleware &#8212; asgi-tools 0.71.0 documentation</title>
+    <title>asgi_tools.middleware &#8212; asgi-tools 0.72.2 documentation</title>
   
   
   
@@ -345,7 +345,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 0.71.0
+    Version: 0.72.2
 </div>
 </div>
     </div>
@@ -404,11 +404,13 @@ document.write(`
                   
   <h1>Source code for asgi_tools.middleware</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;ASGI-Tools Middlewares.&quot;&quot;&quot;</span>
+
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span> <span class="nn">abc</span>
-<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">from</span> <span class="nn">contextvars</span> <span class="kn">import</span> <span class="n">ContextVar</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">isawaitable</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
@@ -434,7 +436,10 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span>
+        <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span>
+        <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Awaitable</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Handle ASGI call.&quot;&quot;&quot;</span>
 
@@ -445,7 +450,10 @@ document.write(`
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span>
+        <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span>
+        <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Do the middleware&#39;s logic.&quot;&quot;&quot;</span>
 
@@ -519,7 +527,10 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span>
+        <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span>
+        <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Parse responses from callbacks.&quot;&quot;&quot;</span>
 
@@ -557,7 +568,10 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span>
+        <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span>
+        <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Replace scope with request object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">),</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span></div>
@@ -666,12 +680,13 @@ document.write(`
         <span class="k">for</span> <span class="n">handler</span> <span class="ow">in</span> <span class="n">handlers</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">res</span> <span class="o">=</span> <span class="n">handler</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isawaitable</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">isawaitable</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
                     <span class="k">await</span> <span class="n">res</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
                     <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> method &#39;</span><span class="si">%s</span><span class="s2">&#39; raises an exception.&quot;</span><span class="p">,</span>
-                    <span class="n">event</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span> <span class="n">handler</span><span class="p">,</span>
+                    <span class="n">event</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span>
+                    <span class="n">handler</span><span class="p">,</span>
                 <span class="p">)</span>
 
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_errors</span><span class="p">:</span>
@@ -747,7 +762,9 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TASGIApp</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">router</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Router</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">app</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TASGIApp</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">router</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Router</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Initialize HTTP router.&quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
@@ -789,7 +806,9 @@ document.write(`
 
 <span class="sd">        async def app(scope, receive, send):</span>
 <span class="sd">            response = ResponseHTML(&#39;OK)</span>
+<span class="sd">            await response(scope, receive, send)</span>
 
+<span class="sd">        # Files from static folder will be served from /static</span>
 <span class="sd">        app = StaticFilesMiddleware(app, folders=[&#39;static&#39;])</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -811,7 +830,10 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">folders</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span> <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">folders</span><span class="p">]</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span>
+        <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span>
+        <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Serve static files for self url prefix.&quot;&quot;&quot;</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span>
@@ -823,7 +845,8 @@ document.write(`
                 <span class="n">filepath</span> <span class="o">=</span> <span class="n">folder</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseFile</span><span class="p">(</span>
-                        <span class="n">filepath</span><span class="p">,</span> <span class="n">headers_only</span><span class="o">=</span><span class="n">scope</span><span class="p">[</span><span class="s2">&quot;method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;HEAD&quot;</span><span class="p">,</span>
+                        <span class="n">filepath</span><span class="p">,</span>
+                        <span class="n">headers_only</span><span class="o">=</span><span class="n">scope</span><span class="p">[</span><span class="s2">&quot;method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;HEAD&quot;</span><span class="p">,</span>
                     <span class="p">)</span>
                     <span class="k">break</span>
 
@@ -835,6 +858,45 @@ document.write(`
 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span></div>
+
+
+<span class="n">BACKGROUND_TASK</span> <span class="o">=</span> <span class="n">ContextVar</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Awaitable</span><span class="p">]](</span><span class="s2">&quot;background_task&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BackgroundMiddleware"><a class="viewcode-back" href="../../api.html#asgi_tools.BackgroundMiddleware">[docs]</a><span class="k">class</span> <span class="nc">BackgroundMiddleware</span><span class="p">(</span><span class="n">BaseMiddeware</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run background tasks.</span>
+
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from asgi_tools import BackgroundMiddleware, ResponseText</span>
+
+<span class="sd">        async def app(scope, receive, send):</span>
+<span class="sd">            response = ResponseText(&#39;OK)</span>
+
+<span class="sd">            # Schedule any awaitable for later execution</span>
+<span class="sd">            BackgroundMiddleware.set_task(asyncio.sleep(1))</span>
+
+<span class="sd">            # Return response immediately</span>
+<span class="sd">            await response(scope, receive, send)</span>
+
+<span class="sd">            # The task will be executed after the response is sent</span>
+
+<span class="sd">        app = BackgroundMiddleware(app)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run background tasks.&quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
+        <span class="n">bgtask</span> <span class="o">=</span> <span class="n">BACKGROUND_TASK</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">bgtask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">isawaitable</span><span class="p">(</span><span class="n">bgtask</span><span class="p">):</span>
+            <span class="k">await</span> <span class="n">bgtask</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">set_task</span><span class="p">(</span><span class="n">task</span><span class="p">:</span> <span class="n">Awaitable</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set a task for background execution.&quot;&quot;&quot;</span>
+        <span class="n">BACKGROUND_TASK</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">task</span><span class="p">)</span></div>
 </pre></div>
 
                 </article>

@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.app &#8212; asgi-tools 0.71.0 documentation</title>
+    <title>asgi_tools.app &#8212; asgi-tools 0.72.2 documentation</title>
   
   
   
@@ -345,7 +345,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 0.71.0
+    Version: 0.72.2
 </div>
 </div>
     </div>
@@ -485,7 +485,9 @@ document.write(`
 
         <span class="c1"># Setup routing</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="p">(</span>
-            <span class="n">trim_last_slash</span><span class="o">=</span><span class="n">trim_last_slash</span><span class="p">,</span> <span class="n">validator</span><span class="o">=</span><span class="n">callable</span><span class="p">,</span> <span class="n">converter</span><span class="o">=</span><span class="n">to_awaitable</span><span class="p">,</span>
+            <span class="n">trim_last_slash</span><span class="o">=</span><span class="n">trim_last_slash</span><span class="p">,</span>
+            <span class="n">validator</span><span class="o">=</span><span class="n">callable</span><span class="p">,</span>
+            <span class="n">converter</span><span class="o">=</span><span class="n">to_awaitable</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Setup logging</span>
@@ -496,13 +498,16 @@ document.write(`
 
         <span class="c1"># Setup lifespan</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lifespan</span> <span class="o">=</span> <span class="n">LifespanMiddleware</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__process__</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="ow">not</span> <span class="n">debug</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__process__</span><span class="p">,</span>
+            <span class="n">ignore_errors</span><span class="o">=</span><span class="ow">not</span> <span class="n">debug</span><span class="p">,</span>
+            <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Enable middleware for static files</span>
         <span class="k">if</span> <span class="n">static_folders</span> <span class="ow">and</span> <span class="n">static_url_prefix</span><span class="p">:</span>
             <span class="n">md</span> <span class="o">=</span> <span class="n">StaticFilesMiddleware</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span>
-                <span class="n">folders</span><span class="o">=</span><span class="n">static_folders</span><span class="p">,</span> <span class="n">url_prefix</span><span class="o">=</span><span class="n">static_url_prefix</span><span class="p">,</span>
+                <span class="n">folders</span><span class="o">=</span><span class="n">static_folders</span><span class="p">,</span>
+                <span class="n">url_prefix</span><span class="o">=</span><span class="n">static_url_prefix</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">middleware</span><span class="p">(</span><span class="n">md</span><span class="p">)</span>
 
@@ -513,7 +518,8 @@ document.write(`
         <span class="k">if</span> <span class="ow">not</span> <span class="n">debug</span><span class="p">:</span>
 
             <span class="k">async</span> <span class="k">def</span> <span class="nf">handle_unknown_exception</span><span class="p">(</span>
-                <span class="n">_</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">,</span>
+                <span class="n">_</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span>
+                <span class="n">exc</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">,</span>
             <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Response</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="p">()</span>
@@ -523,13 +529,19 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span>
+        <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span>
+        <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Convert the given scope into a request and process.&quot;&quot;&quot;</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifespan</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">__process__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span> <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">scope</span><span class="p">:</span> <span class="n">TASGIScope</span><span class="p">,</span>
+        <span class="n">receive</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span>
+        <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Send ASGI messages.&quot;&quot;&quot;</span>
         <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;app&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
@@ -540,7 +552,7 @@ document.write(`
                 <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 
         <span class="c1"># Handle exceptions</span>
-        <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span> <span class="c1"># noqa: BLE001</span>
+        <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># noqa: BLE001</span>
             <span class="k">for</span> <span class="n">etype</span> <span class="ow">in</span> <span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="n">mro</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">etype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exception_handlers</span><span class="p">:</span>
                     <span class="k">await</span> <span class="n">parse_response</span><span class="p">(</span>
@@ -554,7 +566,10 @@ document.write(`
                     <span class="k">raise</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">__match__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span> <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span>
+        <span class="n">_</span><span class="p">:</span> <span class="n">TASGIReceive</span><span class="p">,</span>
+        <span class="n">send</span><span class="p">:</span> <span class="n">TASGISend</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Response</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Find and call a callback, parse a response, handle exceptions.&quot;&quot;&quot;</span>
         <span class="n">scope</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">scope</span>
@@ -571,9 +586,7 @@ document.write(`
         <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;path_params&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">match</span><span class="o">.</span><span class="n">params</span>
         <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">match</span><span class="o">.</span><span class="n">target</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
 
-        <span class="n">scope_type</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">scope_type</span> <span class="o">==</span> <span class="s2">&quot;http&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;http&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">parse_response</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
 
         <span class="c1"># TODO: Do we need to close websockets automatically?</span>
@@ -592,7 +605,6 @@ document.write(`
         <span class="sd">&quot;&quot;&quot;Register a middleware.&quot;&quot;&quot;</span>
         <span class="c1"># Register as a simple middleware</span>
         <span class="k">if</span> <span class="n">iscoroutinefunction</span><span class="p">(</span><span class="n">md</span><span class="p">):</span>
-
             <span class="k">if</span> <span class="n">md</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">insert_first</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">internal_middlewares</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">md</span><span class="p">)</span>
