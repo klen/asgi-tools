@@ -273,7 +273,10 @@ class Request(TASGIScope):
         if self._form is None:
             try:
                 self._form = await read_formdata(
-                    self, max_size, upload_to, file_memory_limit,
+                    self,
+                    max_size,
+                    upload_to,
+                    file_memory_limit,
                 )
             except (LookupError, ValueError) as exc:
                 raise ASGIDecodeError from exc
@@ -300,7 +303,6 @@ class Request(TASGIScope):
 
             if self.content_type == "application/json":
                 return await self.json()
-
 
         except ASGIDecodeError:
             if raise_errors:

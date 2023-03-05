@@ -50,7 +50,7 @@ class TestResponse(Response):
     ):
         super().__init__(b"")
 
-    async def __call__(self, _: TASGIScope, receive: TASGIReceive, send: TASGISend): # noqa: ARG
+    async def __call__(self, _: TASGIScope, receive: TASGIReceive, send: TASGISend):  # noqa: ARG
         self._receive = receive
         msg = await self._receive()
         assert msg.get("type") == "http.response.start", "Invalid Response"
@@ -235,7 +235,10 @@ class ASGITestClient:
         )
         ws = TestWebSocketResponse(scope, pipe.receive_from_client, pipe.send_to_app)
         async with aio_spawn(
-            self.app, scope, pipe.receive_from_app, pipe.send_to_client,
+            self.app,
+            scope,
+            pipe.receive_from_app,
+            pipe.send_to_client,
         ):
             await ws.connect()
             yield ws
@@ -302,9 +305,7 @@ def encode_multipart(data: Dict) -> Tuple[bytes, str]:
             filename = getattr(value, "name", None)
             if filename:
                 headers = f'{ headers }; filename="{ Path(filename).name }"'
-                content_type = (
-                    mimetypes.guess_type(filename)[0] or "application/octet-stream"
-                )
+                content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
                 headers = f"{ headers }\r\nContent-Type: { content_type }"
             value = value.read()
 
@@ -321,7 +322,6 @@ def encode_multipart(data: Dict) -> Tuple[bytes, str]:
 
 
 class Pipe:
-
     __slots__ = (
         "delay",
         "app_is_closed",
@@ -403,7 +403,9 @@ async def manage_lifespan(app, timeout: float = 3e-2):
     async with aio_spawn(safe_spawn) as task:
         await pipe.send_to_app({"type": "lifespan.startup"})
         msg = await aio_wait(
-            pipe.receive_from_client(), aio_sleep(timeout), strategy=FIRST_COMPLETED,
+            pipe.receive_from_client(),
+            aio_sleep(timeout),
+            strategy=FIRST_COMPLETED,
         )
         if msg and isinstance(msg, Mapping):
             if msg["type"] == "lifespan.startup.failed":
@@ -415,7 +417,9 @@ async def manage_lifespan(app, timeout: float = 3e-2):
 
         await pipe.send_to_app({"type": "lifespan.shutdown"})
         msg = await aio_wait(
-            pipe.receive_from_client(), aio_sleep(timeout), strategy=FIRST_COMPLETED,
+            pipe.receive_from_client(),
+            aio_sleep(timeout),
+            strategy=FIRST_COMPLETED,
         )
         if msg and isinstance(msg, Mapping):
             assert msg["type"] == "lifespan.shutdown.complete"

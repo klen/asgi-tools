@@ -6,7 +6,16 @@ import inspect
 import sys
 from concurrent.futures import ALL_COMPLETED, FIRST_COMPLETED
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Awaitable, Callable, Coroutine, Union, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncGenerator,
+    Awaitable,
+    Callable,
+    Coroutine,
+    Union,
+    cast,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -42,10 +51,13 @@ except ImportError:
     except ImportError:
         from json import dumps, loads  # type: ignore
 
-        def json_dumps(content) -> bytes: # type: ignore
+        def json_dumps(content) -> bytes:  # type: ignore
             """Emulate orjson."""
             return dumps(  # type: ignore [call-arg]
-                content, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+                content,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            ).encode("utf-8")
 
     def json_loads(obj: Union[bytes, str]) -> Any:  # type: ignore
         """Emulate orjson."""
@@ -122,7 +134,6 @@ async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:
         return None
 
     if trio and current_async_library() == "trio":
-
         send_channel, receive_channel = trio.open_memory_channel(0)
 
         async with trio.open_nursery() as n:
@@ -167,9 +178,9 @@ async def aio_cancel(task: Union[asyncio.Task, Any]):
 
 
 async def aio_stream_file(
-    filepath: Union[str, Path], chunk_size: int = 32 * 1024,
+    filepath: Union[str, Path],
+    chunk_size: int = 32 * 1024,
 ) -> AsyncGenerator[bytes, None]:
-
     if trio and current_async_library() == "trio":
         async with await trio.open_file(filepath, "rb") as fp:
             while True:
@@ -188,10 +199,11 @@ async def aio_stream_file(
 
     else:
         if aiofile is None:
-            raise RuntimeError("`aiofile` is required to return files with asyncio")  # noqa: TRY003
+            raise RuntimeError(  # noqa:
+                "`aiofile` is required to return files with asyncio",
+            )
 
         async with aiofile.AIOFile(filepath, mode="rb") as fp:
-
             async for chunk in aiofile.Reader(fp, chunk_size=chunk_size):
                 yield chunk
 

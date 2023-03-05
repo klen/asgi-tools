@@ -11,6 +11,7 @@ from .errors import (
     ASGINotFoundError,
 )
 from .middleware import (
+    BackgroundMiddleware,
     LifespanMiddleware,
     RequestMiddleware,
     ResponseMiddleware,
@@ -34,29 +35,35 @@ from .response import (
 from .view import HTTPView
 
 __all__ = (
+    # Errors
     "ASGIConnectionClosedError",
     "ASGIError",
     "ASGIInvalidMethodError",
     "ASGINotFoundError",
+    "InvalidMethodError",
+    "NotFoundError",
+    # App/handlers
     "App",
     "HTTPView",
-    "InvalidMethodError",
-    "LifespanMiddleware",
-    "NotFoundError",
+    # Request/Response
     "Request",
-    "RequestMiddleware",
     "Response",
     "ResponseError",
     "ResponseFile",
     "ResponseHTML",
     "ResponseJSON",
-    "ResponseMiddleware",
     "ResponseRedirect",
     "ResponseSSE",
     "ResponseStream",
     "ResponseText",
     "ResponseWebSocket",
+    # Middleware
+    "BackgroundMiddleware",
+    "LifespanMiddleware",
+    "RequestMiddleware",
+    "ResponseMiddleware",
     "RouterMiddleware",
     "StaticFilesMiddleware",
+    # Utils
     "parse_response",
 )

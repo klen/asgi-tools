@@ -263,7 +263,8 @@ class ResponseFile(ResponseStream):
             raise ASGIError(f"It's a directory: {filepath}")  # noqa:
 
         super().__init__(
-            empty() if headers_only else aio_stream_file(filepath, chunk_size), **kwargs,
+            empty() if headers_only else aio_stream_file(filepath, chunk_size),
+            **kwargs,
         )
 
         headers = self.headers
@@ -271,9 +272,7 @@ class ResponseFile(ResponseStream):
             headers["content-disposition"] = f'attachment; filename="{quote(filename)}"'
 
         if "content-type" not in headers:
-            headers["content-type"] = (
-                guess_type(filename or str(filepath))[0] or "text/plain"
-            )
+            headers["content-type"] = guess_type(filename or str(filepath))[0] or "text/plain"
 
         headers.setdefault("content-length", str(stat.st_size))
         headers.setdefault("last-modified", formatdate(stat.st_mtime, usegmt=True))
@@ -358,7 +357,9 @@ class ResponseWebSocket(Response):
         self.state = self.STATES.DISCONNECTED
 
     async def send(
-        self, msg: Union[Dict, str, bytes], msg_type="websocket.send",
+        self,
+        msg: Union[Dict, str, bytes],
+        msg_type="websocket.send",
     ) -> None:
         """Send the given message to a client."""
         if self.state == self.STATES.DISCONNECTED:
@@ -418,7 +419,8 @@ class ResponseErrorMeta(type):
         """Generate Response Errors by HTTP names."""
         status = HTTPStatus[name]
         return partial(
-            lambda *args, **kwargs: cls(*args, **kwargs), status_code=status.value,
+            lambda *args, **kwargs: cls(*args, **kwargs),
+            status_code=status.value,
         )
 
 
@@ -496,9 +498,7 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
         """Check error status."""
         content = message or HTTPStatus(status_code or self.status_code).description
         super().__init__(content=content, status_code=status_code, **kwargs)
-        assert (
-            self.status_code >= 400
-        ), f"Invalid status code for an error: {self.status_code}"
+        assert self.status_code >= 400, f"Invalid status code for an error: {self.status_code}"
 
 
 CAST_RESPONSE: Mapping[Type, Type[Response]] = {
@@ -528,7 +528,8 @@ def parse_response(response, headers: Optional[Dict] = None) -> Response:
         if len(contents) > 1:
             headers, *contents = contents
         response = parse_response(
-            contents[0] or "" if contents else "", headers=headers,
+            contents[0] or "" if contents else "",
+            headers=headers,
         )
         response.status_code = status
         return response
@@ -537,7 +538,8 @@ def parse_response(response, headers: Optional[Dict] = None) -> Response:
 
 
 def parse_websocket_msg(
-    msg: TASGIMessage, charset: Optional[str] = None,
+    msg: TASGIMessage,
+    charset: Optional[str] = None,
 ) -> Union[TASGIMessage, str]:
     """Prepare websocket message."""
     data = msg.get("text")

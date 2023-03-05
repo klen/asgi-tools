@@ -350,6 +350,12 @@ StaticFilesMiddleware
 
 .. autoclass:: StaticFilesMiddleware
 
+
+BackgroundMiddleware
+^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: BackgroundMiddleware
+
 Application
 -----------
 

@@ -1,4 +1,6 @@
 """test middlewares"""
+from __future__ import annotations
+
 import pytest
 
 
@@ -61,7 +63,7 @@ async def test_request_response_middlewares(Client):
     assert res.status_code == 200
     assert await res.text() == "Hello Jack Daniels from '/testurl'"
     assert res.headers["content-length"] == str(
-        len("Hello Jack Daniels from '/testurl'")
+        len("Hello Jack Daniels from '/testurl'"),
     )
 
 
@@ -78,9 +80,9 @@ async def test_lifespan_middleware(Client):
     client = Client(app)
 
     async with client.lifespan():
-        assert SIDE_EFFECTS == ["started"]
+        assert ["started"] == SIDE_EFFECTS
 
-    assert SIDE_EFFECTS == ["started", "finished"]
+    assert ["started", "finished"] == SIDE_EFFECTS
 
 
 async def test_lifespan_middleware_errors(Client):
@@ -206,3 +208,28 @@ async def test_staticfiles_middleware(Client, app):
 
     res = await client.get("/static")
     assert res.status_code == 404
+
+
+async def test_background_middleware(Client, app):
+    from asgi_tools import BackgroundMiddleware, ResponseText, RouterMiddleware
+    from asgi_tools._compat import aio_sleep
+
+    router = RouterMiddleware()
+    app = BackgroundMiddleware(router)
+    results = []
+
+    async def background_task(name):
+        await aio_sleep(1e-1)
+        results.append(name)
+
+    @router.route("/test")
+    async def test(scope, receive, send):
+        BackgroundMiddleware.set_task(background_task("test1"))
+
+        response = ResponseText("test")
+        await response(scope, receive, send)
+
+    client = Client(app)
+    res = await client.get("/test")
+    assert res.status_code == 200
+    assert results == ["test1"]

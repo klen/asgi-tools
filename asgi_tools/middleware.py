@@ -1,9 +1,11 @@
 """ASGI-Tools Middlewares."""
+
 from __future__ import annotations
 
 import abc
-import inspect
+from contextvars import ContextVar
 from functools import partial
+from inspect import isawaitable
 from pathlib import Path
 from typing import TYPE_CHECKING, Awaitable, Callable, List, Mapping, Optional, Set, Tuple, Union
 
@@ -29,7 +31,10 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
         self.bind(app)
 
     def __call__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend,
+        self,
+        scope: TASGIScope,
+        receive: TASGIReceive,
+        send: TASGISend,
     ) -> Awaitable:
         """Handle ASGI call."""
 
@@ -40,7 +45,10 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     async def __process__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend,
+        self,
+        scope: TASGIScope,
+        receive: TASGIReceive,
+        send: TASGISend,
     ):
         """Do the middleware's logic."""
 
@@ -114,7 +122,10 @@ class ResponseMiddleware(BaseMiddeware):
     """
 
     async def __process__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend,
+        self,
+        scope: TASGIScope,
+        receive: TASGIReceive,
+        send: TASGISend,
     ):
         """Parse responses from callbacks."""
 
@@ -152,7 +163,10 @@ class RequestMiddleware(BaseMiddeware):
     """
 
     async def __process__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend,
+        self,
+        scope: TASGIScope,
+        receive: TASGIReceive,
+        send: TASGISend,
     ):
         """Replace scope with request object."""
         return await self.app(Request(scope, receive, send), receive, send)
@@ -261,12 +275,13 @@ class LifespanMiddleware(BaseMiddeware):
         for handler in handlers:
             try:
                 res = handler()
-                if inspect.isawaitable(res):
+                if isawaitable(res):
                     await res
             except Exception as exc:
                 self.logger.exception(
                     "%s method '%s' raises an exception.",
-                    event.title(), handler,
+                    event.title(),
+                    handler,
                 )
 
                 if self.ignore_errors:
@@ -342,7 +357,9 @@ class RouterMiddleware(BaseMiddeware):
     """
 
     def __init__(
-        self, app: Optional[TASGIApp] = None, router: Optional[Router] = None,
+        self,
+        app: Optional[TASGIApp] = None,
+        router: Optional[Router] = None,
     ) -> None:
         """Initialize HTTP router."""
         super().__init__(app)
@@ -384,7 +401,9 @@ class StaticFilesMiddleware(BaseMiddeware):
 
         async def app(scope, receive, send):
             response = ResponseHTML('OK)
+            await response(scope, receive, send)
 
+        # Files from static folder will be served from /static
         app = StaticFilesMiddleware(app, folders=['static'])
 
     """
@@ -406,7 +425,10 @@ class StaticFilesMiddleware(BaseMiddeware):
         self.folders: List[Path] = [Path(folder) for folder in folders]
 
     async def __process__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend,
+        self,
+        scope: TASGIScope,
+        receive: TASGIReceive,
+        send: TASGISend,
     ) -> None:
         """Serve static files for self url prefix."""
         path = scope["path"]
@@ -418,7 +440,8 @@ class StaticFilesMiddleware(BaseMiddeware):
                 filepath = folder.joinpath(filename).resolve()
                 try:
                     response = ResponseFile(
-                        filepath, headers_only=scope["method"] == "HEAD",
+                        filepath,
+                        headers_only=scope["method"] == "HEAD",
                     )
                     break
 
@@ -430,3 +453,42 @@ class StaticFilesMiddleware(BaseMiddeware):
 
         else:
             await self.app(scope, receive, send)
+
+
+BACKGROUND_TASK = ContextVar[Optional[Awaitable]]("background_task", default=None)
+
+
+class BackgroundMiddleware(BaseMiddeware):
+    """Run background tasks.
+
+
+    .. code-block:: python
+
+        from asgi_tools import BackgroundMiddleware, ResponseText
+
+        async def app(scope, receive, send):
+            response = ResponseText('OK)
+
+            # Schedule any awaitable for later execution
+            BackgroundMiddleware.set_task(asyncio.sleep(1))
+
+            # Return response immediately
+            await response(scope, receive, send)
+
+            # The task will be executed after the response is sent
+
+        app = BackgroundMiddleware(app)
+
+    """
+
+    async def __process__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):
+        """Run background tasks."""
+        await self.app(scope, receive, send)
+        bgtask = BACKGROUND_TASK.get()
+        if bgtask is not None and isawaitable(bgtask):
+            await bgtask
+
+    @staticmethod
+    def set_task(task: Awaitable):
+        """Set a task for background execution."""
+        BACKGROUND_TASK.set(task)

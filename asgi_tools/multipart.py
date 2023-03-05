@@ -120,7 +120,6 @@ class QueryStringParser(BaseParser):
         while idx < data_len:
             ch = data[idx]
             if state == STATE_BEFORE_FIELD:
-
                 if ch not in (AMPERSAND, SEMICOLON):
                     self.callback("field_start", b"", 0, 0)
                     idx -= 1
@@ -549,7 +548,6 @@ class MultipartParser(BaseParser):
             elif state == STATE_START:
                 # Skip leading newlines
                 if ch not in (CR, LF):
-
                     # Move to the next state, but decrement i so that we re-process
                     # this character.
                     idx -= 1

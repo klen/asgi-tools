@@ -80,7 +80,9 @@ class App:
 
         # Setup routing
         self.router = Router(
-            trim_last_slash=trim_last_slash, validator=callable, converter=to_awaitable,
+            trim_last_slash=trim_last_slash,
+            validator=callable,
+            converter=to_awaitable,
         )
 
         # Setup logging
@@ -91,13 +93,16 @@ class App:
 
         # Setup lifespan
         self.lifespan = LifespanMiddleware(
-            self.__process__, ignore_errors=not debug, logger=self.logger,
+            self.__process__,
+            ignore_errors=not debug,
+            logger=self.logger,
         )
 
         # Enable middleware for static files
         if static_folders and static_url_prefix:
             md = StaticFilesMiddleware.setup(
-                folders=static_folders, url_prefix=static_url_prefix,
+                folders=static_folders,
+                url_prefix=static_url_prefix,
             )
             self.middleware(md)
 
@@ -108,7 +113,8 @@ class App:
         if not debug:
 
             async def handle_unknown_exception(
-                _: Request, exc: BaseException,
+                _: Request,
+                exc: BaseException,
             ) -> Response:
                 self.logger.exception(exc)
                 return ResponseError.INTERNAL_SERVER_ERROR()
@@ -118,13 +124,19 @@ class App:
         self.internal_middlewares: List = []
 
     async def __call__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend,
+        self,
+        scope: TASGIScope,
+        receive: TASGIReceive,
+        send: TASGISend,
     ) -> None:
         """Convert the given scope into a request and process."""
         await self.lifespan(scope, receive, send)
 
     async def __process__(
-        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend,
+        self,
+        scope: TASGIScope,
+        receive: TASGIReceive,
+        send: TASGISend,
     ):
         """Send ASGI messages."""
         scope["app"] = self
@@ -135,7 +147,7 @@ class App:
                 await response(scope, receive, send)
 
         # Handle exceptions
-        except BaseException as exc: # noqa: BLE001
+        except BaseException as exc:  # noqa: BLE001
             for etype in type(exc).mro():
                 if etype in self.exception_handlers:
                     await parse_response(
@@ -149,7 +161,10 @@ class App:
                     raise
 
     async def __match__(
-        self, request: Request, _: TASGIReceive, send: TASGISend,
+        self,
+        request: Request,
+        _: TASGIReceive,
+        send: TASGISend,
     ) -> Optional[Response]:
         """Find and call a callback, parse a response, handle exceptions."""
         scope = request.scope
@@ -166,9 +181,7 @@ class App:
         scope["path_params"] = {} if match.params is None else match.params
         response = await match.target(request)
 
-        scope_type = scope["type"]
-
-        if scope_type == "http":
+        if scope["type"] == "http":
             return parse_response(response)
 
         # TODO: Do we need to close websockets automatically?
@@ -187,7 +200,6 @@ class App:
         """Register a middleware."""
         # Register as a simple middleware
         if iscoroutinefunction(md):
-
             if md not in self.internal_middlewares:
                 if insert_first:
                     self.internal_middlewares.insert(0, md)

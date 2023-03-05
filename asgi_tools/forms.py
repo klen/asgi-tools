@@ -24,7 +24,9 @@ async def read_formdata(
     """Read formdata from the given request."""
     if request.content_type == "multipart/form-data":
         reader: FormReader = MultipartReader(
-            request.charset, upload_to, file_memory_limit,
+            request.charset,
+            upload_to,
+            file_memory_limit,
         )
     else:
         reader = FormReader(request.charset)
@@ -89,7 +91,10 @@ class MultipartReader(FormReader):
     )
 
     def __init__(
-        self, charset: str, upload_to: Optional[Callable], file_memory_limit: int,
+        self,
+        charset: str,
+        upload_to: Optional[Callable],
+        file_memory_limit: int,
     ):
         super().__init__(charset)
         self.name = ""

@@ -1,4 +1,5 @@
 """ASGI-Tools Utils."""
+
 from __future__ import annotations
 
 import re
@@ -99,7 +100,6 @@ def parse_options_header(value: str) -> Tuple[str, Dict[str, str]]:
 
         option, count, encoding, _, value = match.groups()
         if value is not None:
-
             if encoding is not None:
                 value = unquote_to_bytes(value).decode(encoding)
 
