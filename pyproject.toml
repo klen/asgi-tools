@@ -104,3 +104,8 @@ ignore = ["D", "UP", "ANN", "DJ", "EM", "RSE", "SLF", "S101", "PLR2004"]
 
 [tool.ruff.isort]
 required-imports = ["from __future__ import annotations"]
+
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py310", "py311"]
+preview = true
