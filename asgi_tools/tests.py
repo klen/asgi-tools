@@ -185,16 +185,16 @@ class ASGITestClient:
 
         scope = self.build_scope(
             path,
-            headers=headers,
-            query=query,
-            cookies=cookies,
             type="http",
+            query=query,
             method=method,
+            headers=headers,
+            cookies=cookies,
         )
 
         await aio_wait(
             aio_wait(
-                stream_data(data, pipe.send_to_app),
+                pipe.stream(data),
                 self.app(scope, pipe.receive_from_app, pipe.send_to_client),
             ),
             raise_timeout(timeout),
@@ -368,25 +368,21 @@ class Pipe:
             await aio_sleep(self.delay)
         return self.app_queue.popleft()
 
+    async def stream(self, data: Union[bytes, AsyncGenerator[Any, bytes]]):
+        if isinstance(data, bytes):
+            return await self.send_to_app(
+                {"type": "http.request", "body": data, "more_body": False},
+            )
+
+        async for chunk in data:
+            await self.send_to_app({"type": "http.request", "body": chunk, "more_body": True})
+        await self.send_to_app({"type": "http.request", "body": b"", "more_body": False})
+        return None
+
 
 async def raise_timeout(timeout: Union[int, float]):
     await aio_sleep(timeout)
     raise TimeoutError
-
-
-async def stream_data(
-    data: Union[bytes, AsyncGenerator[Any, bytes]],
-    send: Callable[[TASGIMessage], Awaitable[None]],
-):
-    """Stream a data to an application."""
-
-    if isinstance(data, bytes):
-        return await send({"type": "http.request", "body": data, "more_body": False})
-
-    async for chunk in data:
-        await send({"type": "http.request", "body": chunk, "more_body": True})
-    await send({"type": "http.request", "body": b"", "more_body": False})
-    return None
 
 
 @asynccontextmanager
