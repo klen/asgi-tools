@@ -64,7 +64,7 @@ async def test_request(receive, send):
     assert r2 is not request
 
 
-async def test_multipart(Client):
+async def test_multipart(client_cls):
     from asgi_tools import Request, ResponseHTML
 
     async def app(scope, receive, send):
@@ -73,7 +73,7 @@ async def test_multipart(Client):
         response = ResponseHTML(data["test"].read().decode().split("\n")[0])
         return await response(scope, receive, send)
 
-    client = Client(app)
+    client = client_cls(app)
     with Path(__file__).open() as f:
         res = await client.post("/", data={"test": f})
     assert res.status_code == 200
@@ -81,31 +81,31 @@ async def test_multipart(Client):
     assert res.headers["content-length"] == str(len('"""Test Request."""'))
 
 
-async def test_media(GenRequest):
-    req = GenRequest()
+async def test_media(gen_request):
+    req = gen_request()
     assert req.media
     assert req.content_type == ""
 
-    req = GenRequest(headers={"content-type": "text/html; charset=iso-8859-1"})
+    req = gen_request(headers={"content-type": "text/html; charset=iso-8859-1"})
     assert req.media
     assert req.media["charset"]
     assert req.media["content_type"]
     assert req.content_type == "text/html"
 
 
-async def test_json(GenRequest):
+async def test_json(gen_request):
     from asgi_tools.errors import ASGIDecodeError
 
-    req = GenRequest(body=[b"invalid"])
+    req = gen_request(body=[b"invalid"])
     with pytest.raises(ASGIDecodeError):
         await req.json()
 
-    req = GenRequest(body=[b'{"test": 42}'])
+    req = gen_request(body=[b'{"test": 42}'])
     json = await req.json()
     assert json == {"test": 42}
 
 
-async def test_data(Client, GenRequest):
+async def test_data(client_cls, gen_request):
     from asgi_tools import Request, ResponseMiddleware
 
     async def app(scope, receive, send):
@@ -114,7 +114,7 @@ async def test_data(Client, GenRequest):
         return isinstance(data, (str, bytes)) and data or dict(data)
 
     app = ResponseMiddleware(app)
-    client = Client(app)
+    client = client_cls(app)
 
     # Post formdata
     res = await client.post("/", data={"test": "passed"})
@@ -133,12 +133,14 @@ async def test_data(Client, GenRequest):
 
     # Invalid data
     res = await client.post(
-        "/", data="invalid", headers={"content-type": "application/json"},
+        "/",
+        data="invalid",
+        headers={"content-type": "application/json"},
     )
     assert res.status_code == 200
     assert await res.text() == "invalid"
 
-    req = GenRequest(body=[b"invalid"], headers={"content-type": "application/json"})
+    req = gen_request(body=[b"invalid"], headers={"content-type": "application/json"})
     assert await req.data() == b"invalid"
 
     from asgi_tools.errors import ASGIDecodeError

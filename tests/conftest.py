@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 
@@ -7,20 +9,20 @@ import pytest
         pytest.param(("asyncio", {"use_uvloop": True}), id="asyncio+uvloop"),
         "trio",
         "curio",
-    ]
+    ],
 )
 def aiolib(request):
     return request.param
 
 
 @pytest.fixture(scope="session")
-def Client():
+def client_cls():
     from asgi_tools.tests import ASGITestClient
 
     return ASGITestClient
 
 
-@pytest.fixture
+@pytest.fixture()
 def app():
     from asgi_tools import App
 
@@ -33,9 +35,9 @@ def app():
     return app
 
 
-@pytest.fixture
-def client(app, Client):
-    return Client(app)
+@pytest.fixture()
+def client(app, client_cls):
+    return client_cls(app)
 
 
 @pytest.fixture(scope="session")
@@ -54,12 +56,12 @@ def send():
     return send
 
 
-@pytest.fixture
-def GenRequest(client, send):
+@pytest.fixture()
+def gen_request(client, send):
     from asgi_tools import Request
 
-    def gen_request(path="/", body=None, type="http", method="GET", **opts):
-        scope = client.build_scope(path, type=type, method=method, **opts)
+    def gen_request(path="/", body=None, scope_type="http", method="GET", **opts):
+        scope = client.build_scope(path, type=scope_type, method=method, **opts)
 
         body = list(body) if body else []
 
@@ -67,7 +69,6 @@ def GenRequest(client, send):
             chunk = body.pop(0)
             return {"body": chunk, "more_body": bool(len(body))}
 
-        request = Request(scope, receive, send)
-        return request
+        return Request(scope, receive, send)
 
     return gen_request

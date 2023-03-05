@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 def test_types_available():
     from asgi_tools import types
 

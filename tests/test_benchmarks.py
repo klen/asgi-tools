@@ -1,11 +1,15 @@
+from __future__ import annotations
+
+from contextlib import suppress
+
 import pytest
 
 
 @pytest.mark.benchmark(group="req-res", disable_gc=True)
-def test_benchmark_req_res(benchmark, GenRequest, receive, send):
+def test_benchmark_req_res(benchmark, gen_request, receive, send):
     from asgi_tools import Request, parse_response
 
-    scope = GenRequest(
+    scope = gen_request(
         "/test",
         query={"param": "value"},
         headers={"header": "value"},
@@ -24,10 +28,8 @@ def test_benchmark_req_res(benchmark, GenRequest, receive, send):
 
         response = parse_response("body")
         coro = response(None, None, send)
-        try:
+        with suppress(StopIteration):
             coro.send(None)
-        except StopIteration:
-            pass
 
     benchmark(run_benchmark)
 
@@ -68,10 +70,8 @@ def test_benchmark_app(benchmark, app, client):
 
     def run_benchmark():
         coro = app(scope, None, send)
-        try:
+        with suppress(StopIteration):
             coro.send(None)
-        except StopIteration:
-            pass
 
         nonlocal messages
         res = list(messages)

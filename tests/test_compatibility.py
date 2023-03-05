@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 async def test_aio_sleep():
     from asgi_tools._compat import aio_sleep
 
@@ -5,25 +8,24 @@ async def test_aio_sleep():
 
 
 async def test_aio_spawn():
-    from asgi_tools._compat import aio_spawn, aio_sleep
+    from asgi_tools._compat import aio_sleep, aio_spawn
 
-    SIDE_EFFECTS = {}
+    side_effects = {}
 
     async def task(name):
-        SIDE_EFFECTS[name] = True
+        side_effects[name] = True
 
-    async with aio_spawn(task, 'tests'):
+    async with aio_spawn(task, "tests"):
         await aio_sleep(1e-2)
 
-    assert SIDE_EFFECTS['tests'] is True
+    assert side_effects["tests"] is True
 
 
 async def test_aio_wait():
-
-    from asgi_tools._compat import aio_wait, aio_sleep, FIRST_COMPLETED
+    from asgi_tools._compat import FIRST_COMPLETED, aio_sleep, aio_wait
 
     async def task(name, time):
         await aio_sleep(time)
         return name
 
-    assert 't2' == await aio_wait(task('t1', 2e-2), task('t2', 1e-2), strategy=FIRST_COMPLETED)
+    assert await aio_wait(task("t1", 2e-2), task("t2", 1e-2), strategy=FIRST_COMPLETED) == "t2"

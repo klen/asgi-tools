@@ -4,12 +4,12 @@ from __future__ import annotations
 import pytest
 
 
-async def test_response_middleware(Client):
+async def test_response_middleware(client_cls):
     from asgi_tools import ResponseError, ResponseMiddleware
 
     # Test default response
     app = ResponseMiddleware()
-    client = Client(app)
+    client = client_cls(app)
     res = await client.get("/")
     assert res.status_code == 404
     assert await res.text() == "Nothing matches the given URI"
@@ -18,7 +18,7 @@ async def test_response_middleware(Client):
         return False
 
     app = ResponseMiddleware(app)
-    client = Client(app)
+    client = client_cls(app)
     res = await client.get("/")
     assert res.status_code == 200
     assert await res.text() == "false"
@@ -27,7 +27,7 @@ async def test_response_middleware(Client):
         raise ResponseError.BAD_GATEWAY()
 
     app = ResponseMiddleware(app)
-    client = Client(app)
+    client = client_cls(app)
     res = await client.get("/")
     assert res.status_code == 502
     assert await res.text() == "Invalid responses from another server/proxy"
@@ -36,13 +36,13 @@ async def test_response_middleware(Client):
         return
 
     app = ResponseMiddleware(app)
-    client = Client(app)
+    client = client_cls(app)
     res = await client.get("/")
     assert res.status_code == 200
     assert await res.text() == "null"
 
 
-async def test_request_response_middlewares(Client):
+async def test_request_response_middlewares(client_cls):
     from asgi_tools import RequestMiddleware, ResponseMiddleware
 
     async def app(request, receive, send):
@@ -53,7 +53,7 @@ async def test_request_response_middlewares(Client):
 
     app = RequestMiddleware(ResponseMiddleware(app))
 
-    client = Client(app)
+    client = client_cls(app)
     res = await client.post(
         "/testurl?last_name=Daniels",
         json={"first_name": "Jack"},
@@ -67,61 +67,61 @@ async def test_request_response_middlewares(Client):
     )
 
 
-async def test_lifespan_middleware(Client):
+async def test_lifespan_middleware(client_cls):
     from asgi_tools import LifespanMiddleware
 
-    SIDE_EFFECTS = []
+    side_effects = []
 
     app = LifespanMiddleware(
         lambda scope, receive, send: None,
-        on_startup=lambda: SIDE_EFFECTS.append("started"),
-        on_shutdown=lambda: SIDE_EFFECTS.append("finished"),
+        on_startup=lambda: side_effects.append("started"),
+        on_shutdown=lambda: side_effects.append("finished"),
     )
-    client = Client(app)
+    client = client_cls(app)
 
     async with client.lifespan():
-        assert ["started"] == SIDE_EFFECTS
+        assert ["started"] == side_effects
 
-    assert ["started", "finished"] == SIDE_EFFECTS
+    assert ["started", "finished"] == side_effects
 
 
-async def test_lifespan_middleware_errors(Client):
+async def test_lifespan_middleware_errors(client_cls):
     from asgi_tools import LifespanMiddleware
 
-    SIDE_EFFECTS = {}
+    side_effects = {}
 
     async def fail():
         raise Exception
 
     async def start():
-        SIDE_EFFECTS["started"] = True
+        side_effects["started"] = True
 
     app = LifespanMiddleware(
         lambda scope, receive, send: None,
         on_startup=[fail, start],
-        on_shutdown=lambda: SIDE_EFFECTS.setdefault("finished", True),
+        on_shutdown=lambda: side_effects.setdefault("finished", True),
     )
-    client = Client(app)
+    client = client_cls(app)
 
     async with client.lifespan():
-        assert "started" not in SIDE_EFFECTS
+        assert "started" not in side_effects
 
-    assert "finished" not in SIDE_EFFECTS
+    assert "finished" not in side_effects
 
     app = LifespanMiddleware.setup(ignore_errors=True)(
         lambda scope, receive, send: None,
         on_startup=[fail, start],
-        on_shutdown=lambda: SIDE_EFFECTS.setdefault("finished", True),
+        on_shutdown=lambda: side_effects.setdefault("finished", True),
     )
-    client = Client(app)
+    client = client_cls(app)
 
     async with client.lifespan():
-        assert SIDE_EFFECTS["started"]
+        assert side_effects["started"]
 
-    assert SIDE_EFFECTS["finished"]
+    assert side_effects["finished"]
 
 
-async def test_router_middleware(Client):
+async def test_router_middleware(client_cls):
     from asgi_tools import Response, RouterMiddleware
 
     app = RouterMiddleware()
@@ -140,7 +140,7 @@ async def test_router_middleware(Client):
         res = Response(f"page2: {mode}")
         return await res(scope, receive, send)
 
-    client = Client(app)
+    client = client_cls(app)
     res = await client.get("/")
     assert res.status_code == 404
     assert await res.text() == "Nothing matches the given URI"
@@ -157,7 +157,7 @@ async def test_router_middleware(Client):
     assert await res.text() == "page2: 42"
 
 
-async def test_router_middleware2(Client):
+async def test_router_middleware2(client_cls):
     from asgi_tools import ResponseError, ResponseMiddleware, RouterMiddleware
 
     async def page404(scope, receive, send):
@@ -170,7 +170,7 @@ async def test_router_middleware2(Client):
     async def page1(scope, receive, send):
         return "page1"
 
-    client = Client(app)
+    client = client_cls(app)
     res = await client.get("/")
     assert res.status_code == 404
     assert await res.text() == "Nothing matches the given URI"
@@ -180,14 +180,14 @@ async def test_router_middleware2(Client):
     assert await res.text() == "page1"
 
 
-async def test_staticfiles_middleware(Client, app):
-    import os
+async def test_staticfiles_middleware(client_cls, app):
+    from pathlib import Path
 
     from asgi_tools import StaticFilesMiddleware
 
-    app = StaticFilesMiddleware(app, folders=["/", os.path.dirname(__file__)])
+    app = StaticFilesMiddleware(app, folders=["/", Path(__file__).parent])
 
-    client = Client(app)
+    client = client_cls(app)
     res = await client.get("/")
     assert res.status_code == 200
     body = await res.body()
@@ -210,7 +210,7 @@ async def test_staticfiles_middleware(Client, app):
     assert res.status_code == 404
 
 
-async def test_background_middleware(Client, app):
+async def test_background_middleware(client_cls, app):
     from asgi_tools import BackgroundMiddleware, ResponseText, RouterMiddleware
     from asgi_tools._compat import aio_sleep
 
@@ -229,7 +229,7 @@ async def test_background_middleware(Client, app):
         response = ResponseText("test")
         await response(scope, receive, send)
 
-    client = Client(app)
+    client = client_cls(app)
     res = await client.get("/test")
     assert res.status_code == 200
     assert results == ["test1"]

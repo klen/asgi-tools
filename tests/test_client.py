@@ -118,7 +118,8 @@ async def test_files(app, client):
         return formdata["test_client.py"].read()
 
     res = await client.post(
-        "/files", data={"field": "value", "test_client.py": Path(__file__).open()},
+        "/files",
+        data={"field": "value", "test_client.py": Path(__file__).open()},
     )
     assert res.status_code == 200
     assert "test_files" in await res.text()
@@ -126,7 +127,8 @@ async def test_files(app, client):
     fakefile = io.BytesIO(b"file content")
     fakefile.name = "test_client.py"
     res = await client.post(
-        "/files", data={"field": "value", "test_client.py": fakefile},
+        "/files",
+        data={"field": "value", "test_client.py": fakefile},
     )
     assert res.status_code == 200
     assert "file content" in await res.text()
@@ -214,7 +216,7 @@ async def test_stream_request(app, client):
     assert res.status_code == 200
 
 
-async def test_websocket(app, Client):
+async def test_websocket(app, client_cls):
     from asgi_tools import ASGIConnectionClosedError, ResponseWebSocket
 
     @app.route("/websocket")
@@ -225,8 +227,9 @@ async def test_websocket(app, Client):
             assert msg == "ping"
             await ws.send("pong")
 
-    async with Client(app).websocket(
-        "/websocket", headers={"sec-websocket-protocol": "ship,done"},
+    async with client_cls(app).websocket(
+        "/websocket",
+        headers={"sec-websocket-protocol": "ship,done"},
     ) as ws:
         await ws.send("ping")
         msg = await ws.receive()
@@ -236,7 +239,7 @@ async def test_websocket(app, Client):
             await ws.receive()
 
 
-async def test_websocket_disconnect(app, Client):
+async def test_websocket_disconnect(app, client_cls):
     from asgi_tools import ResponseWebSocket
 
     @app.route("/websocket")
@@ -245,7 +248,7 @@ async def test_websocket_disconnect(app, Client):
             msg = await ws.receive()
             assert msg == {"type": "websocket.disconnect", "code": 1005}
 
-    async with Client(app).websocket("/websocket"):
+    async with client_cls(app).websocket("/websocket"):
         pass
 
 
@@ -266,21 +269,21 @@ async def test_timeouts(app, client):
     assert await res.text() == "OK"
 
 
-async def test_lifespan_unsupported(Client):
+async def test_lifespan_unsupported(client_cls):
     from asgi_tools import Response
 
     async def app(scope, receive, send):
         assert scope["type"] == "http"
         await Response("OK")(scope, receive, send)
 
-    client = Client(app)
+    client = client_cls(app)
 
     async with client.lifespan():
         res = await client.get("/")
         assert res.status_code == 200
 
 
-async def test_lifespan(Client):
+async def test_lifespan(client_cls):
     from asgi_tools import Response
 
     side_effects = {"started": False, "finished": False}
@@ -300,7 +303,7 @@ async def test_lifespan(Client):
 
         await Response("OK")(scope, receive, send)
 
-    client = Client(app)
+    client = client_cls(app)
 
     with pytest.raises(AssertionError):  # noqa: PT012
         async with client.lifespan():
@@ -316,7 +319,7 @@ async def test_lifespan(Client):
     assert side_effects["finished"]
 
 
-async def test_invalid_app(Client):
+async def test_invalid_app(client_cls):
     from asgi_tools import Response
     from asgi_tools.errors import ASGIInvalidMessageError
 
@@ -324,7 +327,7 @@ async def test_invalid_app(Client):
         await Response("test")(scope, receive, send)
         await Response("test")(scope, receive, send)
 
-    client = Client(invalid)
+    client = client_cls(invalid)
     with pytest.raises(ASGIInvalidMessageError):
         await client.get("/")
 

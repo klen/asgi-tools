@@ -1,10 +1,11 @@
 """Application Tests."""
+from __future__ import annotations
 
 from pathlib import Path
 from unittest import mock
 
 
-async def test_app(Client):
+async def test_app(client_cls):
     from asgi_tools.app import App
 
     app = App(static_folders=[Path(__file__).parent])
@@ -13,7 +14,7 @@ async def test_app(Client):
     async def test_request(request):
         return "Done %s" % request.path_params["param"]
 
-    client = Client(app)
+    client = client_cls(app)
 
     res = await client.get("/404")
     assert res.status_code == 404
@@ -61,11 +62,11 @@ async def test_app(Client):
     assert await res.text() == "Sync is ok"
 
 
-async def test_errors(Client):
+async def test_errors(client_cls):
     from asgi_tools.app import App, ResponseError
 
     app = App()
-    client = Client(app)
+    client = client_cls(app)
 
     @app.route("/502")
     async def test_response_error(request):
@@ -84,11 +85,11 @@ async def test_errors(Client):
     assert await res.text() == "Server got itself in trouble"
 
 
-async def test_trim_last_slach(Client):
+async def test_trim_last_slach(client_cls):
     from asgi_tools.app import App
 
     app = App()
-    client = Client(app)
+    client = client_cls(app)
 
     @app.route("/route1")
     async def route1(request):
@@ -111,14 +112,14 @@ async def test_trim_last_slach(Client):
     assert res.status_code == 404
 
     app = App(trim_last_slash=True)
-    client = Client(app)
+    client = client_cls(app)
 
     @app.route("/route1")
-    async def route1(request):  # noqa
+    async def route1(request):
         return "route1"
 
     @app.route("/route2/")
-    async def route2(request):  # noqa
+    async def route2(request):
         return "route2"
 
     res = await client.get("/route1")
@@ -134,21 +135,20 @@ async def test_trim_last_slach(Client):
     assert res.status_code == 200
 
 
-async def test_app_static(Client):
+async def test_app_static(client_cls):
     from asgi_tools.app import App
 
     app = App(static_folders=[Path(__file__).parent])
-    client = Client(app)
+    client = client_cls(app)
 
     async with client.lifespan():
-
         res = await client.get("/static/test_app.py")
         assert res.status_code == 200
         text = await res.text()
         assert text.startswith('"""Application Tests."""')
 
 
-async def test_app_handle_exception(Client):
+async def test_app_handle_exception(client_cls):
     from asgi_tools.app import App, ResponseError
 
     app = App()
@@ -163,7 +163,7 @@ async def test_app_handle_exception(Client):
         raise res
 
     # By default we handle all exceptions as INTERNAL SERVER ERROR 500 Response
-    client = Client(app)
+    client = client_cls(app)
     res = await client.get("/500")
     assert res.status_code == 500
     assert await res.text() == "Server got itself in trouble"
@@ -179,7 +179,6 @@ async def test_app_handle_exception(Client):
         return "Custom Server Error"
 
     async with client.lifespan():
-
         res = await client.get("/500")
         assert res.status_code == 200
         assert await res.text() == "UNKNOWN: Unknown Exception"
@@ -337,23 +336,22 @@ async def test_websockets(app, client):
 
 
 async def test_app_lifespan(app, client):
-
-    SIDE_EFFECTS = {}
+    side_effects = {}
 
     @app.on_startup
     def start():
-        SIDE_EFFECTS["started"] = True
+        side_effects["started"] = True
 
     @app.on_shutdown
     def finish():
-        SIDE_EFFECTS["finished"] = True
+        side_effects["finished"] = True
 
     async with client.lifespan():
-        assert SIDE_EFFECTS["started"]
+        assert side_effects["started"]
         res = await client.get("/")
         assert res.status_code == 200
 
-    assert SIDE_EFFECTS["finished"]
+    assert side_effects["finished"]
 
 
 async def test_nested(app, client):

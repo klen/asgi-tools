@@ -142,9 +142,7 @@ async def test_error_response():
     from asgi_tools import ResponseError
 
     response = ResponseError(status_code=503)
-    assert (
-        response.content == b"The server cannot process the request due to a high load"
-    )
+    assert response.content == b"The server cannot process the request due to a high load"
 
     response = ResponseError.NOT_FOUND()
     assert response.status_code == 404
@@ -156,7 +154,7 @@ async def test_error_response():
 
 
 # TODO: Exceptions
-async def test_stream_response(Client):
+async def test_stream_response(client_cls):
     from asgi_tools import ResponseStream
     from asgi_tools._compat import aio_sleep
 
@@ -179,7 +177,7 @@ async def test_stream_response(Client):
         response = ResponseStream(filler())
         return response(scope, receive, send)
 
-    client = Client(app)
+    client = client_cls(app)
     res = await client.get("/")
     assert res.status_code == 200
     assert await res.text() == "0123456789"
@@ -215,7 +213,7 @@ async def test_file_response():
         response = ResponseFile("unknown")
 
 
-async def test_sse_response(Client):
+async def test_sse_response(client_cls):
     from asgi_tools import ResponseSSE
     from asgi_tools._compat import aio_sleep
 
@@ -234,7 +232,7 @@ async def test_sse_response(Client):
         response = ResponseSSE(filler())
         return response(scope, receive, send)
 
-    client = Client(app)
+    client = client_cls(app)
     res = await client.get("/")
     assert res.status_code == 200
     text = await res.text()
@@ -242,7 +240,7 @@ async def test_sse_response(Client):
     assert "event: ping\n\n" in text
 
 
-async def test_websocket_response(Client):
+async def test_websocket_response(client_cls):
     import json
 
     from asgi_tools import ASGIConnectionClosedError, ResponseWebSocket
@@ -268,7 +266,7 @@ async def test_websocket_response(Client):
             await ws.send("pong")
             await ws.send_json(["ping", "pong"])
 
-    async with Client(app).websocket("/") as ws:
+    async with client_cls(app).websocket("/") as ws:
         await ws.send("ping")
         msg = await ws.receive()
         assert msg == "pong"

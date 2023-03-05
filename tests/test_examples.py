@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import re
 
 
-async def test_readme_request_response(Client):
-
+async def test_readme_request_response(client_cls):
     # Example
     import json
 
@@ -10,7 +11,7 @@ async def test_readme_request_response(Client):
 
     async def app(scope, receive, send):
         if scope["type"] != "http":
-            return
+            return None
 
         # Parse scope
         request = Request(scope, receive, send)
@@ -34,7 +35,7 @@ async def test_readme_request_response(Client):
         return await response(scope, receive, send)
 
     # Test
-    client = Client(app)
+    client = client_cls(app)
 
     res = await client.get("/test?var=42")
     assert res.status_code == 200
@@ -43,8 +44,7 @@ async def test_readme_request_response(Client):
     assert data["query"] == {"var": "42"}
 
 
-async def test_readme_request_response_middleware(Client):
-
+async def test_readme_request_response_middleware(client_cls):
     # Example
     from asgi_tools import RequestMiddleware, ResponseHTML
 
@@ -57,7 +57,7 @@ async def test_readme_request_response_middleware(Client):
     app = RequestMiddleware(app)
 
     # Test
-    client = Client(app)
+    client = client_cls(app)
     res = await client.post("/test", json={"name": "passed"})
     assert res.status_code == 200
     assert await res.text() == "passed"
@@ -71,7 +71,7 @@ async def test_readme_request_response_middleware(Client):
     app = ResponseMiddleware(app)
 
     # Test
-    client = Client(app)
+    client = client_cls(app)
     res = await client.post("/test", json={"name": "passed"})
     assert res.status_code == 200
     assert res.headers["content-type"] == "text/html; charset=utf-8"
@@ -92,7 +92,7 @@ async def test_readme_router_middleware():
         return "page2"
 
 
-async def test_docs(Client):
+async def test_docs(client_cls):
     from asgi_tools import App
 
     app = App()
@@ -101,21 +101,21 @@ async def test_docs(Client):
     async def hello_world(request):
         return "<p>Hello, World!</p>"
 
-    client = Client(app)
+    client = client_cls(app)
 
     res = await client.get("/")
     assert res.status_code == 200
     assert await res.text() == "<p>Hello, World!</p>"
 
 
-async def test_docs_response_redirect(Client):
+async def test_docs_response_redirect(client_cls):
     from asgi_tools import ResponseRedirect
 
     async def app(scope, receive, send):
         response = ResponseRedirect("/login")
         await response(scope, receive, send)
 
-    client = Client(app)
+    client = client_cls(app)
 
     res = await client.get("/", follow_redirect=False)
     assert res.status_code == 307
@@ -131,27 +131,29 @@ async def test_docs_response_redirect(Client):
         return "OK"
 
     app = ResponseMiddleware(app)
-    client = Client(app)
+    client = client_cls(app)
 
     res = await client.get("/", follow_redirect=False)
     assert res.status_code == 307
     assert res.headers["location"] == "/login"
 
     res = await client.get(
-        "/", follow_redirect=False, headers={"authorization": "user"}
+        "/",
+        follow_redirect=False,
+        headers={"authorization": "user"},
     )
     assert res.status_code == 200
     assert await res.text() == "OK"
 
 
-async def test_docs_response_error(Client):
+async def test_docs_response_error(client_cls):
     from asgi_tools import ResponseError
 
     async def app(scope, receive, send):
         response = ResponseError("Timeout", 502)
         await response(scope, receive, send)
 
-    client = Client(app)
+    client = client_cls(app)
 
     res = await client.get("/")
     assert res.status_code == 502
@@ -167,7 +169,7 @@ async def test_docs_response_error(Client):
         return "OK"
 
     app = ResponseMiddleware(app)
-    client = Client(app)
+    client = client_cls(app)
 
     res = await client.get("/")
     assert res.status_code == 400
@@ -177,7 +179,7 @@ async def test_docs_response_error(Client):
     assert res.status_code == 200
 
 
-async def test_docs_response_stream(Client):
+async def test_docs_response_stream(client_cls):
     from asgi_tools import ResponseStream
     from asgi_tools._compat import aio_sleep  # for compatability with different async libs
 
@@ -191,14 +193,14 @@ async def test_docs_response_stream(Client):
 
         await response(scope, receive, send)
 
-    client = Client(app)
+    client = client_cls(app)
 
     res = await client.get("/")
     assert res.status_code == 200
     assert await res.text() == "0123456789"
 
 
-async def test_docs_response_middleware(Client):
+async def test_docs_response_middleware(client_cls):
     from asgi_tools import ResponseMiddleware, ResponseRedirect, ResponseText
 
     async def app(scope, receive, send):
@@ -223,7 +225,7 @@ async def test_docs_response_middleware(Client):
         return 405, "Unknown method"
 
     app = ResponseMiddleware(app)
-    client = Client(app)
+    client = client_cls(app)
 
     res = await client.get("/")
     assert res.status_code == 200
@@ -245,7 +247,7 @@ async def test_docs_response_middleware(Client):
     assert res.status_code == 405
 
 
-async def test_docs_router_middleware(Client):
+async def test_docs_router_middleware(client_cls):
     from asgi_tools import ResponseError, ResponseHTML, RouterMiddleware
 
     async def default_app(scope, receive, send):
@@ -291,7 +293,7 @@ async def test_docs_router_middleware(Client):
         response = ResponseHTML(str(first * second))
         await response(scope, receive, send)
 
-    client = Client(app)
+    client = client_cls(app)
 
     res = await client.get("/unknown")
     assert res.status_code == 404
@@ -318,6 +320,3 @@ async def test_docs_router_middleware(Client):
     res = await client.post("/multiply/32/56")
     assert res.status_code == 200
     assert await res.text() == "1792"
-
-
-# pylama: ignore=W
