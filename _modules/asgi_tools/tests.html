@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.tests &#8212; asgi-tools 0.72.2 documentation</title>
+    <title>asgi_tools.tests &#8212; asgi-tools 0.72.3 documentation</title>
   
   
   
@@ -345,7 +345,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 0.72.2
+    Version: 0.72.3
 </div>
 </div>
     </div>
@@ -590,16 +590,16 @@ document.write(`
 
         <span class="n">scope</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_scope</span><span class="p">(</span>
             <span class="n">path</span><span class="p">,</span>
-            <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
-            <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span>
-            <span class="n">cookies</span><span class="o">=</span><span class="n">cookies</span><span class="p">,</span>
             <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;http&quot;</span><span class="p">,</span>
+            <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span>
             <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+            <span class="n">cookies</span><span class="o">=</span><span class="n">cookies</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">await</span> <span class="n">aio_wait</span><span class="p">(</span>
             <span class="n">aio_wait</span><span class="p">(</span>
-                <span class="n">stream_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_app</span><span class="p">),</span>
+                <span class="n">pipe</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_app</span><span class="p">,</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_client</span><span class="p">),</span>
             <span class="p">),</span>
             <span class="n">raise_timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">),</span>
@@ -773,25 +773,21 @@ document.write(`
             <span class="k">await</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_queue</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
 
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">AsyncGenerator</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]]):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_to_app</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.request&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+            <span class="p">)</span>
+
+        <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_to_app</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.request&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">chunk</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_to_app</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.request&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">raise_timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]):</span>
     <span class="k">await</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
     <span class="k">raise</span> <span class="ne">TimeoutError</span>
-
-
-<span class="k">async</span> <span class="k">def</span> <span class="nf">stream_data</span><span class="p">(</span>
-    <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">AsyncGenerator</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]],</span>
-    <span class="n">send</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">TASGIMessage</span><span class="p">],</span> <span class="n">Awaitable</span><span class="p">[</span><span class="kc">None</span><span class="p">]],</span>
-<span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Stream a data to an application.&quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-        <span class="k">return</span> <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.request&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
-
-    <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-        <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.request&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">chunk</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
-    <span class="k">await</span> <span class="n">send</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;http.request&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;more_body&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
-    <span class="k">return</span> <span class="kc">None</span>
 
 
 <span class="nd">@asynccontextmanager</span>
