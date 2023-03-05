@@ -24,7 +24,11 @@ print("*********************")
 
 setup(
     setup_requires=["wheel"],
-    ext_modules=[]
-    if NO_EXTENSIONS or cythonize is None
-    else cythonize("asgi_tools/*.pyx", language_level=3),
+    ext_modules=(
+        []
+        if NO_EXTENSIONS or cythonize is None
+        else cythonize("asgi_tools/*.pyx", language_level=3)
+    ),
 )
+
+# ruff: noqa: T201
