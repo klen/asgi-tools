@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>asgi_tools.response &#8212; asgi-tools 0.72.3 documentation</title>
+    <title>asgi_tools.response &#8212; asgi-tools 0.73.0 documentation</title>
   
   
   
@@ -345,7 +345,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 0.72.3
+    Version: 0.73.0
 </div>
 </div>
     </div>
@@ -424,7 +424,6 @@ document.write(`
     <span class="n">Dict</span><span class="p">,</span>
     <span class="n">Mapping</span><span class="p">,</span>
     <span class="n">Optional</span><span class="p">,</span>
-    <span class="n">Type</span><span class="p">,</span>
     <span class="n">Union</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">quote</span><span class="p">,</span> <span class="n">quote_plus</span>
@@ -906,7 +905,7 @@ document.write(`
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Invalid status code for an error: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 
-<span class="n">CAST_RESPONSE</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Type</span><span class="p">,</span> <span class="n">Type</span><span class="p">[</span><span class="n">Response</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+<span class="n">CAST_RESPONSE</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="nb">type</span><span class="p">[</span><span class="n">Response</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="nb">bool</span><span class="p">:</span> <span class="n">ResponseJSON</span><span class="p">,</span>
     <span class="nb">bytes</span><span class="p">:</span> <span class="n">ResponseHTML</span><span class="p">,</span>
     <span class="nb">dict</span><span class="p">:</span> <span class="n">ResponseJSON</span><span class="p">,</span>
