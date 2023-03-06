@@ -63,7 +63,7 @@ For instance these middlewares were built with the library:
 Requirements
 =============
 
-- python >= 3.7
+- python >= 3.8
 
 .. note:: pypy3 is also supported
 
@@ -138,7 +138,7 @@ Licensed under a `MIT license`_.
 .. _MIT license: http://opensource.org/licenses/MIT
 .. _Trio: https://trio.readthedocs.io/en/stable/index.html
 .. _klen: https://github.com/klen
-.. _uvicorn: http://www.uvicorn.org/ 
+.. _uvicorn: http://www.uvicorn.org/
 .. _daphne: https://github.com/django/daphne/
 .. _hypercorn: https://pgjones.gitlab.io/hypercorn/
 

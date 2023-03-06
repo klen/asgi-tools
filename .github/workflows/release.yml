@@ -50,7 +50,6 @@ jobs:
         os: [macos-latest, windows-latest, ubuntu-latest]
         cibw_arch: ["auto64", "aarch64", "universal2"]
         cibw_python:
-        - "cp37-*"
         - "cp38-*"
         - "cp39-*"
         - "cp310-*"
@@ -60,12 +59,6 @@ jobs:
           cibw_arch: universal2
         - os: macos-latest
           cibw_arch: aarch64
-        - os: macos-latest
-          cibw_python: "cp36-*"
-          cibw_arch: universal2
-        - os: macos-latest
-          cibw_python: "cp37-*"
-          cibw_arch: universal2
         - os: windows-latest
           cibw_arch: universal2
         - os: windows-latest
