@@ -8,23 +8,23 @@ from __future__ import annotations
 from contextlib import suppress
 
 # Flags for the multipart parser.
-from typing import Dict
+from typing import Dict, Final
 
-FLAG_PART_BOUNDARY = 1
-FLAG_LAST_BOUNDARY = 2
+FLAG_PART_BOUNDARY: Final = 1
+FLAG_LAST_BOUNDARY: Final = 2
 
 # Get constants.  Since iterating over a str on Python 2 gives you a 1-length
 # string, but iterating over a bytes object on Python 3 gives you an integer,
 # we need to save these constants.
-AMPERSAND = b"&"[0]
-COLON = b":"[0]
-CR = b"\r"[0]
-EQUAL = b"="[0]
-HYPHEN = b"-"[0]
-LF = b"\n"[0]
-SEMICOLON = b";"[0]
-SPACE = b" "[0]
-EMPTY = b"\x00"[0]
+AMPERSAND: Final = b"&"[0]
+COLON: Final = b":"[0]
+CR: Final = b"\r"[0]
+EQUAL: Final = b"="[0]
+HYPHEN: Final = b"-"[0]
+LF: Final = b"\n"[0]
+SEMICOLON: Final = b";"[0]
+SPACE: Final = b" "[0]
+EMPTY: Final = b"\x00"[0]
 
 
 class BaseParser:

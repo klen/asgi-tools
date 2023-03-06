@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Final, Optional
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from .request import Request
     from .router import Router
 
-HTTP_METHODS = {
+HTTP_METHODS: Final = {
     "GET",
     "HEAD",
     "POST",

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
-import logging
+from logging import Logger, getLogger
+from typing import Final
 
-logger: logging.Logger = logging.getLogger("asgi-tools")
+logger: Final[Logger] = getLogger("asgi-tools")

@@ -7,7 +7,18 @@ from contextvars import ContextVar
 from functools import partial
 from inspect import isawaitable
 from pathlib import Path
-from typing import TYPE_CHECKING, Awaitable, Callable, List, Mapping, Optional, Set, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Awaitable,
+    Callable,
+    Final,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 
 from http_router import Router
 
@@ -455,7 +466,7 @@ class StaticFilesMiddleware(BaseMiddeware):
             await self.app(scope, receive, send)
 
 
-BACKGROUND_TASK = ContextVar[Optional[Awaitable]]("background_task", default=None)
+BACKGROUND_TASK: Final = ContextVar[Optional[Awaitable]]("background_task", default=None)
 
 
 class BackgroundMiddleware(BaseMiddeware):

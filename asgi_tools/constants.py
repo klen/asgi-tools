@@ -1,4 +1,6 @@
 from __future__ import annotations
 
-BASE_ENCODING = "latin-1"
-DEFAULT_CHARSET = "utf-8"
+from typing import Final
+
+BASE_ENCODING: Final = "latin-1"
+DEFAULT_CHARSET: Final = "utf-8"
