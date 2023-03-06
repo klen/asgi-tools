@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from functools import partial
 from inspect import isclass
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set, Type, Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set, Type, Union  # py38
 
 from http_router import PrefixedRoute
 

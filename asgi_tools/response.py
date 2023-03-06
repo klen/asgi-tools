@@ -19,6 +19,7 @@ from typing import (
     Dict,
     Mapping,
     Optional,
+    Type,
     Union,
 )
 from urllib.parse import quote, quote_plus
@@ -500,7 +501,7 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
         assert self.status_code >= 400, f"Invalid status code for an error: {self.status_code}"
 
 
-CAST_RESPONSE: Mapping[type, type[Response]] = {
+CAST_RESPONSE: Mapping[Type, Type[Response]] = {
     bool: ResponseJSON,
     bytes: ResponseHTML,
     dict: ResponseJSON,
