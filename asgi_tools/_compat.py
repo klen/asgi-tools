@@ -42,36 +42,6 @@ __all__ = (
 )
 
 
-def json_dumps(content) -> bytes:
-    """Emulate orjson."""
-    return dumps(  # type: ignore [call-arg]
-        content,
-        ensure_ascii=False,
-        separators=(",", ":"),
-    ).encode("utf-8")
-
-
-def json_loads(obj: Union[bytes, str]) -> TJSON:
-    """Emulate orjson."""
-    if isinstance(obj, bytes):
-        obj = obj.decode("utf-8")
-    return loads(obj)
-
-
-with suppress(ImportError):
-    from ujson import dumps as udumps
-    from ujson import loads as json_loads  # type: ignore[assignment]
-
-    def json_dumps(content) -> bytes:
-        """Emulate orjson."""
-        return udumps(content, ensure_ascii=False).encode("utf-8")
-
-
-with suppress(ImportError):
-    from orjson import dumps as json_dumps  # type: ignore[assignment]
-    from orjson import loads as json_loads  # type: ignore[assignment]
-
-
 aiofile_installed = False
 with suppress(ImportError):
     import aiofile
@@ -218,6 +188,36 @@ async def aio_stream_file(
 async def trio_jockey(coro: Awaitable, channel):
     """Wait for the given coroutine and send result back to the given channel."""
     await channel.send(await coro)
+
+
+def json_dumps(content) -> bytes:
+    """Emulate orjson."""
+    return dumps(  # type: ignore [call-arg]
+        content,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).encode("utf-8")
+
+
+def json_loads(obj: Union[bytes, str]) -> TJSON:
+    """Emulate orjson."""
+    if isinstance(obj, bytes):
+        obj = obj.decode("utf-8")
+    return loads(obj)
+
+
+with suppress(ImportError):
+    from ujson import dumps as udumps
+    from ujson import loads as json_loads  # type: ignore[assignment]
+
+    def json_dumps(content) -> bytes:
+        """Emulate orjson."""
+        return udumps(content, ensure_ascii=False).encode("utf-8")
+
+
+with suppress(ImportError):
+    from orjson import dumps as json_dumps  # type: ignore[assignment,no-redef]
+    from orjson import loads as json_loads  # type: ignore[assignment,no-redef]
 
 
 # ruff: noqa: PGH003, F811
