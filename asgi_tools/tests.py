@@ -274,7 +274,7 @@ class ASGITestClient:
             url = url.with_query(query)
 
         # Setup client
-        scope.setdefault("client", ("127.0.0.1", random.randint(1024, 65535)))
+        scope.setdefault("client", ("127.0.0.1", random.randint(1024, 65535)))  # noqa:
 
         return dict(
             {
