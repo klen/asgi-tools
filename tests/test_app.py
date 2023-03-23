@@ -115,11 +115,11 @@ async def test_trim_last_slach(client_cls):
     client = client_cls(app)
 
     @app.route("/route1")
-    async def route1(request):
+    async def route11(request):
         return "route1"
 
     @app.route("/route2/")
-    async def route2(request):
+    async def route21(request):
         return "route2"
 
     res = await client.get("/route1")

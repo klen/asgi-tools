@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from functools import wraps
 from inspect import isasyncgenfunction, iscoroutinefunction
-from typing import TYPE_CHECKING, Awaitable, Callable, Dict, Tuple, overload
+from typing import TYPE_CHECKING, Callable, Coroutine, Dict, Tuple, overload
 from urllib.parse import unquote_to_bytes
 
 from multidict import CIMultiDict
@@ -27,7 +27,7 @@ def to_awaitable(fn: TVAsyncCallable) -> TVAsyncCallable:
 
 
 @overload
-def to_awaitable(fn: Callable[..., TV]) -> Callable[..., Awaitable[TV]]:
+def to_awaitable(fn: Callable[..., TV]) -> Callable[..., Coroutine[None, None, TV]]:
     ...
 
 

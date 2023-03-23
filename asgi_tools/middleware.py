@@ -391,7 +391,7 @@ class RouterMiddleware(BaseMiddeware):
             return self.app, {}
 
         else:
-            return match.target, match.params
+            return match.target, match.params  # type: ignore[]
 
     def route(self, *args, **kwargs):
         """Register a route."""
@@ -425,14 +425,12 @@ class StaticFilesMiddleware(BaseMiddeware):
         self,
         app: Optional[TASGIApp] = None,
         url_prefix: str = "/static",
-        folders: Union[str, List[str], None] = None,
+        folders: Optional[List[Union[str, Path]]] = None,
     ) -> None:
         """Initialize the middleware."""
         super().__init__(app)
         self.url_prefix = url_prefix
         folders = folders or []
-        if isinstance(folders, str):
-            folders = [folders]
         self.folders: List[Path] = [Path(folder) for folder in folders]
 
     async def __process__(

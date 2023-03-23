@@ -18,6 +18,7 @@ from .utils import iscoroutinefunction, to_awaitable
 
 if TYPE_CHECKING:
     import logging
+    from pathlib import Path
 
     from http_router.types import TMethods, TPath
 
@@ -68,7 +69,7 @@ class App:
         debug: bool = False,
         logger: logging.Logger = logger,
         static_url_prefix: str = "/static",
-        static_folders: Union[str, List[str], None] = None,
+        static_folders: Optional[List[Union[str, Path]]] = None,
         trim_last_slash: bool = False,
     ):
         """Initialize router and lifespan middleware."""
@@ -179,7 +180,7 @@ class App:
             raise ResponseError.METHOD_NOT_ALLOWED() from exc
 
         scope["path_params"] = {} if match.params is None else match.params
-        response = await match.target(request)
+        response = await match.target(request)  # type: ignore[]
 
         if scope["type"] == "http":
             return parse_response(response)

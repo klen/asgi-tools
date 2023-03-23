@@ -20,6 +20,10 @@ from typing import (
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from .types import TJSON
+
+
+from json import dumps, loads
 
 from sniffio import current_async_library
 
@@ -37,33 +41,35 @@ __all__ = (
     "curio_installed",
 )
 
-try:
-    from orjson import dumps as json_dumps
-    from orjson import loads as json_loads
-except ImportError:
-    try:
-        from ujson import dumps, loads
 
-        def json_dumps(content) -> bytes:  # type: ignore
-            """Emulate orjson."""
-            return dumps(content, ensure_ascii=False).encode("utf-8")
+def json_dumps(content) -> bytes:
+    """Emulate orjson."""
+    return dumps(  # type: ignore [call-arg]
+        content,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).encode("utf-8")
 
-    except ImportError:
-        from json import dumps, loads  # type: ignore
 
-        def json_dumps(content) -> bytes:  # type: ignore
-            """Emulate orjson."""
-            return dumps(  # type: ignore [call-arg]
-                content,
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ).encode("utf-8")
+def json_loads(obj: Union[bytes, str]) -> TJSON:
+    """Emulate orjson."""
+    if isinstance(obj, bytes):
+        obj = obj.decode("utf-8")
+    return loads(obj)
 
-    def json_loads(obj: Union[bytes, str]) -> Any:  # type: ignore
+
+with suppress(ImportError):
+    from ujson import dumps as udumps
+    from ujson import loads as json_loads  # type: ignore[assignment]
+
+    def json_dumps(content) -> bytes:
         """Emulate orjson."""
-        if isinstance(obj, bytes):
-            obj = obj.decode("utf-8")
-        return loads(obj)
+        return udumps(content, ensure_ascii=False).encode("utf-8")
+
+
+with suppress(ImportError):
+    from orjson import dumps as json_dumps  # type: ignore[assignment]
+    from orjson import loads as json_loads  # type: ignore[assignment]
 
 
 aiofile_installed = False
@@ -115,7 +121,7 @@ async def aio_spawn(fn: Callable[..., Awaitable], *args, **kwargs):
     elif curio_installed and current_async_library() == "curio":
         task = await curio_spawn(fn, *args, **kwargs)
         yield task
-        await task.join()
+        await task.join()  # type: ignore [union-attr]
 
     else:
         coro = cast(Coroutine, fn(*args, **kwargs))
@@ -183,7 +189,7 @@ async def aio_stream_file(
     if trio_installed and current_async_library() == "trio":
         async with await trio_open_file(filepath, "rb") as fp:
             while True:
-                chunk = await fp.read(chunk_size)
+                chunk = cast(bytes, await fp.read(chunk_size))
                 if not chunk:
                     break
                 yield chunk
@@ -191,7 +197,7 @@ async def aio_stream_file(
     elif curio_installed and current_async_library() == "curio":
         async with curio_open(filepath, "rb") as fp:
             while True:
-                chunk = await fp.read(chunk_size)
+                chunk = cast(bytes, await fp.read(chunk_size))
                 if not chunk:
                     break
                 yield chunk
@@ -203,8 +209,10 @@ async def aio_stream_file(
             )
 
         async with aiofile.AIOFile(filepath, mode="rb") as fp:
-            async for chunk in aiofile.Reader(fp, chunk_size=chunk_size):
-                yield chunk
+            async for chunk in aiofile.Reader(  # type: ignore [assignment]
+                fp, chunk_size=chunk_size
+            ):
+                yield cast(bytes, chunk)
 
 
 async def trio_jockey(coro: Awaitable, channel):
@@ -212,4 +220,4 @@ async def trio_jockey(coro: Awaitable, channel):
     await channel.send(await coro)
 
 
-# ruff: noqa: PGH003
+# ruff: noqa: PGH003, F811

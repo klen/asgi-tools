@@ -8,35 +8,35 @@ async def test_response_middleware(client_cls):
     from asgi_tools import ResponseError, ResponseMiddleware
 
     # Test default response
-    app = ResponseMiddleware()
-    client = client_cls(app)
+    md = ResponseMiddleware()
+    client = client_cls(md)
     res = await client.get("/")
     assert res.status_code == 404
     assert await res.text() == "Nothing matches the given URI"
 
-    async def app(*args):
+    async def simple_app(*args):
         return False
 
-    app = ResponseMiddleware(app)
+    app = ResponseMiddleware(simple_app)
     client = client_cls(app)
     res = await client.get("/")
     assert res.status_code == 200
     assert await res.text() == "false"
 
-    async def app(*args):
+    async def simple_app2(*args):
         raise ResponseError.BAD_GATEWAY()
 
-    app = ResponseMiddleware(app)
-    client = client_cls(app)
+    app2 = ResponseMiddleware(simple_app2)
+    client = client_cls(app2)
     res = await client.get("/")
     assert res.status_code == 502
     assert await res.text() == "Invalid responses from another server/proxy"
 
-    async def app(*args):
+    async def simple_app3(*args):
         return
 
-    app = ResponseMiddleware(app)
-    client = client_cls(app)
+    app3 = ResponseMiddleware(simple_app3)
+    client = client_cls(app3)
     res = await client.get("/")
     assert res.status_code == 200
     assert await res.text() == "null"
@@ -45,13 +45,13 @@ async def test_response_middleware(client_cls):
 async def test_request_response_middlewares(client_cls):
     from asgi_tools import RequestMiddleware, ResponseMiddleware
 
-    async def app(request, receive, send):
+    async def simple_app(request, receive, send):
         data = await request.json()
         first_name = data.get("first_name", "Anonymous")
         last_name = request.query.get("last_name", "Test")
         return f"Hello {first_name} {last_name} from '{ request.url.path }'"
 
-    app = RequestMiddleware(ResponseMiddleware(app))
+    app = RequestMiddleware(ResponseMiddleware(simple_app))
 
     client = client_cls(app)
     res = await client.post(
@@ -72,8 +72,11 @@ async def test_lifespan_middleware(client_cls):
 
     side_effects = []
 
+    async def simple_app(scope, receive, send):
+        return None
+
     app = LifespanMiddleware(
-        lambda scope, receive, send: None,
+        simple_app,
         on_startup=lambda: side_effects.append("started"),
         on_shutdown=lambda: side_effects.append("finished"),
     )
@@ -96,8 +99,11 @@ async def test_lifespan_middleware_errors(client_cls):
     async def start():
         side_effects["started"] = True
 
+    async def simple_app(scope, receive, send):
+        return None
+
     app = LifespanMiddleware(
-        lambda scope, receive, send: None,
+        simple_app,
         on_startup=[fail, start],
         on_shutdown=lambda: side_effects.setdefault("finished", True),
     )

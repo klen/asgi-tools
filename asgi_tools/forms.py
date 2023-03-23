@@ -145,7 +145,7 @@ class MultipartReader(FormReader):
 
             else:
                 self.partdata = f = SpooledTemporaryFile(self.file_memory_limit)
-                f._file.name = options["filename"]
+                f._file.name = options["filename"]  # type: ignore[]
 
             f.content_type = self.headers[b"content-type"].decode(self.charset)
 

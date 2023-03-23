@@ -6,7 +6,7 @@ import pytest
 
 
 @pytest.mark.benchmark(group="req-res", disable_gc=True)
-def test_benchmark_req_res(benchmark, gen_request, receive, send):
+def test_benchmark_req_res(benchmark, gen_request, receive):
     from asgi_tools import Request, parse_response
 
     scope = gen_request(

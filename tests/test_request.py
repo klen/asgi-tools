@@ -37,10 +37,10 @@ async def test_request(receive, send):
         "root_path": "",
     }
 
-    async def receive():
+    async def receive2():
         return {"body": b"name=test%20passed"}
 
-    request = Request(scope, receive, send)
+    request = Request(scope, receive2, send)
     assert request.method == "GET"
     assert request.headers
     assert request.headers["User-Agent"] == "python-httpx/0.16.1"
@@ -108,12 +108,12 @@ async def test_json(gen_request):
 async def test_data(client_cls, gen_request):
     from asgi_tools import Request, ResponseMiddleware
 
-    async def app(scope, receive, send):
+    async def simple_app(scope, receive, send):
         request = Request(scope, receive, send)
         data = await request.data()
-        return isinstance(data, (str, bytes)) and data or dict(data)
+        return isinstance(data, (str, bytes)) and data or dict(data)  # type: ignore[]
 
-    app = ResponseMiddleware(app)
+    app = ResponseMiddleware(simple_app)
     client = client_cls(app)
 
     # Post formdata

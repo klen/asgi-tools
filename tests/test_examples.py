@@ -48,13 +48,13 @@ async def test_readme_request_response_middleware(client_cls):
     # Example
     from asgi_tools import RequestMiddleware, ResponseHTML
 
-    async def app(request, receive, send):
+    async def simple_app(request, receive, send):
         # We will get a parsed request here
         data = await request.json()
         response = ResponseHTML(data["name"])
         return await response(request, receive, send)
 
-    app = RequestMiddleware(app)
+    app = RequestMiddleware(simple_app)
 
     # Test
     client = client_cls(app)
@@ -65,10 +65,10 @@ async def test_readme_request_response_middleware(client_cls):
     # Example
     from asgi_tools import ResponseMiddleware
 
-    async def app(request, receive, send):
+    async def simple_app2(request, receive, send):
         return "Hello World!"
 
-    app = ResponseMiddleware(app)
+    app = ResponseMiddleware(simple_app2)
 
     # Test
     client = client_cls(app)
@@ -111,11 +111,11 @@ async def test_docs(client_cls):
 async def test_docs_response_redirect(client_cls):
     from asgi_tools import ResponseRedirect
 
-    async def app(scope, receive, send):
+    async def simple_app(scope, receive, send):
         response = ResponseRedirect("/login")
         await response(scope, receive, send)
 
-    client = client_cls(app)
+    client = client_cls(simple_app)
 
     res = await client.get("/", follow_redirect=False)
     assert res.status_code == 307
@@ -123,14 +123,14 @@ async def test_docs_response_redirect(client_cls):
 
     from asgi_tools import Request, ResponseMiddleware
 
-    async def app(scope, receive, send):
+    async def simple_app2(scope, receive, send):
         request = Request(scope, receive, send)
         if not request.headers.get("authorization"):
             raise ResponseRedirect("/login")
 
         return "OK"
 
-    app = ResponseMiddleware(app)
+    app = ResponseMiddleware(simple_app2)
     client = client_cls(app)
 
     res = await client.get("/", follow_redirect=False)
@@ -149,11 +149,11 @@ async def test_docs_response_redirect(client_cls):
 async def test_docs_response_error(client_cls):
     from asgi_tools import ResponseError
 
-    async def app(scope, receive, send):
+    async def simple_app(scope, receive, send):
         response = ResponseError("Timeout", 502)
         await response(scope, receive, send)
 
-    client = client_cls(app)
+    client = client_cls(simple_app)
 
     res = await client.get("/")
     assert res.status_code == 502
@@ -161,14 +161,14 @@ async def test_docs_response_error(client_cls):
 
     from asgi_tools import Request, ResponseError, ResponseMiddleware
 
-    async def app(scope, receive, send):
+    async def simple_app2(scope, receive, send):
         request = Request(scope, receive, send)
         if not request.method == "POST":
             raise ResponseError("Invalid request data", 400)
 
         return "OK"
 
-    app = ResponseMiddleware(app)
+    app = ResponseMiddleware(simple_app2)
     client = client_cls(app)
 
     res = await client.get("/")
@@ -203,7 +203,7 @@ async def test_docs_response_stream(client_cls):
 async def test_docs_response_middleware(client_cls):
     from asgi_tools import ResponseMiddleware, ResponseRedirect, ResponseText
 
-    async def app(scope, receive, send):
+    async def simple_app(scope, receive, send):
         # ResponseMiddleware catches ResponseError, ResponseRedirect and convert the exceptions
         # into HTTP response
         if scope["path"] == "/user":
@@ -224,7 +224,7 @@ async def test_docs_response_middleware(client_cls):
         # Short form to responses: (status_code, body) or (status_code, body, headers)
         return 405, "Unknown method"
 
-    app = ResponseMiddleware(app)
+    app = ResponseMiddleware(simple_app)
     client = client_cls(app)
 
     res = await client.get("/")

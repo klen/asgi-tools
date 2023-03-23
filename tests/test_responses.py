@@ -1,7 +1,12 @@
 """ASGI Tools Responses Tests."""
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, List
+
 import pytest
+
+if TYPE_CHECKING:
+    from asgi_tools.types import TASGIMessage
 
 
 async def test_response():
@@ -298,7 +303,7 @@ async def test_parse_response():
         parse_response((None, "SERVER ERROR"))
 
 
-async def read_response(response):
+async def read_response(response) -> List[TASGIMessage]:
     from functools import partial
 
     from asgi_tools._compat import aio_sleep

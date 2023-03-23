@@ -98,7 +98,7 @@ line-length = 100
 target-version = "py38"
 exclude = [".venv", "docs", "examples"]
 select = ["ALL"]
-ignore = ["D", "UP", "ANN", "DJ", "EM", "RSE", "SLF", "S101", "PLR2004"]
+ignore = ["D", "COM", "UP", "ANN", "DJ", "EM", "RSE", "SLF", "S101", "PLR2004"]
 
 [tool.ruff.isort]
 required-imports = ["from __future__ import annotations"]
