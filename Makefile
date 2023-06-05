@@ -9,11 +9,11 @@ $(VIRTUAL_ENV): pyproject.toml
 	@$(VIRTUAL_ENV)/bin/pre-commit install --hook-type pre-push
 	@touch $(VIRTUAL_ENV)
 
-VERSION	?= minor
+VPART	?= minor
 
-.PHONY: version
-version: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/bump2version $(VERSION)
+.PHONY: release
+release: $(VIRTUAL_ENV)
+	$(VIRTUAL_ENV)/bin/bump2version $(VPART)
 	git checkout master
 	git pull
 	git merge develop
@@ -23,15 +23,15 @@ version: $(VIRTUAL_ENV)
 
 .PHONY: minor
 minor:
-	make version VERSION=minor
+	make release VPART=minor
 
 .PHONY: patch
 patch:
-	make version VERSION=patch
+	make release VPART=patch
 
 .PHONY: major
 major:
-	make version VERSION=major
+	make release VPART=major
 
 
 .PHONY: clean
@@ -51,6 +51,10 @@ docs: $(VIRTUAL_ENV)
 LATEST_BENCHMARK = $(shell ls -t .benchmarks/* | head -1 | head -c4)
 test t: cyt $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/pytest tests --benchmark-autosave --benchmark-compare=$(LATEST_BENCHMARK)
+
+lint: $(VIRTUAL_ENV)
+	$(VIRTUAL_ENV)/bin/mypy
+	$(VIRTUAL_ENV)/bin/ruff $(PACKAGE)
 
 
 mypy: $(VIRTUAL_ENV)

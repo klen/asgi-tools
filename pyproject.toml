@@ -7,7 +7,7 @@ version = "0.74.0"
 description = "ASGI Toolkit to build web applications"
 readme = "README.rst"
 requires-python = ">=3.8"
-license = {"text" = "MIT License"}
+license = { "text" = "MIT License" }
 authors = [{ name = "Kirill Klenov", email = "horneds@gmail.com" }]
 keywords = ["asgi", "asgi-tools", "request", "response", "asyncio", "trio"]
 classifiers = [
@@ -26,12 +26,7 @@ classifiers = [
   "Framework :: AsyncIO",
   "Framework :: Trio",
 ]
-dependencies = [
-  "http-router >= 4.0.0",
-  "multidict",
-  "sniffio",
-  "yarl >= 1.8.2",
-]
+dependencies = ["http-router >= 4.0.0", "multidict", "sniffio", "yarl >= 1.8.2"]
 
 [project.urls]
 homepage = "https://github.com/klen/asgi-tools"
@@ -54,19 +49,20 @@ ujson = ["ujson"]
 orjson = ["orjson"]
 examples = ["uvicorn[standard]", "jinja2", "httpx"]
 dev = [
-  "bump2version", "refurb; python_version >= '3.9'", "tox", "cython",
-  "pre-commit", "sphinx", "pydata-sphinx-theme"]
+  "bump2version",
+  "refurb; python_version >= '3.9'",
+  "tox",
+  "cython",
+  "pre-commit",
+  "sphinx",
+  "pydata-sphinx-theme",
+]
 
 [tool.setuptools]
 packages = ['asgi_tools']
 
 [tool.setuptools.package-data]
-asgi_tools = [
-  "py.typed",
-  "multipart.pxd",
-  "multipart.pyx",
-  "forms.pyx"
-]
+asgi_tools = ["py.typed", "multipart.pxd", "multipart.pyx", "forms.pyx"]
 [tool.pytest.ini_options]
 addopts = "-xsv"
 
@@ -98,7 +94,7 @@ line-length = 100
 target-version = "py38"
 exclude = [".venv", "docs", "examples"]
 select = ["ALL"]
-ignore = ["D", "COM", "UP", "ANN", "DJ", "EM", "RSE", "SLF", "S101", "PLR2004"]
+ignore = ["D", "COM", "UP", "ANN", "DJ", "EM", "RSE", "SLF", "S101", "PLR0913", "PLR2004", "TD"]
 
 [tool.ruff.isort]
 required-imports = ["from __future__ import annotations"]
