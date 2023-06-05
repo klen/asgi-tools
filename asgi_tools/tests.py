@@ -49,6 +49,7 @@ class TestResponse(Response):
         self,
     ):
         super().__init__(b"")
+        self.content = None
 
     async def __call__(self, _: TASGIScope, receive: TASGIReceive, send: TASGISend):  # noqa: ARG
         self._receive = receive
@@ -73,10 +74,13 @@ class TestResponse(Response):
 
     async def body(self) -> bytes:
         """Load response body."""
-        body_ = b""
-        async for chunk in self.stream():
-            body_ += chunk
-        return body_
+        if self.content is None:
+            body = b""
+            async for chunk in self.stream():
+                body += chunk
+            self.content = body
+
+        return self.content
 
     async def text(self) -> str:
         body = await self.body()

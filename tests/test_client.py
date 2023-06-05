@@ -100,6 +100,19 @@ async def test_client(app, client):
     assert await res.text() == "PROPFIND"
 
 
+async def test_client_response(client, app):
+    @app.route("/")
+    async def index(request):
+        return "OK"
+
+    res = await client.get("/")
+    body = await res.body()
+    assert body == b"OK"
+
+    body = await res.body()
+    assert body == b"OK"
+
+
 async def test_formdata(app, client):
     @app.route("/formdata")
     async def formdata(request):

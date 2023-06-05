@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 
-async def test_request(receive, send):
+async def test_base(receive, send):
     from asgi_tools import Request
 
     # Request is lazy
@@ -64,33 +64,25 @@ async def test_request(receive, send):
     assert r2 is not request
 
 
-async def test_multipart(client_cls):
-    from asgi_tools import Request, ResponseHTML
-
-    async def app(scope, receive, send):
-        request = Request(scope, receive, send)
-        data = await request.form()
-        response = ResponseHTML(data["test"].read().decode().split("\n")[0])
-        return await response(scope, receive, send)
-
-    client = client_cls(app)
-    with Path(__file__).open() as f:
-        res = await client.post("/", data={"test": f})
-    assert res.status_code == 200
-    assert await res.text() == '"""Test Request."""'
-    assert res.headers["content-length"] == str(len('"""Test Request."""'))
-
-
 async def test_media(gen_request):
     req = gen_request()
     assert req.media
-    assert req.content_type == ""
+    assert not req.content_type
 
     req = gen_request(headers={"content-type": "text/html; charset=iso-8859-1"})
     assert req.media
     assert req.media["charset"]
     assert req.media["content_type"]
     assert req.content_type == "text/html"
+
+
+async def test_body(gen_request):
+    req = gen_request(body=[b"any"])
+    body = await req.body()
+    assert body == b"any"
+
+    body = await req.body()
+    assert body == b"any"
 
 
 async def test_json(gen_request):
@@ -147,6 +139,44 @@ async def test_data(client_cls, gen_request):
 
     with pytest.raises(ASGIDecodeError):
         await req.data(raise_errors=True)
+
+
+async def test_multipart(client_cls):
+    from asgi_tools import Request, ResponseHTML
+
+    async def app(scope, receive, send):
+        request = Request(scope, receive, send)
+        data = await request.form()
+        response = ResponseHTML(data["test"].read().decode().split("\n")[0])
+        return await response(scope, receive, send)
+
+    client = client_cls(app)
+    with Path(__file__).open() as f:
+        res = await client.post("/", data={"test": f})
+    assert res.status_code == 200
+    assert await res.text() == '"""Test Request."""'
+    assert res.headers["content-length"] == str(len('"""Test Request."""'))
+
+
+async def test_multipart_max_size(client_cls):
+    from asgi_tools import Request, ResponseHTML
+
+    async def app(scope, receive, send):
+        request = Request(scope, receive, send)
+        data = await request.form(max_size=100)
+        if data:
+            response = ResponseHTML(data["test"].read().decode().split("\n")[0])
+        else:
+            response = ResponseHTML("No data")
+        return await response(scope, receive, send)
+
+    client = client_cls(app)
+    with Path(__file__).open() as f:
+        res = await client.post("/", data={"test": f})
+    assert res.status_code == 200
+    body = await res.text()
+    assert await res.text() == "No data"
+    assert res.headers["content-length"] == str(len("No data"))
 
 
 # ruff: noqa: N803

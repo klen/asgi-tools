@@ -26,6 +26,8 @@ class Request(TASGIScope):
     :param scope: HTTP ASGI Scope
     :param receive: an asynchronous callable which lets the application
                     receive event messages from the client
+    :param send: an asynchronous callable which lets the application
+                    send event messages to the client
 
     """
 
@@ -267,6 +269,10 @@ class Request(TASGIScope):
         The method reads the request's stream stright into memory formdata.
         Any subsequent calls to :py:meth:`body`, :py:meth:`json` will raise an error.
 
+        :param max_size: The maximum size of the request body in bytes.
+        :param upload_to: A callable to be used to determine the upload path for files.
+        :param file_memory_limit: The maximum size of the file to be stored in memory in bytes.
+
         `formdata = await request.form()`
 
         """
@@ -285,6 +291,8 @@ class Request(TASGIScope):
 
     async def data(self, *, raise_errors: bool = False) -> Union[str, bytes, MultiDict, TJSON]:
         """The method checks Content-Type Header and parse the request's data automatically.
+
+        :param raise_errors: Raise an error if the given data is invalid.
 
         `data = await request.data()`
 
