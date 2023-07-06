@@ -13,13 +13,15 @@ VPART	?= minor
 
 .PHONY: release
 release: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/bump2version $(VPART)
+	git checkout develop
+	git pull
 	git checkout master
 	git pull
 	git merge develop
+	$(VIRTUAL_ENV)/bin/bump2version $(VPART)
 	git checkout develop
-	git push origin develop master
-	git push --tags
+	git merge master
+	git push --tags origin develop master
 
 .PHONY: minor
 minor:
