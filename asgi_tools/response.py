@@ -126,9 +126,10 @@ class Response:
         ]
 
         for cookie in self.cookies.values():
-            headers.append(
+            headers = [
+                *headers,
                 (b"set-cookie", cookie.output(header="").strip().encode(BASE_ENCODING)),
-            )
+            ]
 
         return {
             "type": "http.response.start",
@@ -413,7 +414,7 @@ class ResponseRedirect(Response, BaseException):
 class ResponseErrorMeta(type):
     """Generate Response Errors by HTTP names."""
 
-    # XXX: From python 3.9 -> partial['ResponseError]
+    # TODO: From python 3.9 -> partial['ResponseError]
     def __getattr__(cls, name: str) -> Callable[..., ResponseError]:
         """Generate Response Errors by HTTP names."""
         status = HTTPStatus[name]
@@ -462,7 +463,7 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
         UNSUPPORTED_MEDIA_TYPE: Callable[..., ResponseError]  # 415
         REQUESTED_RANGE_NOT_SATISFIABLE: Callable[..., ResponseError]  # 416
         EXPECTATION_FAILED: Callable[..., ResponseError]  # 417
-        # XXX: From python 3.9
+        # TODO: From python 3.9
         # IM_A_TEAPOT: Callable[..., ResponseError]                       # 418
         # MISDIRECTED_REQUEST: Callable[..., ResponseError]               # 421
         UNPROCESSABLE_ENTITY: Callable[..., ResponseError]  # 422
@@ -473,7 +474,7 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
         PRECONDITION_REQUIRED: Callable[..., ResponseError]  # 428
         TOO_MANY_REQUESTS: Callable[..., ResponseError]  # 429
         REQUEST_HEADER_FIELDS_TOO_LARGE: Callable[..., ResponseError]  # 431
-        # XXX: From python 3.9
+        # TODO: From python 3.9
         # UNAVAILABLE_FOR_LEGAL_REASONS: Callable[..., ResponseError]     # 451
 
         INTERNAL_SERVER_ERROR: Callable[..., ResponseError]  # 500

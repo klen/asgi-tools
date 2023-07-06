@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import abc
+from contextlib import suppress
 from contextvars import ContextVar
 from functools import partial
 from inspect import isawaitable
@@ -15,7 +16,6 @@ from typing import (
     List,
     Mapping,
     Optional,
-    Set,
     Tuple,
     Union,
 )
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 class BaseMiddeware(metaclass=abc.ABCMeta):
     """Base class for ASGI-Tools middlewares."""
 
-    scopes: Set = {"http", "websocket"}
+    scopes: Tuple[str, ...] = ("http", "websocket")
 
     def __init__(self, app: Optional[TASGIApp] = None) -> None:
         """Save ASGI App."""
@@ -199,7 +199,7 @@ class LifespanMiddleware(BaseMiddeware):
 
     """
 
-    scopes = {"lifespan"}
+    scopes = ("lifespan",)
 
     def __init__(
         self,
@@ -263,9 +263,9 @@ class LifespanMiddleware(BaseMiddeware):
                 res = handler()
                 if isawaitable(res):
                     await res
-            except Exception as exc:
-                self.logger.exception("%s method '%s' raises an exception.", event.title(), handler)
 
+            except Exception as exc:  # noqa: PERF203
+                self.logger.exception("%s method '%s' raises an exception.", event.title(), handler)
                 if self.ignore_errors:
                     continue
 
@@ -386,7 +386,7 @@ class StaticFilesMiddleware(BaseMiddeware):
 
     """
 
-    scopes = {"http"}
+    scopes = ("http",)
 
     def __init__(
         self,
@@ -409,15 +409,9 @@ class StaticFilesMiddleware(BaseMiddeware):
             filename = path[len(url_prefix) :].strip("/")
             for folder in self.folders:
                 filepath = folder.joinpath(filename).resolve()
-                try:
-                    response = ResponseFile(
-                        filepath,
-                        headers_only=scope["method"] == "HEAD",
-                    )
+                with suppress(ASGIError):
+                    response = ResponseFile(filepath, headers_only=scope["method"] == "HEAD")
                     break
-
-                except ASGIError:
-                    continue
 
             response = response or ResponseError(status_code=404)
             await response(scope, receive, send)
