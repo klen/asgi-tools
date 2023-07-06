@@ -48,6 +48,8 @@ class Response:
     :type headers: dict[str, str]
     :param content_type: A string with the content-type
     :type content_type: str
+    :param cookies: An initial dictionary of cookies
+    :type cookies: dict[str, str]
     """
 
     headers: MultiDict  #: Multidict of response's headers
@@ -75,13 +77,14 @@ class Response:
         content,
         *,
         status_code: Optional[int] = None,
-        headers: Optional[Dict] = None,
         content_type: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+        cookies: Optional[Dict[str, str]] = None,
     ):
         """Setup the response."""
         self.content = self.process_content(content)
         self.headers: MultiDict = MultiDict(headers or {})
-        self.cookies: SimpleCookie = SimpleCookie()
+        self.cookies: SimpleCookie = SimpleCookie(cookies)
         if status_code is not None:
             self.status_code = status_code
 
@@ -356,11 +359,7 @@ class ResponseWebSocket(Response):
             await self.send({"type": "websocket.close", "code": code})
         self.state = self.STATES.DISCONNECTED
 
-    async def send(
-        self,
-        msg: Union[Dict, str, bytes],
-        msg_type="websocket.send",
-    ) -> None:
+    async def send(self, msg: Union[Dict, str, bytes], msg_type="websocket.send") -> None:
         """Send the given message to a client."""
         if self.state == self.STATES.DISCONNECTED:
             raise ASGIConnectionClosedError
@@ -489,12 +488,7 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
         NOT_EXTENDED: Callable[..., ResponseError]  # 510
         NETWORK_AUTHENTICATION_REQUIRED: Callable[..., ResponseError]  # 511
 
-    def __init__(
-        self,
-        message=None,
-        status_code: Optional[int] = None,
-        **kwargs,
-    ):
+    def __init__(self, message=None, status_code: Optional[int] = None, **kwargs):
         """Check error status."""
         content = message or HTTPStatus(status_code or self.status_code).description
         super().__init__(content=content, status_code=status_code, **kwargs)
@@ -538,8 +532,7 @@ def parse_response(response, headers: Optional[Dict] = None) -> Response:
 
 
 def parse_websocket_msg(
-    msg: TASGIMessage,
-    charset: Optional[str] = None,
+    msg: TASGIMessage, charset: Optional[str] = None
 ) -> Union[TASGIMessage, str]:
     """Prepare websocket message."""
     data = msg.get("text")

@@ -45,9 +45,7 @@ if TYPE_CHECKING:
 class TestResponse(Response):
     """Response for test client."""
 
-    def __init__(
-        self,
-    ):
+    def __init__(self):
         super().__init__(b"")
         self.content = None
 

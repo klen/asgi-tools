@@ -41,28 +41,16 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
         """Save ASGI App."""
         self.bind(app)
 
-    def __call__(
-        self,
-        scope: TASGIScope,
-        receive: TASGIReceive,
-        send: TASGISend,
-    ) -> Awaitable:
+    def __call__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend) -> Awaitable:
         """Handle ASGI call."""
-
         if scope["type"] in self.scopes:
             return self.__process__(scope, receive, send)
 
         return self.app(scope, receive, send)
 
     @abc.abstractmethod
-    async def __process__(
-        self,
-        scope: TASGIScope,
-        receive: TASGIReceive,
-        send: TASGISend,
-    ):
+    async def __process__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):
         """Do the middleware's logic."""
-
         raise NotImplementedError()
 
     @classmethod
@@ -132,14 +120,8 @@ class ResponseMiddleware(BaseMiddeware):
 
     """
 
-    async def __process__(
-        self,
-        scope: TASGIScope,
-        receive: TASGIReceive,
-        send: TASGISend,
-    ):
+    async def __process__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):
         """Parse responses from callbacks."""
-
         try:
             result = await self.app(scope, receive, self.send)
             response = parse_response(result)
@@ -173,12 +155,7 @@ class RequestMiddleware(BaseMiddeware):
 
     """
 
-    async def __process__(
-        self,
-        scope: TASGIScope,
-        receive: TASGIReceive,
-        send: TASGISend,
-    ):
+    async def __process__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):
         """Replace scope with request object."""
         return await self.app(Request(scope, receive, send), receive, send)
 
@@ -256,9 +233,7 @@ class LifespanMiddleware(BaseMiddeware):
                 break
 
     def __register__(
-        self,
-        handlers: Union[Callable, List[Callable], None],
-        container: List[Callable],
+        self, handlers: Union[Callable, List[Callable], None], container: List[Callable]
     ) -> None:
         """Register lifespan handlers."""
         if not handlers:
@@ -289,11 +264,7 @@ class LifespanMiddleware(BaseMiddeware):
                 if isawaitable(res):
                     await res
             except Exception as exc:
-                self.logger.exception(
-                    "%s method '%s' raises an exception.",
-                    event.title(),
-                    handler,
-                )
+                self.logger.exception("%s method '%s' raises an exception.", event.title(), handler)
 
                 if self.ignore_errors:
                     continue
@@ -367,11 +338,7 @@ class RouterMiddleware(BaseMiddeware):
 
     """
 
-    def __init__(
-        self,
-        app: Optional[TASGIApp] = None,
-        router: Optional[Router] = None,
-    ) -> None:
+    def __init__(self, app: Optional[TASGIApp] = None, router: Optional[Router] = None) -> None:
         """Initialize HTTP router."""
         super().__init__(app)
         self.router = router or Router(validator=callable)
@@ -433,12 +400,7 @@ class StaticFilesMiddleware(BaseMiddeware):
         folders = folders or []
         self.folders: List[Path] = [Path(folder) for folder in folders]
 
-    async def __process__(
-        self,
-        scope: TASGIScope,
-        receive: TASGIReceive,
-        send: TASGISend,
-    ) -> None:
+    async def __process__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend) -> None:
         """Serve static files for self url prefix."""
         path = scope["path"]
         url_prefix = self.url_prefix

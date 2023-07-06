@@ -153,8 +153,7 @@ async def aio_cancel(task: Union[asyncio.Task, Any]):
 
 
 async def aio_stream_file(
-    filepath: Union[str, Path],
-    chunk_size: int = 32 * 1024,
+    filepath: Union[str, Path], chunk_size: int = 32 * 1024
 ) -> AsyncGenerator[bytes, None]:
     if trio_installed and current_async_library() == "trio":
         async with await trio_open_file(filepath, "rb") as fp:

@@ -90,12 +90,7 @@ class MultipartReader(FormReader):
         "file_memory_limit",
     )
 
-    def __init__(
-        self,
-        charset: str,
-        upload_to: Optional[Callable],
-        file_memory_limit: int,
-    ):
+    def __init__(self, charset: str, upload_to: Optional[Callable], file_memory_limit: int):
         super().__init__(charset)
         self.name = ""
         self.headers: Dict[bytes, bytes] = {}

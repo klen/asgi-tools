@@ -1,6 +1,7 @@
 """ASGI Tools Responses Tests."""
 from __future__ import annotations
 
+from http import cookies
 from typing import TYPE_CHECKING, List
 
 import pytest
@@ -12,10 +13,9 @@ if TYPE_CHECKING:
 async def test_response():
     from asgi_tools import Response
 
-    response = Response("Content", content_type="text/html")
+    response = Response("Content", content_type="text/html", cookies={"lang": "en"})
     response.cookies["session"] = "test-session"
     response.cookies["session"]["path"] = "/"
-    response.cookies["lang"] = "en"
     assert response.status_code == 200
     assert response.content == b"Content"
 
@@ -25,8 +25,8 @@ async def test_response():
         "headers": [
             (b"content-type", b"text/html; charset=utf-8"),
             (b"content-length", b"7"),
-            (b"set-cookie", b"session=test-session; Path=/"),
             (b"set-cookie", b"lang=en"),
+            (b"set-cookie", b"session=test-session; Path=/"),
         ],
         "status": 200,
         "type": "http.response.start",
