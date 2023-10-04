@@ -62,6 +62,21 @@ async def test_app(client_cls):
     assert await res.text() == "Sync is ok"
 
 
+async def test_scope_endpoint(client_cls):
+    from asgi_tools.app import App, ResponseError
+
+    app = App()
+    client = client_cls(app)
+
+    @app.route("/")
+    async def endpoint(request):
+        return request.scope["endpoint"].__qualname__
+
+    res = await client.get("/")
+    assert res.status_code == 200
+    assert await res.text() == "test_scope_endpoint.<locals>.endpoint"
+
+
 async def test_errors(client_cls):
     from asgi_tools.app import App, ResponseError
 

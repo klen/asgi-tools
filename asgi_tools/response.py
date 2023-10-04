@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from email.utils import formatdate
 from enum import Enum
 from functools import partial
@@ -10,6 +9,7 @@ from hashlib import md5
 from http import HTTPStatus
 from http.cookies import SimpleCookie
 from mimetypes import guess_type
+from pathlib import Path
 from stat import S_ISDIR
 from typing import (
     TYPE_CHECKING,
@@ -32,8 +32,6 @@ from .errors import ASGIConnectionClosedError, ASGIError
 from .request import Request
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from .types import TASGIMessage, TASGIReceive, TASGIScope, TASGISend
 
 
@@ -259,12 +257,12 @@ class ResponseFile(ResponseStream):
     ) -> None:
         """Store filepath to self."""
         try:
-            stat = os.stat(filepath)  # noqa: PTH
+            stat = Path(filepath).stat()
         except FileNotFoundError as exc:
             raise ASGIError(*exc.args) from exc
 
         if S_ISDIR(stat.st_mode):
-            raise ASGIError(f"It's a directory: {filepath}")  # noqa:
+            raise ASGIError(f"It's a directory: {filepath}")  # noqa: TRY003
 
         super().__init__(
             empty() if headers_only else aio_stream_file(filepath, chunk_size),
@@ -311,7 +309,7 @@ class ResponseWebSocket(Response):
             receive, send = scope.receive, scope.send
 
         if not receive or not send:
-            raise ASGIError("Invalid initialization")  # noqa:
+            raise ASGIError("Invalid initialization")  # noqa: TRY003
 
         super().__init__(b"")
         self._receive: TASGIReceive = receive

@@ -215,7 +215,7 @@ class Request(TASGIScope):
         """
         if self._is_read:
             if self._body is None:
-                raise RuntimeError("Stream has been read")  # noqa:
+                raise RuntimeError("Stream has been read")  # noqa: TRY003
             yield self._body
 
         else:

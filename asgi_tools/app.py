@@ -156,6 +156,7 @@ class App:
         except ASGIInvalidMethodError as exc:
             raise ResponseError.METHOD_NOT_ALLOWED() from exc
 
+        scope["endpoint"] = match.target
         scope["path_params"] = {} if match.params is None else match.params
         response = await match.target(request)  # type: ignore[]
 

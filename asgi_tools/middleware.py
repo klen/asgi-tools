@@ -131,7 +131,7 @@ class ResponseMiddleware(BaseMiddeware):
             await exc(scope, receive, send)
 
     def send(self, _: TASGIMessage):
-        raise RuntimeError("You can't use send() method in ResponseMiddleware")  # noqa:
+        raise RuntimeError("You can't use send() method in ResponseMiddleware")  # noqa: TRY003
 
     def bind(self, app: Optional[TASGIApp] = None):
         """Rebind the middleware to an ASGI application if it has been inited already."""

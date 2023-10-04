@@ -49,7 +49,7 @@ class TestResponse(Response):
         super().__init__(b"")
         self.content = None
 
-    async def __call__(self, _: TASGIScope, receive: TASGIReceive, send: TASGISend):  # noqa: ARG
+    async def __call__(self, _: TASGIScope, receive: TASGIReceive, send: TASGISend):  # noqa: ARG002
         self._receive = receive
         msg = await self._receive()
         assert msg.get("type") == "http.response.start", "Invalid Response"
@@ -276,7 +276,7 @@ class ASGITestClient:
             url = url.with_query(query)
 
         # Setup client
-        scope.setdefault("client", ("127.0.0.1", random.randint(1024, 65535)))  # noqa:
+        scope.setdefault("client", ("127.0.0.1", random.randint(1024, 65535)))  # noqa: S311
 
         return dict(
             {
@@ -382,7 +382,7 @@ class Pipe:
         return None
 
 
-async def raise_timeout(timeout: Union[int, float]):
+async def raise_timeout(timeout: float):
     await aio_sleep(timeout)
     raise TimeoutError
 

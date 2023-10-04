@@ -134,7 +134,7 @@ async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:
     if strategy != ALL_COMPLETED:
         [task.cancel() for task in pending]
         await gather(*pending, return_exceptions=True)
-        return list(done)[0].result()
+        return next(iter(done)).result()
 
     return [t.result() for t in done]
 
@@ -173,7 +173,7 @@ async def aio_stream_file(
 
     else:
         if not aiofile_installed:
-            raise RuntimeError(  # noqa:
+            raise RuntimeError(  # noqa: TRY003
                 "`aiofile` is required to return files with asyncio",
             )
 
