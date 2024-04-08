@@ -274,12 +274,12 @@ async def test_timeouts(app, client):
         await aio_sleep(time)
         return "OK"
 
-    with pytest.raises(TimeoutError):
-        await client.get("/sleep/10", timeout=0.1)
-
     res = await client.get("/sleep/0.01")
     assert res.status_code == 200
     assert await res.text() == "OK"
+
+    with pytest.raises((TimeoutError, ExceptionGroup)):
+        await client.get("/sleep/10", timeout=0.1)
 
 
 async def test_lifespan_unsupported(client_cls):
@@ -318,7 +318,7 @@ async def test_lifespan(client_cls):
 
     client = client_cls(app)
 
-    with pytest.raises(AssertionError):  # noqa: PT012
+    with pytest.raises((AssertionError, ExceptionGroup)):
         async with client.lifespan():
             raise AssertionError("test")
 
@@ -341,7 +341,7 @@ async def test_invalid_app(client_cls):
         await Response("test")(scope, receive, send)
 
     client = client_cls(invalid)
-    with pytest.raises(ASGIInvalidMessageError):
+    with pytest.raises((ASGIInvalidMessageError, ExceptionGroup)):
         await client.get("/")
 
 

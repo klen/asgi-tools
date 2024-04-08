@@ -109,10 +109,12 @@ async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:
         return None
 
     if trio_installed and current_async_library() == "trio":
-        send_channel, receive_channel = open_memory_channel(0)
+        send_channel, receive_channel = open_memory_channel(0)  # type: ignore[var-annotated]
 
         async with open_nursery() as n:
-            [n.start_soon(trio_jockey, aw, send_channel) for aw in aws]
+            for aw in aws:
+                n.start_soon(trio_jockey, aw, send_channel)
+
             results = []
             for _ in aws:
                 results.append(await receive_channel.receive())
@@ -130,13 +132,14 @@ async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:
         return g.results if strategy == ALL_COMPLETED else g.result
 
     aws = tuple(create_task(aw) if inspect.iscoroutine(aw) else aw for aw in aws)
-    done, pending = await asyncio.wait(aws, return_when=strategy)
+    done, pending = await asyncio.wait(aws, return_when=strategy)  # type: ignore[type-var]
     if strategy != ALL_COMPLETED:
-        [task.cancel() for task in pending]
+        for task in pending:
+            task.cancel()  # type: ignore[attr-defined]
         await gather(*pending, return_exceptions=True)
-        return next(iter(done)).result()
+        return next(iter(done)).result()  # type: ignore[attr-defined]
 
-    return [t.result() for t in done]
+    return [t.result() for t in done]  # type: ignore[attr-defined]
 
 
 async def aio_cancel(task: Union[asyncio.Task, Any]):

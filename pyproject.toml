@@ -16,10 +16,10 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: Implementation :: PyPy",
   "Programming Language :: Cython",
   "Topic :: Internet :: WWW/HTTP",
@@ -37,10 +37,11 @@ documentation = "https://klen.github.io/asgi-tools"
 tests = [
   "aiofile",
   "pytest",
-  "pytest-aio[curio,trio] >= 1.1.0",
+  "pytest-aio[trio] >= 1.1.0",
   "pytest-benchmark",
   "PyYAML",
   "ruff",
+  "curio @ git+https://github.com/dabeaz/curio",
   "uvloop; implementation_name == 'cpython'",
   "pytest-mypy; implementation_name == 'cpython'",
   "ujson; implementation_name == 'cpython'",
@@ -48,15 +49,7 @@ tests = [
 ujson = ["ujson"]
 orjson = ["orjson"]
 examples = ["uvicorn[standard]", "jinja2", "httpx"]
-dev = [
-  "bump2version",
-  "refurb; python_version >= '3.9'",
-  "tox",
-  "cython",
-  "pre-commit",
-  "sphinx",
-  "pydata-sphinx-theme",
-]
+dev = ["bump2version", "tox", "cython", "pre-commit", "sphinx", "pydata-sphinx-theme"]
 
 [tool.setuptools]
 packages = ['asgi_tools']
@@ -75,39 +68,34 @@ ignore_missing_imports = true
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py38,py39,py310,py311,pypy39
+envlist = py39,py310,py311,py312,pypy39
 
 [testenv]
 deps = -e .[tests]
 commands =
         mypy
 	pytest tests
-
-[testenv:pypy39]
-deps = -e .[tests]
-commands =
-	pytest tests
 """
 
 [tool.ruff]
 line-length = 100
-target-version = "py38"
+target-version = "py39"
 exclude = [".venv", "docs", "examples"]
 select = ["ALL"]
 ignore = [
-  "D",
-  "COM",
-  "UP",
   "ANN",
+  "COM",
+  "D",
   "DJ",
   "EM",
-  "RSE",
-  "SLF",
-  "S101",
+  "FIX002",
   "PLR0913",
   "PLR2004",
+  "RSE",
+  "S101",
+  "SLF",
   "TD",
-  "FIX002",
+  "UP",
 ]
 
 [tool.ruff.isort]
@@ -118,5 +106,5 @@ required-imports = ["from __future__ import annotations"]
 
 [tool.black]
 line-length = 100
-target-version = ["py38", "py39", "py310", "py311"]
+target-version = ["py39", "py310", "py311", "py312"]
 preview = true
