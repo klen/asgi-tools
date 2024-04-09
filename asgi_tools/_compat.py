@@ -1,4 +1,5 @@
 """Compatability layer."""
+
 from __future__ import annotations
 
 import asyncio
@@ -41,6 +42,11 @@ __all__ = (
     "curio_installed",
 )
 
+try:
+    from asyncio import timeout as asyncio_timeout  # type: ignore[attr-defined]
+except ImportError:  # python 39, 310
+    from async_timeout import timeout as asyncio_timeout  # type: ignore[no-redef]
+
 
 aiofile_installed = False
 with suppress(ImportError):
@@ -51,8 +57,9 @@ with suppress(ImportError):
 
 trio_installed = False
 with suppress(ImportError):
+    from trio import TooSlowError, open_memory_channel, open_nursery
+    from trio import fail_after as trio_fail_after
     from trio import open_file as trio_open_file
-    from trio import open_memory_channel, open_nursery
     from trio import sleep as trio_sleep
 
     trio_installed = True
@@ -61,9 +68,11 @@ with suppress(ImportError):
 curio_installed = False
 with suppress(ImportError):
     from curio import TaskGroup as CurioTaskGroup
+    from curio import TaskTimeout
     from curio import aopen as curio_open
     from curio import sleep as curio_sleep
     from curio import spawn as curio_spawn
+    from curio import timeout_after as curio_fail_after
 
     curio_installed = True
 
@@ -97,7 +106,35 @@ async def aio_spawn(fn: Callable[..., Awaitable], *args, **kwargs):
         coro = cast(Coroutine, fn(*args, **kwargs))
         task = create_task(coro)
         yield task
-        await gather(task)
+        await task
+
+
+@asynccontextmanager
+async def aio_timeout(timeout: float):
+    """Fail after the given timeout."""
+    if not timeout:
+        yield
+        return
+
+    if trio_installed and current_async_library() == "trio":
+        try:
+            with trio_fail_after(timeout):
+                yield
+
+        except TooSlowError:
+            raise TimeoutError(f"{timeout}s.")
+
+    elif curio_installed and current_async_library() == "curio":
+        try:
+            async with curio_fail_after(timeout):
+                yield
+
+        except TaskTimeout:
+            raise TimeoutError(f"{timeout}s.")
+
+    else:
+        async with asyncio_timeout(timeout):
+            yield
 
 
 async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:

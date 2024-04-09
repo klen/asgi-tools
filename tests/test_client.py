@@ -1,10 +1,16 @@
 """Simple Test Client."""
+
 from __future__ import annotations
 
 import io
 from pathlib import Path
+from sys import version_info
 
 import pytest
+from curio.meta import asyncio
+
+if version_info < (3, 11):
+    from exceptiongroup import ExceptionGroup
 
 
 def test_build_scope(client):
@@ -278,7 +284,7 @@ async def test_timeouts(app, client):
     assert res.status_code == 200
     assert await res.text() == "OK"
 
-    with pytest.raises((TimeoutError, ExceptionGroup)):
+    with pytest.raises((TimeoutError, asyncio.TimeoutError)):  # python 39, 310
         await client.get("/sleep/10", timeout=0.1)
 
 

@@ -1,20 +1,43 @@
 from __future__ import annotations
 
-from asgi_tools._compat import FIRST_COMPLETED, aio_sleep, aio_wait
+from asyncio import FIRST_EXCEPTION
+from multiprocessing import Value
+
+import pytest
+from curio.meta import asyncio
+
+from asgi_tools._compat import FIRST_COMPLETED, aio_sleep, aio_timeout, aio_wait
 
 
 async def test_aio_sleep():
     await aio_sleep(1e-2)
 
-async def test_aio_wait():
-    async def coro(num):
-        await aio_sleep(1e-2 * num)
-        return num
 
-    results = await aio_wait(coro(1), coro(2), coro(3))
+async def test_aio_timeout_disabled():
+    async with aio_timeout(0):
+        await aio_sleep(1e-2)
+
+
+async def test_aio_timeout():
+    with pytest.raises((TimeoutError, asyncio.TimeoutError)):  # python 39, 310
+        async with aio_timeout(1e-2):
+            await aio_sleep(1)
+
+
+async def coro(num, exc=None):
+    await aio_sleep(1e-2 * num)
+    if exc:
+        raise exc
+    return num
+
+
+async def test_aio_wait():
+    results = await aio_wait(coro(3), coro(2), coro(1))
     assert sorted(results) == [1, 2, 3]
 
-    result = await aio_wait(coro(1), coro(2), coro(3), strategy=FIRST_COMPLETED)
+
+async def test_aio_wait_first_completed():
+    result = await aio_wait(coro(3), coro(2), coro(1), strategy=FIRST_COMPLETED)
     assert result == 1
 
 

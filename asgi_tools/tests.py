@@ -1,4 +1,5 @@
 """Testing tools."""
+
 from __future__ import annotations
 
 import binascii
@@ -21,7 +22,6 @@ from typing import (
     Coroutine,
     Deque,
     Dict,
-    Mapping,
     Optional,
     Tuple,
     Union,
@@ -29,10 +29,11 @@ from typing import (
 )
 from urllib.parse import urlencode
 
+from curio.meta import asyncio
 from multidict import MultiDict
 from yarl import URL
 
-from ._compat import FIRST_COMPLETED, aio_cancel, aio_sleep, aio_spawn, aio_wait
+from ._compat import aio_cancel, aio_sleep, aio_spawn, aio_timeout, aio_wait
 from .constants import BASE_ENCODING, DEFAULT_CHARSET
 from .errors import ASGIConnectionClosedError, ASGIInvalidMessageError
 from .response import Response, ResponseJSON, ResponseWebSocket, parse_websocket_msg
@@ -194,14 +195,11 @@ class ASGITestClient:
             cookies=cookies,
         )
 
-        await aio_wait(
-            aio_wait(
+        async with aio_timeout(timeout):
+            await aio_wait(
                 pipe.stream(data),
                 self.app(scope, pipe.receive_from_app, pipe.send_to_client),
-            ),
-            raise_timeout(timeout),
-            strategy=FIRST_COMPLETED,
-        )
+            )
 
         res = TestResponse()
         await res(scope, pipe.receive_from_client, pipe.send_to_app)
@@ -382,11 +380,6 @@ class Pipe:
         return None
 
 
-async def raise_timeout(timeout: float):
-    await aio_sleep(timeout)
-    raise TimeoutError
-
-
 @asynccontextmanager
 async def manage_lifespan(app, timeout: float = 3e-2):
     """Manage `Lifespan <https://asgi.readthedocs.io/en/latest/specs/lifespan.html>`_ protocol."""
@@ -400,24 +393,16 @@ async def manage_lifespan(app, timeout: float = 3e-2):
 
     async with aio_spawn(safe_spawn) as task:
         await pipe.send_to_app({"type": "lifespan.startup"})
-        msg = await aio_wait(
-            pipe.receive_from_client(),
-            aio_sleep(timeout),
-            strategy=FIRST_COMPLETED,
-        )
-        if msg and isinstance(msg, Mapping):
-            if msg["type"] == "lifespan.startup.failed":
-                await aio_cancel(task)
-            else:
-                assert msg["type"] == "lifespan.startup.complete"
+
+        with suppress(TimeoutError, asyncio.TimeoutError):  # python 39, 310
+            async with aio_timeout(timeout):
+                msg = await pipe.receive_from_client()
+                if msg["type"] == "lifespan.startup.failed":
+                    await aio_cancel(task)
 
         yield
 
         await pipe.send_to_app({"type": "lifespan.shutdown"})
-        msg = await aio_wait(
-            pipe.receive_from_client(),
-            aio_sleep(timeout),
-            strategy=FIRST_COMPLETED,
-        )
-        if msg and isinstance(msg, Mapping):
-            assert msg["type"] == "lifespan.shutdown.complete"
+        with suppress(TimeoutError, asyncio.TimeoutError):  # python 39, 310
+            async with aio_timeout(timeout):
+                await pipe.receive_from_client()
