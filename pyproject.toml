@@ -47,7 +47,7 @@ tests = [
   "pytest-benchmark",
   "PyYAML",
   "ruff",
-  "curio @ git+https://github.com/dabeaz/curio",
+  "curio@git+https://github.com/dabeaz/curio",
   "uvloop; implementation_name == 'cpython'",
   "pytest-mypy; implementation_name == 'cpython'",
   "ujson; implementation_name == 'cpython'",
