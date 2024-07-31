@@ -113,8 +113,9 @@ jobs:
       - name: Download a distribution artifact
         uses: actions/download-artifact@main
         with:
-          name: dist-*
           path: dist
+          pattern: dist-*
+          merge-multiple: true
 
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@master
