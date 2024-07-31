@@ -3,10 +3,10 @@ PACKAGE		?= asgi_tools
 
 all: $(VIRTUAL_ENV)
 
-$(VIRTUAL_ENV): pyproject.toml
+$(VIRTUAL_ENV): pyproject.toml .pre-commit-config.yaml
 	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
 	@$(VIRTUAL_ENV)/bin/pip install -e .[tests,dev,examples,docs]
-	@$(VIRTUAL_ENV)/bin/pre-commit install --hook-type pre-push
+	@$(VIRTUAL_ENV)/bin/pre-commit install
 	@touch $(VIRTUAL_ENV)
 
 VPART	?= minor
