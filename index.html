@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Welcome to asgi-tools’s documentation! &#8212; asgi-tools 1.0.7 documentation</title>
+    <title>Welcome to asgi-tools’s documentation! &#8212; asgi-tools 1.0.10 documentation</title>
   
   
   
@@ -36,7 +36,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=46dfa7f5"></script>
+    <script src="_static/documentation_options.js?v=377e76b0"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -124,8 +124,8 @@
       
     
     
-    <img src="_static/asgi-tools.png" class="logo__image only-light" alt="asgi-tools 1.0.7 documentation - Home"/>
-    <script>document.write(`<img src="_static/asgi-tools.png" class="logo__image only-dark" alt="asgi-tools 1.0.7 documentation - Home"/>`);</script>
+    <img src="_static/asgi-tools.png" class="logo__image only-light" alt="asgi-tools 1.0.10 documentation - Home"/>
+    <script>document.write(`<img src="_static/asgi-tools.png" class="logo__image only-dark" alt="asgi-tools 1.0.10 documentation - Home"/>`);</script>
   
   
 </a></div>
@@ -367,7 +367,7 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 1.0.7
+    Version: 1.0.10
 </div>
 </div>
     </div>
@@ -409,7 +409,7 @@ faster.</p>
 <li><p>ASGI Lifespan support (<a class="reference internal" href="api.html#asgi_tools.LifespanMiddleware" title="asgi_tools.LifespanMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">LifespanMiddleware</span></code></a>) with startup and shutdown events;</p></li>
 <li><p>ASGI Routing support (<a class="reference internal" href="api.html#asgi_tools.RouterMiddleware" title="asgi_tools.RouterMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">RouterMiddleware</span></code></a>) to route your handlers by http urls;</p></li>
 <li><p>Auto parsing for app responses (<a class="reference internal" href="api.html#asgi_tools.ResponseMiddleware" title="asgi_tools.ResponseMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseMiddleware</span></code></a>);</p></li>
-<li><p>Test client (<code class="xref py py-class docutils literal notranslate"><span class="pre">ASGITestClient</span></code>) to test <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> applications;</p></li>
+<li><p>Test client (<a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient" title="asgi_tools.tests.ASGITestClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">ASGITestClient</span></code></a>) to test <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> applications;</p></li>
 <li><p>And more</p></li>
 </ul>
 <a class="reference external image-reference" href="https://github.com/klen/asgi-tools/actions" id="badges"><img alt="Tests Status" src="https://github.com/klen/asgi-tools/workflows/tests/badge.svg" /></a>
@@ -557,7 +557,15 @@ method, this part of the documentation is for you.</p>
 <li class="toctree-l3"><a class="reference internal" href="api.html#asgi_tools.HTTPView"><code class="docutils literal notranslate"><span class="pre">HTTPView</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#testclient">TestClient</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#testclient">TestClient</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient"><code class="docutils literal notranslate"><span class="pre">ASGITestClient</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient.request"><code class="docutils literal notranslate"><span class="pre">ASGITestClient.request()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient.websocket"><code class="docutils literal notranslate"><span class="pre">ASGITestClient.websocket()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient.lifespan"><code class="docutils literal notranslate"><span class="pre">ASGITestClient.lifespan()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
