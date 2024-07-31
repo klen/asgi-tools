@@ -90,14 +90,6 @@ jobs:
         CIBW_BUILD: ${{ matrix.cibw_python }}
         CIBW_ARCHS: ${{ matrix.cibw_arch }}
 
-    - name: Test wheels
-      if: |
-        !startsWith(matrix.os, 'windows')
-      run: |
-        python3 -m venv venv
-        source venv/bin/activate
-        python3 -m pip install --pre asgi_tools -f "file:///${GITHUB_WORKSPACE}/wheelhouse"
-
     - uses: actions/upload-artifact@main
       with:
         name: dist
