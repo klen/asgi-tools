@@ -81,7 +81,7 @@ def aio_sleep(seconds: float = 0) -> Awaitable:
     """Return sleep coroutine."""
 
     if trio_installed and current_async_library() == "trio":
-        return trio_sleep(seconds)
+        return trio_sleep(seconds)  # noqa: TRIO105
 
     if curio_installed and current_async_library() == "curio":
         return curio_sleep(seconds)
@@ -110,7 +110,7 @@ async def aio_spawn(fn: Callable[..., Awaitable], *args, **kwargs):
 
 
 @asynccontextmanager
-async def aio_timeout(timeout: float):
+async def aio_timeout(timeout: float):  # noqa: TRIO109
     """Fail after the given timeout."""
     if not timeout:
         yield
@@ -118,11 +118,11 @@ async def aio_timeout(timeout: float):
 
     if trio_installed and current_async_library() == "trio":
         try:
-            with trio_fail_after(timeout):
+            with trio_fail_after(timeout):  # noqa: TRIO100
                 yield
 
         except TooSlowError:
-            raise TimeoutError(f"{timeout}s.")
+            raise TimeoutError(f"{timeout}s.") from None
 
     elif curio_installed and current_async_library() == "curio":
         try:
@@ -130,7 +130,7 @@ async def aio_timeout(timeout: float):
                 yield
 
         except TaskTimeout:
-            raise TimeoutError(f"{timeout}s.")
+            raise TimeoutError(f"{timeout}s.") from None
 
     else:
         async with asyncio_timeout(timeout):
