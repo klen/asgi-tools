@@ -1,4 +1,5 @@
 """Simple Base for ASGI Apps."""
+
 from __future__ import annotations
 
 from functools import partial
@@ -128,7 +129,7 @@ class App:
                 await response(scope, receive, send)
 
         # Handle exceptions
-        except BaseException as exc:  # noqa: BLE001
+        except BaseException as exc:
             for etype in type(exc).mro():
                 if etype in self.exception_handlers:
                     await parse_response(
@@ -186,8 +187,8 @@ class App:
                     self.internal_middlewares.append(md)
 
             app = self.__match__
-            for md in reversed(self.internal_middlewares):
-                app = partial(md, app)
+            for md_ in reversed(self.internal_middlewares):
+                app = partial(md_, app)
 
             self.__app__ = app
 
