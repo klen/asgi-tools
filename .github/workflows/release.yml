@@ -92,7 +92,6 @@ jobs:
 
     - uses: actions/upload-artifact@main
       with:
-        name: dist
         path: wheelhouse/*.whl
 
     - name: Notify Failure
