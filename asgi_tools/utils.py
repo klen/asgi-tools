@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from functools import wraps
 from inspect import isasyncgenfunction, iscoroutinefunction
-from typing import TYPE_CHECKING, Callable, Coroutine, Dict, Tuple, overload
+from typing import TYPE_CHECKING, Callable, Coroutine, overload
 from urllib.parse import unquote_to_bytes
 
 from multidict import CIMultiDict
@@ -22,13 +22,11 @@ def is_awaitable(fn: Callable) -> bool:
 
 
 @overload
-def to_awaitable(fn: TVAsyncCallable) -> TVAsyncCallable:
-    ...
+def to_awaitable(fn: TVAsyncCallable) -> TVAsyncCallable: ...
 
 
 @overload
-def to_awaitable(fn: Callable[..., TV]) -> Callable[..., Coroutine[None, None, TV]]:
-    ...
+def to_awaitable(fn: Callable[..., TV]) -> Callable[..., Coroutine[None, None, TV]]: ...
 
 
 def to_awaitable(fn: Callable):
@@ -82,10 +80,10 @@ OPTION_HEADER_PIECE_RE = re.compile(
 )
 
 
-def parse_options_header(value: str) -> Tuple[str, Dict[str, str]]:
+def parse_options_header(value: str) -> tuple[str, dict[str, str]]:
     """Parse the given content disposition header."""
 
-    options: Dict[str, str] = {}
+    options: dict[str, str] = {}
     if not value:
         return "", options
 

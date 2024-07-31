@@ -11,17 +11,7 @@ from http.cookies import SimpleCookie
 from mimetypes import guess_type
 from pathlib import Path
 from stat import S_ISDIR
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    AsyncGenerator,
-    Callable,
-    Dict,
-    Mapping,
-    Optional,
-    Type,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Callable, Mapping, Optional, Union
 from urllib.parse import quote, quote_plus
 
 from multidict import MultiDict
@@ -76,8 +66,8 @@ class Response:
         *,
         status_code: Optional[int] = None,
         content_type: Optional[str] = None,
-        headers: Optional[Dict[str, str]] = None,
-        cookies: Optional[Dict[str, str]] = None,
+        headers: Optional[dict[str, str]] = None,
+        cookies: Optional[dict[str, str]] = None,
     ):
         """Setup the response."""
         self.content = self.process_content(content)
@@ -358,7 +348,7 @@ class ResponseWebSocket(Response):
             await self.send({"type": "websocket.close", "code": code})
         self.state = self.STATES.DISCONNECTED
 
-    async def send(self, msg: Union[Dict, str, bytes], msg_type="websocket.send") -> None:
+    async def send(self, msg: Union[dict, str, bytes], msg_type="websocket.send") -> None:
         """Send the given message to a client."""
         if self.state == self.STATES.DISCONNECTED:
             raise ASGIConnectionClosedError
@@ -494,7 +484,7 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
         assert self.status_code >= 400, f"Invalid status code for an error: {self.status_code}"
 
 
-CAST_RESPONSE: Mapping[Type, Type[Response]] = {
+CAST_RESPONSE: Mapping[type, type[Response]] = {
     bool: ResponseJSON,
     bytes: ResponseHTML,
     dict: ResponseJSON,
@@ -505,7 +495,7 @@ CAST_RESPONSE: Mapping[Type, Type[Response]] = {
 }
 
 
-def parse_response(response, headers: Optional[Dict] = None) -> Response:
+def parse_response(response, headers: Optional[dict] = None) -> Response:
     """Parse the given object and convert it into a asgi_tools.Response."""
     if isinstance(response, Response):
         return response

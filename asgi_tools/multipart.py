@@ -3,12 +3,13 @@
 
 The original code is licensed by Apache2 license.
 """
+
 from __future__ import annotations
 
 from contextlib import suppress
 
 # Flags for the multipart parser.
-from typing import Dict, Final
+from typing import Final
 
 FLAG_PART_BOUNDARY: Final = 1
 FLAG_LAST_BOUNDARY: Final = 2
@@ -49,7 +50,7 @@ class BaseParser:
 
     __slots__ = ("callbacks",)
 
-    def __init__(self, callbacks: Dict):
+    def __init__(self, callbacks: dict):
         self.callbacks = callbacks
 
     def callback(self, name: str, data: bytes, start: int, end: int):
@@ -104,7 +105,7 @@ class QueryStringParser(BaseParser):
 
     __slots__ = "callbacks", "cursize", "max_size", "state"
 
-    def __init__(self, callbacks: Dict, max_size: int = 0):
+    def __init__(self, callbacks: dict, max_size: int = 0):
         super().__init__(callbacks)
         self.cursize = 0
         self.max_size = max_size
@@ -269,7 +270,7 @@ class MultipartParser(BaseParser):
         "lookbehind",
     )
 
-    def __init__(self, boundary, callbacks: Dict, max_size: int = 0):
+    def __init__(self, boundary, callbacks: dict, max_size: int = 0):
         super().__init__(callbacks)
         self.cursize = 0
         self.max_size = max_size

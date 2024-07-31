@@ -21,9 +21,7 @@ from typing import (
     Callable,
     Coroutine,
     Deque,
-    Dict,
     Optional,
-    Tuple,
     Union,
     cast,
 )
@@ -143,7 +141,7 @@ class ASGITestClient:
         self.app = app
         self.base_url = URL(base_url)
         self.cookies: SimpleCookie = SimpleCookie()
-        self.headers: Dict[str, str] = {}
+        self.headers: dict[str, str] = {}
 
     def __getattr__(self, name: str) -> Callable[..., Awaitable]:
         return partial(self.request, method=name.upper())
@@ -153,10 +151,10 @@ class ASGITestClient:
         path: str,
         method: str = "GET",
         *,
-        query: Union[str, Dict] = "",
-        headers: Optional[Dict[str, str]] = None,
-        cookies: Optional[Dict[str, str]] = None,
-        data: Union[bytes, str, Dict, AsyncGenerator] = b"",
+        query: Union[str, dict] = "",
+        headers: Optional[dict[str, str]] = None,
+        cookies: Optional[dict[str, str]] = None,
+        data: Union[bytes, str, dict, AsyncGenerator[Any, bytes]] = b"",
         json: TJSON = None,
         follow_redirect: bool = True,
         timeout: float = 10.0,
@@ -216,9 +214,9 @@ class ASGITestClient:
     async def websocket(
         self,
         path: str,
-        query: Union[str, Dict, None] = None,
-        headers: Optional[Dict] = None,
-        cookies: Optional[Dict] = None,
+        query: Union[str, dict, None] = None,
+        headers: Optional[dict] = None,
+        cookies: Optional[dict] = None,
     ):
         """Connect to a websocket."""
         pipe = Pipe()
@@ -252,9 +250,9 @@ class ASGITestClient:
     def build_scope(
         self,
         path: str,
-        headers: Union[Dict, CIMultiDict, None] = None,
-        query: Union[str, Dict, None] = None,
-        cookies: Optional[Dict] = None,
+        headers: Union[dict, CIMultiDict, None] = None,
+        query: Union[str, dict, None] = None,
+        cookies: Optional[dict] = None,
         **scope,
     ) -> TASGIScope:
         """Prepare a request scope."""
@@ -295,7 +293,7 @@ class ASGITestClient:
         )
 
 
-def encode_multipart(data: Dict) -> Tuple[bytes, str]:
+def encode_multipart(data: dict) -> tuple[bytes, str]:
     body = io.BytesIO()
     boundary = binascii.hexlify(os.urandom(16))
     for name, data_value in data.items():

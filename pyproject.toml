@@ -63,8 +63,9 @@ packages = ['asgi_tools']
 
 [tool.setuptools.package-data]
 asgi_tools = ["py.typed", "multipart.pxd", "multipart.pyx", "forms.pyx"]
+
 [tool.pytest.ini_options]
-addopts = "-xsv"
+addopts = "-xsv tests"
 
 [tool.mypy]
 packages = ["asgi_tools"]

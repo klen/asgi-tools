@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from functools import partial
 from inspect import isclass
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set, Type, Union  # py38
+from typing import TYPE_CHECKING, Callable, Optional, Union  # py39
 
 from http_router import PrefixedRoute
 
@@ -62,7 +62,7 @@ class App:
 
     """
 
-    exception_handlers: Dict[Type[BaseException], TExceptionHandler]
+    exception_handlers: dict[type[BaseException], TExceptionHandler]
 
     def __init__(
         self,
@@ -70,7 +70,7 @@ class App:
         debug: bool = False,
         logger: logging.Logger = logger,
         static_url_prefix: str = "/static",
-        static_folders: Optional[List[Union[str, Path]]] = None,
+        static_folders: Optional[list[Union[str, Path]]] = None,
         trim_last_slash: bool = False,
     ):
         """Initialize router and lifespan middleware."""
@@ -113,7 +113,7 @@ class App:
 
             self.exception_handlers[Exception] = handle_unknown_exception
 
-        self.internal_middlewares: List = []
+        self.internal_middlewares: list = []
 
     async def __call__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend) -> None:
         """Convert the given scope into a request and process."""
@@ -209,7 +209,7 @@ class App:
         """Register a shutdown handler."""
         return self.lifespan.on_shutdown(fn)
 
-    def on_error(self, etype: Type[BaseException]):
+    def on_error(self, etype: type[BaseException]):
         """Register an exception handler.
 
         .. code-block::
@@ -238,7 +238,7 @@ class App:
 class RouteApp(PrefixedRoute):
     """Custom route to submount an application."""
 
-    def __init__(self, path: str, methods: Set, target: App):
+    def __init__(self, path: str, methods: set, target: App):
         """Create app callable."""
         path = path.rstrip("/")
 

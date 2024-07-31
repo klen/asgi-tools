@@ -1,9 +1,10 @@
 """Work with multipart."""
+
 from __future__ import annotations
 
 from io import BytesIO
 from tempfile import SpooledTemporaryFile
-from typing import TYPE_CHECKING, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Callable, Optional
 from urllib.parse import unquote_to_bytes
 
 from multidict import MultiDict
@@ -93,7 +94,7 @@ class MultipartReader(FormReader):
     def __init__(self, charset: str, upload_to: Optional[Callable], file_memory_limit: int):
         super().__init__(charset)
         self.name = ""
-        self.headers: Dict[bytes, bytes] = {}
+        self.headers: dict[bytes, bytes] = {}
         self.partdata = BytesIO()
         self.upload_to = upload_to
         self.file_memory_limit = file_memory_limit

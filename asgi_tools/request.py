@@ -5,7 +5,7 @@ incoming request.
 from __future__ import annotations
 
 from http import cookies
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Callable, Dict, Iterator, Optional, Union
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Callable, Iterator, Optional, Union
 
 from yarl import URL
 
@@ -55,8 +55,8 @@ class Request(TASGIScope):
         self._body: Optional[bytes] = None
         self._form: Optional[MultiDict] = None
         self._headers: Optional[CIMultiDict] = None
-        self._media: Optional[Dict[str, str]] = None
-        self._cookies: Optional[Dict[str, str]] = None
+        self._media: Optional[dict[str, str]] = None
+        self._cookies: Optional[dict[str, str]] = None
 
     def __str__(self) -> str:
         """Return the request's params."""
@@ -154,7 +154,7 @@ class Request(TASGIScope):
         return self._headers
 
     @property
-    def cookies(self) -> Dict[str, str]:
+    def cookies(self) -> dict[str, str]:
         """A lazy property that parses the current scope's cookies and returns a dictionary.
 
         .. code-block:: python
@@ -174,7 +174,7 @@ class Request(TASGIScope):
         return self._cookies
 
     @property
-    def media(self) -> Dict[str, str]:
+    def media(self) -> dict[str, str]:
         """Prepare a media data for the request."""
         if self._media is None:
             conten_type_header = self.headers.get("content-type", "")

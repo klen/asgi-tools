@@ -6,10 +6,8 @@ from typing import (
     Awaitable,
     Callable,
     Coroutine,
-    List,
     Mapping,
     MutableMapping,
-    Tuple,
     TypeVar,
     Union,
 )
@@ -21,10 +19,10 @@ TASGIMessage = Mapping[str, Any]
 TASGISend = Callable[[TASGIMessage], Awaitable[None]]
 TASGIReceive = Callable[[], Awaitable[TASGIMessage]]
 TASGIScope = MutableMapping[str, Any]
-TASGIHeaders = List[Tuple[bytes, bytes]]
+TASGIHeaders = list[tuple[bytes, bytes]]
 TASGIApp = Callable[[TASGIScope, TASGIReceive, TASGISend], Awaitable[Any]]
 
-TJSON = Union[None, bool, int, float, str, List["TJSON"], Mapping[str, "TJSON"]]
+TJSON = Union[None, bool, int, float, str, list["TJSON"], Mapping[str, "TJSON"]]
 TExceptionHandler = Callable[["Request", BaseException], Coroutine[None, None, Any]]
 
 TV = TypeVar("TV")

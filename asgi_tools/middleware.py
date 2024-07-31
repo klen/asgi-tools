@@ -8,17 +8,7 @@ from contextvars import ContextVar
 from functools import partial
 from inspect import isawaitable
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Awaitable,
-    Callable,
-    Final,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
-)
+from typing import TYPE_CHECKING, Awaitable, Callable, Final, Mapping, Optional, Union
 
 from http_router import Router
 
@@ -35,7 +25,7 @@ if TYPE_CHECKING:
 class BaseMiddeware(metaclass=abc.ABCMeta):
     """Base class for ASGI-Tools middlewares."""
 
-    scopes: Tuple[str, ...] = ("http", "websocket")
+    scopes: tuple[str, ...] = ("http", "websocket")
 
     def __init__(self, app: Optional[TASGIApp] = None) -> None:
         """Save ASGI App."""
@@ -56,7 +46,7 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
     @classmethod
     def setup(cls, **params) -> Callable:
         """Setup the middleware without an initialization."""
-        return partial(cls, **params)
+        return partial(cls, **params)  # type: ignore[abstract]
 
     def bind(self, app: Optional[TASGIApp] = None):
         """Rebind the middleware to an ASGI application if it has been inited already."""
@@ -207,15 +197,15 @@ class LifespanMiddleware(BaseMiddeware):
         *,
         logger=logger,
         ignore_errors: bool = False,
-        on_startup: Union[Callable, List[Callable], None] = None,
-        on_shutdown: Union[Callable, List[Callable], None] = None,
+        on_startup: Union[Callable, list[Callable], None] = None,
+        on_shutdown: Union[Callable, list[Callable], None] = None,
     ) -> None:
         """Prepare the middleware."""
         super(LifespanMiddleware, self).__init__(app)
         self.ignore_errors = ignore_errors
         self.logger = logger
-        self.__startup__: List[Callable] = []
-        self.__shutdown__: List[Callable] = []
+        self.__startup__: list[Callable] = []
+        self.__shutdown__: list[Callable] = []
         self.__register__(on_startup, self.__startup__)
         self.__register__(on_shutdown, self.__shutdown__)
 
@@ -233,7 +223,7 @@ class LifespanMiddleware(BaseMiddeware):
                 break
 
     def __register__(
-        self, handlers: Union[Callable, List[Callable], None], container: List[Callable]
+        self, handlers: Union[Callable, list[Callable], None], container: list[Callable]
     ) -> None:
         """Register lifespan handlers."""
         if not handlers:
@@ -348,7 +338,7 @@ class RouterMiddleware(BaseMiddeware):
         app, scope["path_params"] = self.__dispatch__(scope)
         return await app(scope, *args)
 
-    def __dispatch__(self, scope: TASGIScope) -> Tuple[Callable, Optional[Mapping]]:
+    def __dispatch__(self, scope: TASGIScope) -> tuple[Callable, Optional[Mapping]]:
         """Lookup for a callback."""
         path = f"{scope.get('root_path', '')}{scope['path']}"
         try:
@@ -392,13 +382,13 @@ class StaticFilesMiddleware(BaseMiddeware):
         self,
         app: Optional[TASGIApp] = None,
         url_prefix: str = "/static",
-        folders: Optional[List[Union[str, Path]]] = None,
+        folders: Optional[list[Union[str, Path]]] = None,
     ) -> None:
         """Initialize the middleware."""
         super().__init__(app)
         self.url_prefix = url_prefix
         folders = folders or []
-        self.folders: List[Path] = [Path(folder) for folder in folders]
+        self.folders: list[Path] = [Path(folder) for folder in folders]
 
     async def __process__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend) -> None:
         """Serve static files for self url prefix."""

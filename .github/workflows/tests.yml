@@ -41,7 +41,7 @@ jobs:
       if: ${{ matrix.python-version != 'pypy-3.9' }}
 
     - name: Run tests
-      run: pytest tests
+      run: pytest
 
   notify:
     runs-on: ubuntu-latest
