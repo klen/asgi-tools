@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', 'pypy-3.9']
+        python-version: ['3.9', '3.10', '3.11', '3.12', 'pypy-3.9']
 
     steps:
     - uses: actions/checkout@main
@@ -34,7 +34,7 @@ jobs:
       run: pip install .[tests]
 
     - name: Check code
-      run: ruff asgi_tools
+      run: ruff check asgi_tools
 
     - name: Check types
       run: mypy
