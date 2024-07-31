@@ -31,7 +31,7 @@ jobs:
 
     - uses: actions/upload-artifact@main
       with:
-        name: dist
+        name: dist-no-wheels
         path: dist/*.tar.*
 
     - name: Notify Failure
@@ -92,6 +92,7 @@ jobs:
 
     - uses: actions/upload-artifact@main
       with:
+        name: dist-${{ matrix.os }}-${{ matrix.cibw_arch }}-${{ matrix.cibw_python }}
         path: wheelhouse/*.whl
 
     - name: Notify Failure
@@ -112,7 +113,7 @@ jobs:
       - name: Download a distribution artifact
         uses: actions/download-artifact@main
         with:
-          name: dist
+          name: dist-*
           path: dist
 
       - name: Publish distribution 📦 to PyPI
