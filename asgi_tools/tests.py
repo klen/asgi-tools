@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import binascii
 import io
 import mimetypes
@@ -27,7 +28,6 @@ from typing import (
 )
 from urllib.parse import urlencode
 
-from curio.meta import asyncio
 from multidict import MultiDict
 from yarl import URL
 

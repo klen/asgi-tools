@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 import io
 from pathlib import Path
 from sys import version_info
 
 import pytest
-from curio.meta import asyncio
 
 if version_info < (3, 11):
     from exceptiongroup import ExceptionGroup

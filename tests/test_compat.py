@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from asyncio import FIRST_EXCEPTION
+import asyncio
 from multiprocessing import Value
 
 import pytest
-from curio.meta import asyncio
 
 from asgi_tools._compat import FIRST_COMPLETED, aio_sleep, aio_timeout, aio_wait
 
