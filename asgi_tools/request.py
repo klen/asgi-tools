@@ -17,7 +17,7 @@ from .types import TJSON, TASGIReceive, TASGIScope, TASGISend
 from .utils import CIMultiDict, parse_headers, parse_options_header
 
 if TYPE_CHECKING:
-    from multidict import MultiDict
+    from multidict import MultiDict, MultiDictProxy
 
 
 class Request(TASGIScope):
@@ -189,7 +189,7 @@ class Request(TASGIScope):
         return self.media.get("charset", DEFAULT_CHARSET)
 
     @property
-    def query(self) -> MultiDict[str]:
+    def query(self) -> MultiDictProxy[str]:
         """A lazy property that parse the current query string and returns it as a
         :py:class:`multidict.MultiDict`.
 
