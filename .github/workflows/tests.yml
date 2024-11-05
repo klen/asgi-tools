@@ -38,7 +38,7 @@ jobs:
 
     - name: Check types
       run: mypy
-      if: ${{ matrix.python-version != 'pypy-3.9' }}
+      if: ${{ matrix.python-version != 'pypy-3.10' }}
 
     - name: Run tests
       run: pytest
