@@ -48,6 +48,7 @@ tests = [
   "pytest-benchmark",
   "PyYAML",
   "ruff",
+  "mypy",
   "exceptiongroup;python_version<'3.11'",
   "ujson; implementation_name == 'cpython'",
   "uvloop; implementation_name == 'cpython'",
