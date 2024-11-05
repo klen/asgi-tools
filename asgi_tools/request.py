@@ -189,7 +189,7 @@ class Request(TASGIScope):
         return self.media.get("charset", DEFAULT_CHARSET)
 
     @property
-    def query(self) -> MultiDict:
+    def query(self) -> MultiDict[str]:
         """A lazy property that parse the current query string and returns it as a
         :py:class:`multidict.MultiDict`.
 
