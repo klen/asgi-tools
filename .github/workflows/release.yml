@@ -29,7 +29,7 @@ jobs:
       env:
         ASGI_TOOLS_NO_EXTENSIONS: '1'
 
-    - uses: actions/upload-artifact@main
+    - uses: actions/upload-artifact@v4
       with:
         name: dist-no-wheels
         path: dist/*.tar.*
@@ -90,7 +90,7 @@ jobs:
         CIBW_BUILD: ${{ matrix.cibw_python }}-*
         CIBW_ARCHS: ${{ matrix.cibw_arch }}
 
-    - uses: actions/upload-artifact@main
+    - uses: actions/upload-artifact@v4
       with:
         name: dist-${{ matrix.os }}-${{ matrix.cibw_arch }}-${{ matrix.cibw_python }}
         path: wheelhouse/*.whl
@@ -111,7 +111,7 @@ jobs:
     steps:
 
       - name: Download a distribution artifact
-        uses: actions/download-artifact@main
+        uses: actions/download-artifact@v4
         with:
           path: dist
           pattern: dist-*
