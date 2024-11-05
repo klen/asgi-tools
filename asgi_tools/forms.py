@@ -140,7 +140,7 @@ class MultipartReader(FormReader):
                 self.partdata = f = open(filename, "wb+")  # noqa: SIM115, PTH123
 
             else:
-                self.partdata = f = SpooledTemporaryFile(self.file_memory_limit)
+                self.partdata = f = SpooledTemporaryFile(self.file_memory_limit)  # noqa: SIM115
                 f._file.name = options["filename"]  # type: ignore[]
 
             f.content_type = self.headers[b"content-type"].decode(self.charset)
