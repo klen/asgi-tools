@@ -20,6 +20,7 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: PyPy",
   "Programming Language :: Cython",
   "Topic :: Internet :: WWW/HTTP",
@@ -75,7 +76,7 @@ ignore_missing_imports = true
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py39,py310,py311,py312,pypy39
+envlist = py39,py310,py311,py312,py313,,pypy310
 
 [testenv]
 deps = -e .[tests]
@@ -117,5 +118,5 @@ required-imports = ["from __future__ import annotations"]
 
 [tool.black]
 line-length = 100
-target-version = ["py39", "py310", "py311", "py312"]
+target-version = ["py39", "py310", "py311", "py312", "py313"]
 preview = true
