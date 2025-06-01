@@ -77,7 +77,7 @@ ignore_missing_imports = true
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py39,py310,py311,py312,py313,,pypy310
+envlist = py39,py310,py311,py312,py313,pypy310
 
 [testenv]
 deps = -e .[tests]
