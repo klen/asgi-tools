@@ -84,7 +84,7 @@ A Quick Example
 
 You can use any of ASGI-Tools components independently.
 
-Dispite this ASGI-Tools contains App_ helper to quickly build ASGI
+Despite this ASGI-Tools contains App_ helper to quickly build ASGI
 applications. For instance:
 
 Save this to ``app.py``.
