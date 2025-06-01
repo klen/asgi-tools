@@ -231,7 +231,7 @@ ResponseStream
     .. code-block:: python
 
         from asgi_tools import ResponseStream
-        from asgi_tools.utils import aio_sleep  # for compatability with different async libs
+        from asgi_tools.utils import aio_sleep  # for compatibility with different async libs
 
         async def stream_response():
             for number in range(10):
@@ -251,7 +251,7 @@ ResponseSSE
     .. code-block:: python
 
         from asgi_tools import ResponseSSE
-        from asgi_tools.utils import aio_sleep  # for compatability with different async libs
+        from asgi_tools.utils import aio_sleep  # for compatibility with different async libs
 
         async def stream_response():
             for number in range(10):
