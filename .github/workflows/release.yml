@@ -11,33 +11,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   setup:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
 
     steps:
-    - uses: actions/checkout@main
-      with:
-        fetch-depth: 2
+      - uses: actions/checkout@main
+        with:
+          fetch-depth: 2
 
-    - name: Prepare to build
-      run: pip install build
+      - name: Prepare to build
+        run: pip install build
 
-    - name: Build sdist
-      run: python -m build --sdist
-      env:
-        ASGI_TOOLS_NO_EXTENSIONS: '1'
+      - name: Build sdist
+        run: python -m build --sdist
+        env:
+          ASGI_TOOLS_NO_EXTENSIONS: "1"
 
-    - uses: actions/upload-artifact@main
-      with:
-        name: dist-no-wheels
-        path: dist/*.tar.*
+      - uses: actions/upload-artifact@main
+        with:
+          name: dist-no-wheels
+          path: dist/*.tar.*
 
-    - name: Notify Failure
-      if: ${{ failure() }}
-      uses: archive/github-actions-slack@master
-      with:
+      - name: Notify Failure
+        if: ${{ failure() }}
+        uses: archive/github-actions-slack@master
+        with:
           slack-channel: C2CRL4C4V
           slack-text: Build is failed *[${{ github.ref }}]* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -50,20 +49,20 @@ jobs:
         os: [macos-latest, windows-latest, ubuntu-latest]
         cibw_arch: ["auto64", "aarch64", "universal2"]
         cibw_python:
-        - "cp39"
-        - "cp310"
-        - "cp311"
-        - "cp312"
-        - "cp313"
+          - "cp39"
+          - "cp310"
+          - "cp311"
+          - "cp312"
+          - "cp313"
         exclude:
-        - os: ubuntu-latest
-          cibw_arch: universal2
-        - os: macos-latest
-          cibw_arch: aarch64
-        - os: windows-latest
-          cibw_arch: universal2
-        - os: windows-latest
-          cibw_arch: aarch64
+          - os: ubuntu-latest
+            cibw_arch: universal2
+          - os: macos-latest
+            cibw_arch: aarch64
+          - os: windows-latest
+            cibw_arch: universal2
+          - os: windows-latest
+            cibw_arch: aarch64
 
     runs-on: ${{ matrix.os }}
     needs: setup
@@ -75,31 +74,31 @@ jobs:
       PIP_DISABLE_PIP_VERSION_CHECK: 1
 
     steps:
-    - uses: actions/checkout@main
-      with:
-        fetch-depth: 2
+      - uses: actions/checkout@main
+        with:
+          fetch-depth: 2
 
-    - name: Set up QEMU
-      if: matrix.os == 'ubuntu-latest' && matrix.cibw_arch == 'aarch64'
-      uses: docker/setup-qemu-action@master
-      with:
-        platforms: arm64
+      - name: Set up QEMU
+        if: matrix.os == 'ubuntu-latest' && matrix.cibw_arch == 'aarch64'
+        uses: docker/setup-qemu-action@master
+        with:
+          platforms: arm64
 
-    - uses: pypa/cibuildwheel@main
-      env:
-        CIBW_BUILD_VERBOSITY: 1
-        CIBW_BUILD: ${{ matrix.cibw_python }}-*
-        CIBW_ARCHS: ${{ matrix.cibw_arch }}
+      - uses: pypa/cibuildwheel@main
+        env:
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_BUILD: ${{ matrix.cibw_python }}-*
+          CIBW_ARCHS: ${{ matrix.cibw_arch }}
 
-    - uses: actions/upload-artifact@main
-      with:
-        name: wheel-${{ matrix.os }}-${{ matrix.cibw_arch }}-${{ matrix.cibw_python }}
-        path: wheelhouse/*.whl
+      - uses: actions/upload-artifact@main
+        with:
+          name: wheel-${{ matrix.os }}-${{ matrix.cibw_arch }}-${{ matrix.cibw_python }}
+          path: wheelhouse/*.whl
 
-    - name: Notify Failure
-      if: ${{ failure() }}
-      uses: archive/github-actions-slack@master
-      with:
+      - name: Notify Failure
+        if: ${{ failure() }}
+        uses: archive/github-actions-slack@master
+        with:
           slack-channel: C2CRL4C4V
           slack-text: Build is failed *[${{ github.ref }}]* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -110,7 +109,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     steps:
-
       - name: Download a distribution artifact
         uses: actions/download-artifact@main
         with:
@@ -122,17 +120,3 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.pypy }}
-
-  notify:
-    runs-on: ubuntu-latest
-    needs: publish
-    steps:
-
-    - name: Notify Success
-      uses: archive/github-actions-slack@master
-      with:
-          slack-channel: C2CRL4C4V
-          slack-text: "*[${{ github.repository }}]* package is published *(${{ github.ref }})* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_BOT_TOKEN }}
-          slack-optional-as_user: false
-          slack-optional-icon_emoji: ":white_check_mark:"
