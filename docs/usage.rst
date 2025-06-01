@@ -5,7 +5,7 @@ ASGI Application
 -----------------
 
 ASGI-Tools is designed to be used as an ASGI_ Toolkit. You can use any of its
-components independently. Dispite this ASGI-Tools contains
+components independently. Despite this ASGI-Tools contains
 :py:class:`asgi_tools.App` helper to quickly build ASGI applications.
 
 .. note::
