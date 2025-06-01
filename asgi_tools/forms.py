@@ -43,7 +43,7 @@ async def read_formdata(
 class FormReader:
     """Process querystring form data."""
 
-    __slots__ = "form", "curname", "curvalue", "charset"
+    __slots__ = "charset", "curname", "curvalue", "form"
 
     def __init__(self, charset: str):
         self.charset = charset
@@ -80,15 +80,15 @@ class MultipartReader(FormReader):
     """Process multipart formdata."""
 
     __slots__ = (
-        "form",
+        "charset",
         "curname",
         "curvalue",
-        "charset",
+        "file_memory_limit",
+        "form",
+        "headers",
         "name",
         "partdata",
-        "headers",
         "upload_to",
-        "file_memory_limit",
     )
 
     def __init__(self, charset: str, upload_to: Optional[Callable], file_memory_limit: int):

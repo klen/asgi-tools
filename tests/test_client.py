@@ -136,9 +136,11 @@ async def test_files(app, client):
         formdata = await request.form()
         return formdata["test_client.py"].read()
 
+    file_obj = io.BytesIO(Path(__file__).read_bytes())
+    file_obj.name = "test_client.py"
     res = await client.post(
         "/files",
-        data={"field": "value", "test_client.py": Path(__file__).open()},
+        data={"field": "value", "test_client.py": file_obj},
     )
     assert res.status_code == 200
     assert "test_files" in await res.text()

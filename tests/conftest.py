@@ -22,7 +22,7 @@ def client_cls():
     return ASGITestClient
 
 
-@pytest.fixture()
+@pytest.fixture
 def app():
     from asgi_tools import App
 
@@ -35,7 +35,7 @@ def app():
     return app
 
 
-@pytest.fixture()
+@pytest.fixture
 def client(app, client_cls):
     return client_cls(app)
 
@@ -56,7 +56,7 @@ def send():
     return send
 
 
-@pytest.fixture()
+@pytest.fixture
 def gen_request(client, send):
     from asgi_tools import Request
 

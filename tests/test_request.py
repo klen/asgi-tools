@@ -1,6 +1,7 @@
 """Test Request."""
 from __future__ import annotations
 
+import io
 from copy import copy
 from pathlib import Path
 
@@ -103,7 +104,7 @@ async def test_data(client_cls, gen_request):
     async def simple_app(scope, receive, send):
         request = Request(scope, receive, send)
         data = await request.data()
-        return isinstance(data, (str, bytes)) and data or dict(data)  # type: ignore[]
+        return (isinstance(data, (str, bytes)) and data) or dict(data)  # type: ignore[]
 
     app = ResponseMiddleware(simple_app)
     client = client_cls(app)
@@ -151,8 +152,9 @@ async def test_multipart(client_cls):
         return await response(scope, receive, send)
 
     client = client_cls(app)
-    with Path(__file__).open() as f:
-        res = await client.post("/", data={"test": f})
+    test_obj = io.BytesIO(Path(__file__).read_bytes())
+    test_obj.name = Path(__file__).name
+    res = await client.post("/", data={"test": test_obj})
     assert res.status_code == 200
     assert await res.text() == '"""Test Request."""'
     assert res.headers["content-length"] == str(len('"""Test Request."""'))
@@ -171,8 +173,9 @@ async def test_multipart_max_size(client_cls):
         return await response(scope, receive, send)
 
     client = client_cls(app)
-    with Path(__file__).open() as f:
-        res = await client.post("/", data={"test": f})
+    test_obj = io.BytesIO(Path(__file__).read_bytes())
+    test_obj.name = Path(__file__).name
+    res = await client.post("/", data={"test": test_obj})
     assert res.status_code == 200
     body = await res.text()
     assert await res.text() == "No data"

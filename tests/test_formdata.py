@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import tempfile
 from pathlib import Path
 
@@ -17,10 +18,11 @@ async def test_formdata(gen_request, tmp_path):
     assert formdata["test"] == ""
     assert formdata.getall("names") == ["bob", "alice"]
 
+    test_bytes = Path(__file__).read_bytes()
     data, content_type = encode_multipart(
         {
-            "file1": open(__file__),
-            "file2": open(__file__),
+            "file1": io.BytesIO(test_bytes),
+            "file2": io.BytesIO(test_bytes),
         },
     )
     body = [chunk + b"\n" for chunk in data.split(b"\n")]

@@ -28,7 +28,6 @@ from typing import (
 )
 from urllib.parse import urlencode
 
-from multidict import MultiDict
 from yarl import URL
 
 from ._compat import aio_cancel, aio_sleep, aio_spawn, aio_timeout, aio_wait
@@ -38,6 +37,8 @@ from .response import Response, ResponseJSON, ResponseWebSocket, parse_websocket
 from .utils import CIMultiDict, parse_headers
 
 if TYPE_CHECKING:
+    from multidict import MultiDict
+
     from .types import TJSON, TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
 
 
@@ -53,7 +54,7 @@ class TestResponse(Response):
         msg = await self._receive()
         assert msg.get("type") == "http.response.start", "Invalid Response"
         self.status_code = int(msg.get("status", 502))
-        self.headers = cast(MultiDict, parse_headers(msg.get("headers", [])))
+        self.headers = cast("MultiDict", parse_headers(msg.get("headers", [])))
         self.content_type = self.headers.get("content-type")
         for cookie in self.headers.getall("set-cookie", []):
             self.cookies.load(cookie)
@@ -282,7 +283,7 @@ class ASGITestClient:
                 "query_string": url.raw_query_string.encode(),
                 "raw_path": url.raw_path.encode(),
                 "root_path": "",
-                "scheme": scope.get("type") == "http" and self.base_url.scheme or "ws",
+                "scheme": (scope.get("type") == "http" and self.base_url.scheme) or "ws",
                 "headers": [
                     (key.lower().encode(BASE_ENCODING), str(val).encode(BASE_ENCODING))
                     for key, val in (headers or {}).items()
@@ -321,11 +322,11 @@ def encode_multipart(data: dict) -> tuple[bytes, str]:
 
 class Pipe:
     __slots__ = (
-        "delay",
         "app_is_closed",
-        "client_is_closed",
         "app_queue",
+        "client_is_closed",
         "client_queue",
+        "delay",
     )
 
     def __init__(self, delay: float = 1e-3):
