@@ -1,5 +1,6 @@
-from jinja2 import Template
+from __future__ import annotations
 
+from jinja2 import Template
 
 request_info = Template(
     """
@@ -48,6 +49,22 @@ request_info = Template(
                     <h3>Body</h3>
                     <pre> {{ text }} </pre>
 
+                    <h3>Scope</h3>
+                    <table class="table table-hover">
+                        <thead><tr><th>Name</th><th>Value</th></thead>
+                            <tr>
+                                <td>ASGI</td>
+                                <td>{{ scope.asgi }}</td>
+                            </tr>
+                            <tr>
+                                <td>Client</td>
+                                <td>{{ scope.client }}</td>
+                            </tr>
+                            <tr>
+                                <td>Server</td>
+                                <td>{{ scope.server }}</td>
+                            </tr>
+                    </table>
                 </div>
             </body>
         </html>

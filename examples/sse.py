@@ -1,15 +1,16 @@
 """A simple SSE (server side events) example for ASGI-Tools."""
 
-import time
+from __future__ import annotations
+
 import asyncio
+import time
 
 from asgi_tools import App, ResponseSSE
-
 
 app = App(debug=True)
 
 
-@app.route('/')
+@app.route("/")
 async def index(request):
     """Render main page."""
     return """
@@ -50,7 +51,7 @@ async def index(request):
 """
 
 
-@app.route('/sse')
+@app.route("/sse")
 async def stream_events(request):
     """An example events stream."""
 

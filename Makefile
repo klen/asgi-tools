@@ -66,7 +66,28 @@ mypy: $(VIRTUAL_ENV)
 EXAMPLE = rates
 
 example: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/uvicorn --loop asyncio --port 5000 --reload examples.$(EXAMPLE):app
+	$(VIRTUAL_ENV)/bin/uvicorn --loop asyncio --reload examples.$(EXAMPLE):app
+
+example-rates:
+	make example EXAMPLE=rates
+
+example-request-response:
+	make example EXAMPLE=request_response
+
+example-request-response-middleware:
+	make example EXAMPLE=request_response_middleware
+
+example-router-middleware:
+	make example EXAMPLE=router_middleware
+
+example-sse:
+	make example EXAMPLE=sse
+
+example-static:
+	make example EXAMPLE=static
+
+example-websocket:
+	make example EXAMPLE=websocket
 
 $(PACKAGE)/%.c: $(PACKAGE)/%.pyx
 	$(VIRTUAL_ENV)/bin/cython -a $<

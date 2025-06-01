@@ -1,5 +1,7 @@
 """The example shows how to use `asgi_tools.Request`."""
 
+from __future__ import annotations
+
 from asgi_tools import RequestMiddleware, ResponseMiddleware
 
 
@@ -14,7 +16,7 @@ async def request_as_json(request, receive, send):
         "headers": dict(request.headers),
         "query": dict(request.url.query),
         "cookies": dict(request.cookies),
-        "content": await request.text()
+        "content": await request.text(),
     }
 
 
