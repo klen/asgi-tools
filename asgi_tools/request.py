@@ -232,7 +232,10 @@ class Request(TASGIScope):
         `body = await request.body()`
         """
         if self._body is None:
-            self._body = b"".join([chunk async for chunk in self.stream()])
+            data = bytearray()
+            async for chunk in self.stream():
+                data.extend(chunk)
+            self._body = bytes(data)
 
         return self._body
 
