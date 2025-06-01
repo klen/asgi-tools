@@ -181,7 +181,7 @@ async def test_docs_response_error(client_cls):
 
 async def test_docs_response_stream(client_cls):
     from asgi_tools import ResponseStream
-    from asgi_tools._compat import aio_sleep  # for compatability with different async libs
+    from asgi_tools._compat import aio_sleep  # for compatibility with different async libs
 
     async def stream_response():
         for number in range(10):
