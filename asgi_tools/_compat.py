@@ -1,4 +1,4 @@
-"""Compatability layer."""
+"""Compatibility layer."""
 
 from __future__ import annotations
 
@@ -138,7 +138,7 @@ async def aio_timeout(timeout: float):  # noqa: ASYNC109
 
 
 async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:
-    """Run the coros concurently, wait for all completed or cancel others.
+    """Run the coros concurrently, wait for all completed or cancel others.
 
     Only ALL_COMPLETED, FIRST_COMPLETED are supported.
     """

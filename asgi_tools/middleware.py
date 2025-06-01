@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from .types import TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
 
 
-class BaseMiddeware(metaclass=abc.ABCMeta):
+class BaseMiddleware(metaclass=abc.ABCMeta):
     """Base class for ASGI-Tools middlewares."""
 
     scopes: tuple[str, ...] = ("http", "websocket")
@@ -54,7 +54,11 @@ class BaseMiddeware(metaclass=abc.ABCMeta):
         return self
 
 
-class ResponseMiddleware(BaseMiddeware):
+# Backward compatibility
+BaseMiddeware = BaseMiddleware
+
+
+class ResponseMiddleware(BaseMiddleware):
     """Automatically convert ASGI_ apps results into responses :class:`~asgi_tools.Response` and
     send them to server as ASGI_ messages.
 
@@ -129,7 +133,7 @@ class ResponseMiddleware(BaseMiddeware):
         return self
 
 
-class RequestMiddleware(BaseMiddeware):
+class RequestMiddleware(BaseMiddleware):
     """Automatically create :class:`asgi_tools.Request` from the scope and pass it to ASGI_ apps.
 
     .. code-block:: python
@@ -150,7 +154,7 @@ class RequestMiddleware(BaseMiddeware):
         return await self.app(Request(scope, receive, send), receive, send)
 
 
-class LifespanMiddleware(BaseMiddeware):
+class LifespanMiddleware(BaseMiddleware):
     """Manage ASGI_ Lifespan events.
 
     :param ignore_errors: Ignore errors from startup/shutdown handlers
@@ -273,7 +277,7 @@ class LifespanMiddleware(BaseMiddeware):
         self.__register__(fn, self.__shutdown__)
 
 
-class RouterMiddleware(BaseMiddeware):
+class RouterMiddleware(BaseMiddleware):
     r"""Manage routing.
 
     .. code-block:: python
@@ -355,7 +359,7 @@ class RouterMiddleware(BaseMiddeware):
         return self.router.route(*args, **kwargs)
 
 
-class StaticFilesMiddleware(BaseMiddeware):
+class StaticFilesMiddleware(BaseMiddleware):
     """Serve static files.
 
     :param url_prefix:  an URL prefix for static files
@@ -368,7 +372,7 @@ class StaticFilesMiddleware(BaseMiddeware):
         from asgi_tools import StaticFilesMiddleware, ResponseHTML
 
         async def app(scope, receive, send):
-            response = ResponseHTML('OK)
+            response = ResponseHTML('OK')
             await response(scope, receive, send)
 
         # Files from static folder will be served from /static
@@ -413,7 +417,7 @@ class StaticFilesMiddleware(BaseMiddeware):
 BACKGROUND_TASK: Final = ContextVar[Optional[Awaitable]]("background_task", default=None)
 
 
-class BackgroundMiddleware(BaseMiddeware):
+class BackgroundMiddleware(BaseMiddleware):
     """Run background tasks.
 
 
