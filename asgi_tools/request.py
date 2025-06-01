@@ -177,8 +177,8 @@ class Request(TASGIScope):
     def media(self) -> dict[str, str]:
         """Prepare a media data for the request."""
         if self._media is None:
-            conten_type_header = self.headers.get("content-type", "")
-            content_type, opts = parse_options_header(conten_type_header)
+            content_type_header = self.headers.get("content-type", "")
+            content_type, opts = parse_options_header(content_type_header)
             self._media = dict(opts, content_type=content_type)
 
         return self._media
