@@ -80,8 +80,7 @@ class Response:
         if content_type:
             self.headers.setdefault(
                 "content-type",
-                content_type.startswith("text/")
-                and f"{content_type}; charset={DEFAULT_CHARSET}"
+                (content_type.startswith("text/") and f"{content_type}; charset={DEFAULT_CHARSET}")
                 or content_type,
             )
 
@@ -354,7 +353,7 @@ class ResponseWebSocket(Response):
             raise ASGIConnectionClosedError
 
         if not isinstance(msg, dict):
-            msg = {"type": msg_type, (isinstance(msg, str) and "text" or "bytes"): msg}
+            msg = {"type": msg_type, ((isinstance(msg, str) and "text") or "bytes"): msg}
 
         return await self._send(msg)
 

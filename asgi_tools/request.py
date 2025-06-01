@@ -32,16 +32,16 @@ class Request(TASGIScope):
     """
 
     __slots__ = (
-        "scope",
-        "receive",
-        "send",
-        "_is_read",
-        "_url",
         "_body",
+        "_cookies",
         "_form",
         "_headers",
+        "_is_read",
         "_media",
-        "_cookies",
+        "_url",
+        "receive",
+        "scope",
+        "send",
     )
 
     def __init__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):

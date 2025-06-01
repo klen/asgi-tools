@@ -1,4 +1,5 @@
-""" ASGI-Tools -- Tools to make ASGI Applications """
+"""ASGI-Tools -- Tools to make ASGI Applications"""
+
 from __future__ import annotations
 
 from http_router import InvalidMethodError, NotFoundError
@@ -29,7 +30,7 @@ from .response import (
 )
 from .view import HTTPView
 
-__all__ = (
+__all__ = (  # noqa: RUF022
     # Errors
     "ASGIConnectionClosedError",
     "ASGIError",

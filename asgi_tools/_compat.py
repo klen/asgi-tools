@@ -34,12 +34,12 @@ __all__ = (
     "aio_spawn",
     "aio_stream_file",
     "aio_wait",
+    "aiofile_installed",
     "create_task",
+    "curio_installed",
     "json_dumps",
     "json_loads",
-    "aiofile_installed",
     "trio_installed",
-    "curio_installed",
 )
 
 try:
@@ -103,7 +103,7 @@ async def aio_spawn(fn: Callable[..., Awaitable], *args, **kwargs):
         await task.join()  # type: ignore [union-attr]
 
     else:
-        coro = cast(Coroutine, fn(*args, **kwargs))
+        coro = cast("Coroutine", fn(*args, **kwargs))
         task = create_task(coro)
         yield task
         await task
@@ -198,7 +198,7 @@ async def aio_stream_file(
     if trio_installed and current_async_library() == "trio":
         async with await trio_open_file(filepath, "rb") as fp:
             while True:
-                chunk = cast(bytes, await fp.read(chunk_size))
+                chunk = cast("bytes", await fp.read(chunk_size))
                 if not chunk:
                     break
                 yield chunk
@@ -206,7 +206,7 @@ async def aio_stream_file(
     elif curio_installed and current_async_library() == "curio":
         async with curio_open(filepath, "rb") as fp:
             while True:
-                chunk = cast(bytes, await fp.read(chunk_size))
+                chunk = cast("bytes", await fp.read(chunk_size))
                 if not chunk:
                     break
                 yield chunk
@@ -221,7 +221,7 @@ async def aio_stream_file(
             async for chunk in aiofile.Reader(  # type: ignore [assignment]
                 fp, chunk_size=chunk_size
             ):
-                yield cast(bytes, chunk)
+                yield cast("bytes", chunk)
 
 
 async def trio_jockey(coro: Awaitable, channel):

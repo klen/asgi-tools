@@ -1,4 +1,5 @@
 """Test Request."""
+
 from __future__ import annotations
 
 from copy import copy
@@ -103,7 +104,7 @@ async def test_data(client_cls, gen_request):
     async def simple_app(scope, receive, send):
         request = Request(scope, receive, send)
         data = await request.data()
-        return isinstance(data, (str, bytes)) and data or dict(data)  # type: ignore[]
+        return (isinstance(data, (str, bytes)) and data) or dict(data)  # type: ignore[]
 
     app = ResponseMiddleware(simple_app)
     client = client_cls(app)
