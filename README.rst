@@ -140,7 +140,7 @@ Licensed under a `MIT license`_.
 .. _klen: https://github.com/klen
 .. _uvicorn: http://www.uvicorn.org/
 .. _daphne: https://github.com/django/daphne/
-.. _hypercorn: https://pgjones.gitlab.io/hypercorn/
+.. _hypercorn: https://github.com/pgjones/hypercorn/
 
 .. _Request: https://klen.github.io/asgi-tools/api.html#request
 .. _Response: https://klen.github.io/asgi-tools/api.html#responses
