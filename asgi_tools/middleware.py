@@ -368,7 +368,7 @@ class StaticFilesMiddleware(BaseMiddeware):
         from asgi_tools import StaticFilesMiddleware, ResponseHTML
 
         async def app(scope, receive, send):
-            response = ResponseHTML('OK)
+            response = ResponseHTML('OK')
             await response(scope, receive, send)
 
         # Files from static folder will be served from /static
