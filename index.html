@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Welcome to asgi-tools’s documentation! &#8212; asgi-tools 1.0.10 documentation</title>
+    <title>ASGI-Tools Documentation &#8212; asgi-tools  documentation</title>
   
   
   
@@ -16,28 +16,31 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
-
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=377e76b0"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=f281be69"></script>
@@ -47,6 +50,7 @@
     <link rel="next" title="Installation" href="installation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.3.1" />
   </head>
   
   
@@ -62,19 +66,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -82,7 +75,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -90,8 +82,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -124,8 +116,8 @@
       
     
     
-    <img src="_static/asgi-tools.png" class="logo__image only-light" alt="asgi-tools 1.0.10 documentation - Home"/>
-    <script>document.write(`<img src="_static/asgi-tools.png" class="logo__image only-dark" alt="asgi-tools 1.0.10 documentation - Home"/>`);</script>
+    <img src="_static/asgi-tools.png" class="logo__image only-light" alt="asgi-tools  documentation - Home"/>
+    <img src="_static/asgi-tools.png" class="logo__image only-dark pst-js-only" alt="asgi-tools  documentation - Home"/>
   
   
 </a></div>
@@ -171,29 +163,21 @@
         <div class="navbar-item navbar-persistent--container">
           
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
       
       
         <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
       
         <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -230,15 +214,11 @@ document.write(`
   
     <div class="navbar-persistent--mobile">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
     </div>
   
 
@@ -259,7 +239,8 @@ document.write(`
       
         
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -306,15 +287,11 @@ document.write(`
         
           <div class="navbar-item">
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script></div>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
         
           <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -357,7 +334,6 @@ document.write(`
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search the docs ..."
          aria-label="Search the docs ..."
          autocomplete="off"
@@ -367,16 +343,21 @@ document.write(`
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 1.0.10
+    Version: 1.3.1
 </div>
 </div>
     </div>
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -395,51 +376,97 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="welcome-to-asgi-tools-s-documentation">
-<h1>Welcome to asgi-tools’s documentation!<a class="headerlink" href="#welcome-to-asgi-tools-s-documentation" title="Link to this heading">#</a></h1>
-<p><code class="xref py py-mod docutils literal notranslate"><span class="pre">ASGI-Tools</span></code> – Is a really lightweight <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> Toolkit to build ASGI applications
-faster.</p>
-<p>The Features:</p>
+  <section id="asgi-tools-documentation">
+<h1>ASGI-Tools Documentation<a class="headerlink" href="#asgi-tools-documentation" title="Link to this heading">#</a></h1>
+<p>Lightweight, high-performance ASGI toolkit for modern Python async apps.</p>
+<a class="reference external image-reference" href="https://github.com/klen/asgi-tools/actions"><img alt="Tests Status" src="https://github.com/klen/asgi-tools/workflows/tests/badge.svg" />
+</a>
+<a class="reference external image-reference" href="https://klen.github.io/asgi-tools"><img alt="Documentation Status" src="https://github.com/klen/asgi-tools/workflows/docs/badge.svg" />
+</a>
+<a class="reference external image-reference" href="https://pypi.org/project/asgi-tools/"><img alt="PYPI Version" src="https://img.shields.io/pypi/v/asgi-tools" />
+</a>
+<a class="reference external image-reference" href="https://pypi.org/project/asgi-tools/"><img alt="Python Versions" src="https://img.shields.io/pypi/pyversions/asgi-tools" />
+</a>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p><strong>ASGI-Tools</strong> is a minimal, extensible <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> toolkit designed to help you build async Python applications faster and more efficiently.</p>
+</section>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p>All popular async python libraries are supported (<a class="reference external" href="https://docs.python.org/3/library/asyncio.html">Asyncio</a>, <a class="reference external" href="https://trio.readthedocs.io/en/stable/index.html">Trio</a>, <a class="reference external" href="https://github.com/dabeaz/curio">Curio</a>);</p></li>
-<li><p>Competitive Performance;</p></li>
-<li><p>HTTP Headers/Cookies/Form data support (<a class="reference internal" href="api.html#asgi_tools.Request" title="asgi_tools.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>);</p></li>
-<li><p>HTTP (<a class="reference internal" href="api.html#asgi_tools.Response" title="asgi_tools.Response"><code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code></a>), Static files (<a class="reference internal" href="api.html#asgi_tools.ResponseFile" title="asgi_tools.ResponseFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseFile</span></code></a>), Streaming (<a class="reference internal" href="api.html#asgi_tools.ResponseStream" title="asgi_tools.ResponseStream"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseStream</span></code></a>) responses;</p></li>
-<li><p>WebSockets (<a class="reference internal" href="api.html#asgi_tools.ResponseWebSocket" title="asgi_tools.ResponseWebSocket"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseWebSocket</span></code></a>) and SSE (server side events <a class="reference internal" href="api.html#asgi_tools.ResponseSSE" title="asgi_tools.ResponseSSE"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseSSE</span></code></a>) support;</p></li>
-<li><p>ASGI Lifespan support (<a class="reference internal" href="api.html#asgi_tools.LifespanMiddleware" title="asgi_tools.LifespanMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">LifespanMiddleware</span></code></a>) with startup and shutdown events;</p></li>
-<li><p>ASGI Routing support (<a class="reference internal" href="api.html#asgi_tools.RouterMiddleware" title="asgi_tools.RouterMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">RouterMiddleware</span></code></a>) to route your handlers by http urls;</p></li>
-<li><p>Auto parsing for app responses (<a class="reference internal" href="api.html#asgi_tools.ResponseMiddleware" title="asgi_tools.ResponseMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseMiddleware</span></code></a>);</p></li>
-<li><p>Test client (<a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient" title="asgi_tools.tests.ASGITestClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">ASGITestClient</span></code></a>) to test <a class="reference external" href="https://asgi.readthedocs.io/en/latest/">ASGI</a> applications;</p></li>
-<li><p>And more</p></li>
+<li><p><strong>Async Support</strong> – Seamless integration with <a class="reference external" href="https://docs.python.org/3/library/asyncio.html">Asyncio</a>, <a class="reference external" href="https://trio.readthedocs.io/en/stable/index.html">Trio</a>, and <a class="reference external" href="https://github.com/dabeaz/curio">Curio</a></p></li>
+<li><p><strong>High Performance</strong> – Optimized for speed and minimal resource usage</p></li>
+<li><p><strong>Rich Request Handling</strong> – Powerful <a class="reference internal" href="api.html#asgi_tools.Request" title="asgi_tools.Request"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a> supporting headers, cookies, forms, and file uploads</p></li>
+<li><p><strong>Flexible Responses</strong> – Multiple response types: HTTP, static files, streaming, SSE, WebSocket via <a class="reference internal" href="api.html#asgi_tools.Response" title="asgi_tools.Response"><code class="xref py py-class docutils literal notranslate"><span class="pre">Response</span></code></a></p></li>
+<li><dl class="simple">
+<dt><strong>Built-in Middleware</strong> – Essential middleware for common patterns:</dt><dd><ul>
+<li><p><a class="reference internal" href="api.html#asgi_tools.RequestMiddleware" title="asgi_tools.RequestMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">RequestMiddleware</span></code></a> – Request parsing</p></li>
+<li><p><a class="reference internal" href="api.html#asgi_tools.ResponseMiddleware" title="asgi_tools.ResponseMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseMiddleware</span></code></a> – Response handling</p></li>
+<li><p><a class="reference internal" href="api.html#asgi_tools.RouterMiddleware" title="asgi_tools.RouterMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">RouterMiddleware</span></code></a> – URL routing</p></li>
+<li><p><a class="reference internal" href="api.html#asgi_tools.LifespanMiddleware" title="asgi_tools.LifespanMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">LifespanMiddleware</span></code></a> – Application lifecycle</p></li>
+<li><p><a class="reference internal" href="api.html#asgi_tools.StaticFilesMiddleware" title="asgi_tools.StaticFilesMiddleware"><code class="xref py py-class docutils literal notranslate"><span class="pre">StaticFilesMiddleware</span></code></a> – Static file serving</p></li>
 </ul>
-<a class="reference external image-reference" href="https://github.com/klen/asgi-tools/actions" id="badges"><img alt="Tests Status" src="https://github.com/klen/asgi-tools/workflows/tests/badge.svg" /></a>
-<a class="reference external image-reference" href="https://klen.github.io/asgi-tools"><img alt="Documentation Status" src="https://github.com/klen/asgi-tools/workflows/docs/badge.svg" /></a>
-<a class="reference external image-reference" href="https://pypi.org/project/asgi-tools/"><img alt="PYPI Version" src="https://img.shields.io/pypi/v/asgi-tools" /></a>
-<a class="reference external image-reference" href="https://pypi.org/project/asgi-tools/"><img alt="Python Versions" src="https://img.shields.io/pypi/pyversions/asgi-tools" /></a>
-<p>Welcome to the documentation. Get started with <a class="reference internal" href="installation.html"><span class="doc">Installation</span></a> and then get
-an overview with the <a class="reference internal" href="usage.html"><span class="doc">Usage</span></a>. The rest of the docs describe each component
-of <a class="reference internal" href="api.html#module-asgi_tools" title="asgi_tools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asgi_tools</span></code></a> in detail, with a full reference in the <a class="reference internal" href="api.html"><span class="doc">API Reference</span></a>
-section.</p>
+</dd>
+</dl>
+</li>
+<li><p><strong>Testing Support</strong> – Built-in test client with WebSocket support via <a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient" title="asgi_tools.tests.ASGITestClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">ASGITestClient</span></code></a></p></li>
+<li><p><strong>Simple Application Builder</strong> – Quick-start with <a class="reference internal" href="api.html#asgi_tools.App" title="asgi_tools.App"><code class="xref py py-class docutils literal notranslate"><span class="pre">App</span></code></a></p></li>
+</ul>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h2>
+<p>Install ASGI-Tools with pip:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>asgi-tools
+</pre></div>
+</div>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
+<p>Here’s a minimal example to get you started:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asgi_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">App</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">hello</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">&quot;Hello, World!&quot;</span>
+</pre></div>
+</div>
+<p>Run it with an ASGI server like <a class="reference external" href="http://www.uvicorn.org/">uvicorn</a>:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>uvicorn<span class="w"> </span>app:app
+</pre></div>
+</div>
+<p>Visit <a class="reference external" href="http://127.0.0.1:8000/">http://127.0.0.1:8000/</a> to see your application running!</p>
+</section>
+<section id="documentation-overview">
+<h2>Documentation Overview<a class="headerlink" href="#documentation-overview" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="installation.html"><span class="doc">Installation</span></a> – Install and set up ASGI-Tools</p></li>
+<li><p><a class="reference internal" href="usage.html"><span class="doc">Usage</span></a> – Learn how to use ASGI-Tools effectively</p></li>
+<li><p><a class="reference internal" href="api.html"><span class="doc">API Reference</span></a> – Detailed API reference</p></li>
+</ul>
+</section>
 <section id="user-s-guide">
 <h2>User’s Guide<a class="headerlink" href="#user-s-guide" title="Link to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#python-version">Python Version</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#dependencies">Dependencies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#install-asgi-tools">Install <strong>ASGI-Tools</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#supported-python-versions">Supported Python Versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#core-dependencies">Core Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#installation-methods">Installation Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#asgi-server-requirement">ASGI Server Requirement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verify-installation">Verify Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#next-steps">Next Steps</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#asgi-application">ASGI Application</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#the-request-object">The Request Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#asgi-applications-with-asgi-tools">ASGI Applications with ASGI-Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#request-object">Request Object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage.html#routing">Routing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#dynamic-urls">Dynamic URLs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage.html#static-files">Static Files</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#redirects-and-errors">Redirects and Errors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#about-responses">About Responses</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#middlewares">Middlewares</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#nested-applications">Nested applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#middleware">Middleware</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#error-handling">Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#testing">Testing</a></li>
 </ul>
 </li>
 </ul>
@@ -447,129 +474,29 @@ section.</p>
 </section>
 <section id="api-reference">
 <h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">#</a></h2>
-<p>If you are looking for information on a specific function, class or
-method, this part of the documentation is for you.</p>
+<p>For detailed information on functions, classes, and methods:</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api.html#request">Request</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api.html#asgi_tools.Request"><code class="docutils literal notranslate"><span class="pre">Request</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.headers"><code class="docutils literal notranslate"><span class="pre">Request.headers</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.cookies"><code class="docutils literal notranslate"><span class="pre">Request.cookies</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.query"><code class="docutils literal notranslate"><span class="pre">Request.query</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.charset"><code class="docutils literal notranslate"><span class="pre">Request.charset</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.content_type"><code class="docutils literal notranslate"><span class="pre">Request.content_type</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.url"><code class="docutils literal notranslate"><span class="pre">Request.url</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.stream"><code class="docutils literal notranslate"><span class="pre">Request.stream()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.body"><code class="docutils literal notranslate"><span class="pre">Request.body()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.text"><code class="docutils literal notranslate"><span class="pre">Request.text()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.form"><code class="docutils literal notranslate"><span class="pre">Request.form()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.json"><code class="docutils literal notranslate"><span class="pre">Request.json()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Request.data"><code class="docutils literal notranslate"><span class="pre">Request.data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#request">Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#responses">Responses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#middlewares">Middlewares</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#application">Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#class-based-views">Class Based Views</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#testing">Testing</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#responses">Responses</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api.html#asgi_tools.Response"><code class="docutils literal notranslate"><span class="pre">Response</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Response.headers"><code class="docutils literal notranslate"><span class="pre">Response.headers</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Response.cookies"><code class="docutils literal notranslate"><span class="pre">Response.cookies</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.Response.__call__"><code class="docutils literal notranslate"><span class="pre">Response.__call__()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsetext">ResponseText</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseText"><code class="docutils literal notranslate"><span class="pre">ResponseText</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsehtml">ResponseHTML</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseHTML"><code class="docutils literal notranslate"><span class="pre">ResponseHTML</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsejson">ResponseJSON</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseJSON"><code class="docutils literal notranslate"><span class="pre">ResponseJSON</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responseredirect">ResponseRedirect</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseRedirect"><code class="docutils literal notranslate"><span class="pre">ResponseRedirect</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responseerror">ResponseError</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseError"><code class="docutils literal notranslate"><span class="pre">ResponseError</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsestream">ResponseStream</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseStream"><code class="docutils literal notranslate"><span class="pre">ResponseStream</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsesse">ResponseSSE</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseSSE"><code class="docutils literal notranslate"><span class="pre">ResponseSSE</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsefile">ResponseFile</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseFile"><code class="docutils literal notranslate"><span class="pre">ResponseFile</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsewebsocket">ResponseWebSocket</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseWebSocket"><code class="docutils literal notranslate"><span class="pre">ResponseWebSocket</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#middlewares">Middlewares</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api.html#requestmiddleware">RequestMiddleware</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.RequestMiddleware"><code class="docutils literal notranslate"><span class="pre">RequestMiddleware</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#responsemiddleware">ResponseMiddleware</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.ResponseMiddleware"><code class="docutils literal notranslate"><span class="pre">ResponseMiddleware</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#lifespanmiddleware">LifespanMiddleware</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.LifespanMiddleware"><code class="docutils literal notranslate"><span class="pre">LifespanMiddleware</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#routermiddleware">RouterMiddleware</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.RouterMiddleware"><code class="docutils literal notranslate"><span class="pre">RouterMiddleware</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#staticfilesmiddleware">StaticFilesMiddleware</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.StaticFilesMiddleware"><code class="docutils literal notranslate"><span class="pre">StaticFilesMiddleware</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api.html#backgroundmiddleware">BackgroundMiddleware</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.BackgroundMiddleware"><code class="docutils literal notranslate"><span class="pre">BackgroundMiddleware</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#application">Application</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api.html#asgi_tools.App"><code class="docutils literal notranslate"><span class="pre">App</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.App.route"><code class="docutils literal notranslate"><span class="pre">App.route()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.App.on_startup"><code class="docutils literal notranslate"><span class="pre">App.on_startup()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.App.on_shutdown"><code class="docutils literal notranslate"><span class="pre">App.on_shutdown()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.App.on_error"><code class="docutils literal notranslate"><span class="pre">App.on_error()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.App.middleware"><code class="docutils literal notranslate"><span class="pre">App.middleware()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#class-based-views">Class Based Views</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api.html#asgi_tools.HTTPView"><code class="docutils literal notranslate"><span class="pre">HTTPView</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api.html#testclient">TestClient</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient"><code class="docutils literal notranslate"><span class="pre">ASGITestClient</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient.request"><code class="docutils literal notranslate"><span class="pre">ASGITestClient.request()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient.websocket"><code class="docutils literal notranslate"><span class="pre">ASGITestClient.websocket()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api.html#asgi_tools.tests.ASGITestClient.lifespan"><code class="docutils literal notranslate"><span class="pre">ASGITestClient.lifespan()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#indices-and-tables">Indices and tables</a></li>
 </ul>
 </div>
+</section>
+<section id="contributing">
+<h2>Contributing<a class="headerlink" href="#contributing" title="Link to this heading">#</a></h2>
+<p>ASGI-Tools is an open source project. Contributions, issues, and feature requests are welcome!</p>
+<ul class="simple">
+<li><p>GitHub: <a class="github reference external" href="https://github.com/klen/asgi-tools">klen/asgi-tools</a></p></li>
+<li><p>Report Issues: <a class="github reference external" href="https://github.com/klen/asgi-tools/issues">klen/asgi-tools#issues</a></p></li>
+</ul>
 </section>
 </section>
 <section id="indices-and-tables">
@@ -607,7 +534,8 @@ method, this part of the documentation is for you.</p>
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -618,9 +546,15 @@ method, this part of the documentation is for you.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Welcome to asgi-tools’s documentation!</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">ASGI-Tools Documentation</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-features">Key Features</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick Start</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-overview">Documentation Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#user-s-guide">User’s Guide</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-reference">API Reference</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contributing">Contributing</a></li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#indices-and-tables">Indices and tables</a></li>
@@ -645,13 +579,13 @@ method, this part of the documentation is for you.</p>
 </div>
 
   <div class="sidebar-secondary-item">
-
-  <div class="tocsection sourcelink">
-    <a href="_sources/index.rst.txt">
-      <i class="fa-solid fa-file-lines"></i> Show Source
-    </a>
-  </div>
-</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
 
 </div></div>
               
@@ -666,8 +600,8 @@ method, this part of the documentation is for you.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -687,7 +621,7 @@ method, this part of the documentation is for you.</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -700,7 +634,8 @@ method, this part of the documentation is for you.</p>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>

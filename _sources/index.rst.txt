@@ -1,30 +1,9 @@
 :orphan:
 
-Welcome to asgi-tools's documentation!
-======================================
+ASGI-Tools Documentation
+=========================
 
-|Product| -- Is a really lightweight ASGI_ Toolkit to build ASGI applications
-faster.
-
-The Features:
-
-* All popular async python libraries are supported (Asyncio_, Trio_, Curio_);
-* Competitive Performance;
-* HTTP Headers/Cookies/Form data support (:class:`~asgi_tools.Request`);
-* HTTP (:class:`~asgi_tools.Response`), Static files (:class:`~asgi_tools.ResponseFile`), Streaming (:class:`~asgi_tools.ResponseStream`) responses;
-* WebSockets (:class:`~asgi_tools.ResponseWebSocket`) and SSE (server side events :class:`~asgi_tools.ResponseSSE`) support;
-* ASGI Lifespan support (:class:`~asgi_tools.LifespanMiddleware`) with startup and shutdown events;
-* ASGI Routing support (:class:`~asgi_tools.RouterMiddleware`) to route your handlers by http urls;
-* Auto parsing for app responses (:class:`~asgi_tools.ResponseMiddleware`);
-* Test client (:class:`~asgi_tools.tests.ASGITestClient`) to test ASGI_ applications;
-* And more
-
-.. _ASGI: https://asgi.readthedocs.io/en/latest/
-.. _Asyncio: https://docs.python.org/3/library/asyncio.html
-.. _Trio: https://trio.readthedocs.io/en/stable/index.html
-.. _Curio: https://github.com/dabeaz/curio
-
-.. _badges:
+Lightweight, high-performance ASGI toolkit for modern Python async apps.
 
 .. image:: https://github.com/klen/asgi-tools/workflows/tests/badge.svg
     :target: https://github.com/klen/asgi-tools/actions
@@ -42,10 +21,65 @@ The Features:
     :target: https://pypi.org/project/asgi-tools/
     :alt: Python Versions
 
-Welcome to the documentation. Get started with :doc:`installation` and then get
-an overview with the :doc:`usage`. The rest of the docs describe each component
-of :mod:`~asgi_tools` in detail, with a full reference in the :doc:`api`
-section.
+Overview
+--------
+
+**ASGI-Tools** is a minimal, extensible ASGI_ toolkit designed to help you build async Python applications faster and more efficiently.
+
+Key Features
+------------
+
+* **Async Support** – Seamless integration with Asyncio_, Trio_, and Curio_
+* **High Performance** – Optimized for speed and minimal resource usage
+* **Rich Request Handling** – Powerful :class:`~asgi_tools.Request` supporting headers, cookies, forms, and file uploads
+* **Flexible Responses** – Multiple response types: HTTP, static files, streaming, SSE, WebSocket via :class:`~asgi_tools.Response`
+* **Built-in Middleware** – Essential middleware for common patterns:
+    * :class:`~asgi_tools.RequestMiddleware` – Request parsing
+    * :class:`~asgi_tools.ResponseMiddleware` – Response handling
+    * :class:`~asgi_tools.RouterMiddleware` – URL routing
+    * :class:`~asgi_tools.LifespanMiddleware` – Application lifecycle
+    * :class:`~asgi_tools.StaticFilesMiddleware` – Static file serving
+* **Testing Support** – Built-in test client with WebSocket support via :class:`~asgi_tools.tests.ASGITestClient`
+* **Simple Application Builder** – Quick-start with :class:`~asgi_tools.App`
+
+Installation
+------------
+
+Install ASGI-Tools with pip:
+
+.. code-block:: sh
+
+    pip install asgi-tools
+
+Quick Start
+-----------
+
+Here's a minimal example to get you started:
+
+.. code-block:: python
+
+    from asgi_tools import App
+
+    app = App()
+
+    @app.route("/")
+    async def hello(request):
+        return "Hello, World!"
+
+Run it with an ASGI server like uvicorn_:
+
+.. code-block:: sh
+
+    uvicorn app:app
+
+Visit http://127.0.0.1:8000/ to see your application running!
+
+Documentation Overview
+-----------------------
+
+* :doc:`installation` – Install and set up ASGI-Tools
+* :doc:`usage` – Learn how to use ASGI-Tools effectively
+* :doc:`api` – Detailed API reference
 
 User's Guide
 ------------
@@ -59,13 +93,20 @@ User's Guide
 API Reference
 -------------
 
-If you are looking for information on a specific function, class or
-method, this part of the documentation is for you.
+For detailed information on functions, classes, and methods:
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
    api
+
+Contributing
+------------
+
+ASGI-Tools is an open source project. Contributions, issues, and feature requests are welcome!
+
+* GitHub: https://github.com/klen/asgi-tools
+* Report Issues: https://github.com/klen/asgi-tools/issues
 
 Indices and tables
 ==================
@@ -74,4 +115,8 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. |Product| replace:: :py:mod:`ASGI-Tools`
+.. _ASGI: https://asgi.readthedocs.io/en/latest/
+.. _Asyncio: https://docs.python.org/3/library/asyncio.html
+.. _Trio: https://trio.readthedocs.io/en/stable/index.html
+.. _Curio: https://github.com/dabeaz/curio
+.. _uvicorn: http://www.uvicorn.org/
