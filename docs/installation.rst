@@ -4,7 +4,7 @@ Installation
 Supported Python Versions
 -------------------------
 
-ASGI-Tools requires **Python 3.9 or newer**. We recommend using the latest stable release for best performance and compatibility.
+ASGI-Tools requires **Python 3.10 or newer**. We recommend using the latest stable release for best performance and compatibility.
 
 .. note::
    **PyPy3** is also supported and can provide performance benefits for some workloads.
