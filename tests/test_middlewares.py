@@ -192,7 +192,7 @@ async def test_staticfiles_middleware(client_cls, app):
 
     from asgi_tools import StaticFilesMiddleware
 
-    app = StaticFilesMiddleware(app, folders=["/", Path(__file__).parent])
+    app = StaticFilesMiddleware(app, folders=["tests"])
 
     client = client_cls(app)
     res = await client.get("/")

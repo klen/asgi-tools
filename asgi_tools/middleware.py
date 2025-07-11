@@ -392,7 +392,7 @@ class StaticFilesMiddleware(BaseMiddleware):
         super().__init__(app)
         self.url_prefix = url_prefix
         folders = folders or []
-        self.folders: list[Path] = [Path(folder) for folder in folders]
+        self.folders: list[Path] = [Path(folder).resolve() for folder in folders]
 
     async def __process__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend) -> None:
         """Serve static files for self url prefix."""
