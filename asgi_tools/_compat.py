@@ -257,6 +257,3 @@ with suppress(ImportError):
 with suppress(ImportError):
     from orjson import dumps as json_dumps  # type: ignore[assignment,no-redef]
     from orjson import loads as json_loads  # type: ignore[assignment,no-redef]
-
-
-# ruff: noqa: PGH003, F811

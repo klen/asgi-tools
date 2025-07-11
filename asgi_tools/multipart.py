@@ -587,6 +587,3 @@ def prune_data(data_len: int, cursize: int, max_size: int) -> int:
         return max_size - cursize
 
     return data_len
-
-
-# ruff: noqa: TRY003
