@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel", "Cython"]
 
 [project]
 name = "asgi-tools"
-version = "1.1.0"
+version = "1.2.0"
 description = "ASGI Toolkit to build web applications"
 readme = "README.rst"
 requires-python = ">=3.10"
@@ -43,7 +43,7 @@ documentation = "https://klen.github.io/asgi-tools"
 tests = [
   "aiofile",
   "pytest",
-  "pytest-aio[curio,trio] >= 1.1.0",
+  "pytest-aio[curio,trio] >= 1.2.0",
   "pytest-benchmark",
   "PyYAML",
   "ruff",
