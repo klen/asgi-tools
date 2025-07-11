@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING, Final, Optional
+from typing import TYPE_CHECKING, Final
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
@@ -57,7 +57,7 @@ class HTTPView:
         return self(request, **opts)
 
     @classmethod
-    def __route__(cls, router: Router, *paths: str, methods: Optional[TMethods] = None, **params):
+    def __route__(cls, router: Router, *paths: str, methods: TMethods | None = None, **params):
         """Bind the class view to the given router."""
         view_methods = dict(inspect.getmembers(cls, inspect.isfunction))
         methods = methods or [m for m in HTTP_METHODS if m.lower() in view_methods]

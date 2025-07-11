@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from functools import partial
 from inspect import isclass
-from typing import TYPE_CHECKING, Callable, Optional, Union  # py39
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
 
 from http_router import PrefixedRoute
 
@@ -28,38 +28,45 @@ if TYPE_CHECKING:
         TASGIScope,
         TASGISend,
         TExceptionHandler,
-        TVCallable,
         TVExceptionHandler,
     )
 
+T = TypeVar("T")
+TRouteHandler = TypeVar("TRouteHandler", bound=Callable[[Request], Any])
+TCallable = TypeVar("TCallable", bound=Callable[..., Any])
+
 
 class App:
-    """A helper to build ASGI Applications.
+    """A helper class to build ASGI applications quickly and efficiently.
 
     Features:
-
-    * Routing
-    * ASGI-Tools :class:`Request`, :class:`Response`
-    * Exception management
-    * Static files
-    * Lifespan events
-    * Simplest middlewares
+        - Routing with flexible path and method matching
+        - ASGI-Tools :class:`Request`, :class:`Response` integration
+        - Exception management and custom error handlers
+        - Static files serving
+        - Lifespan events (startup/shutdown)
+        - Simple middleware support
 
     :param debug: Enable debug mode (more logging, raise unhandled exceptions)
-    :type debug: bool, False
-
+    :type debug: bool
     :param logger: Custom logger for the application
     :type logger: logging.Logger
+    :param static_url_prefix: URL prefix for static files
+    :type static_url_prefix: str
+    :param static_folders: List of folders to serve static files from
+    :type static_folders: Optional[list[str | Path]]
+    :param trim_last_slash: Treat "/path" and "/path/" as the same route
+    :type trim_last_slash: bool
+    :raises ValueError: If static_url_prefix is set without static_folders
+    :raises TypeError: If static_folders is not a list of strings or Paths
+    :raises RuntimeError: If the app is not an ASGI application
 
-    :param static_url_prefix: A prefix for static files
-    :type static_url_prefix: str, "/static"
-
-    :param static_folders: A list of folders to look static files
-    :type static_folders: list[str]
-
-    :param trim_last_slash: Consider "/path" and "/path/" as the same
-    :type trim_last_slash: bool, False
-
+    Example:
+        >>> from asgi_tools import App
+        >>> app = App()
+        >>> @app.route("/")
+        ... async def homepage(request):
+        ...     return "Hello, World!"
     """
 
     exception_handlers: dict[type[BaseException], TExceptionHandler]
@@ -70,10 +77,23 @@ class App:
         debug: bool = False,
         logger: logging.Logger = logger,
         static_url_prefix: str = "/static",
-        static_folders: Optional[list[Union[str, Path]]] = None,
+        static_folders: list[str | Path] | None = None,
         trim_last_slash: bool = False,
     ):
-        """Initialize router and lifespan middleware."""
+        """Initialize the ASGI application with routing, logging, static files,
+           and lifespan support.
+
+        :param debug: Enable debug mode (more logging, raise unhandled exceptions)
+        :type debug: bool
+        :param logger: Custom logger for the application
+        :type logger: logging.Logger
+        :param static_url_prefix: URL prefix for static files
+        :type static_url_prefix: str
+        :param static_folders: List of folders to serve static files from
+        :type static_folders: Optional[list[str|Path]]
+        :param trim_last_slash: Treat "/path" and "/path/" as the same route
+        :type trim_last_slash: bool
+        """
 
         # Register base exception handlers
         self.exception_handlers = {
@@ -116,15 +136,15 @@ class App:
         self.internal_middlewares: list = []
 
     async def __call__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend) -> None:
-        """Convert the given scope into a request and process."""
+        """ASGI entrypoint. Converts the given scope into a request and processes it."""
         await self.lifespan(scope, receive, send)
 
     async def __process__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):
-        """Send ASGI messages."""
+        """Internal request processing: builds a Request, calls the app, and handles exceptions."""
         scope["app"] = self
         request = Request(scope, receive, send)
         try:
-            response: Optional[Response] = await self.__app__(request, receive, send)
+            response: Response | None = await self.__app__(request, receive, send)
             if response is not None:
                 await response(scope, receive, send)
 
@@ -144,8 +164,8 @@ class App:
 
     async def __match__(
         self, request: Request, _: TASGIReceive, send: TASGISend
-    ) -> Optional[Response]:
-        """Find and call a callback, parse a response, handle exceptions."""
+    ) -> Response | None:
+        """Finds and calls a route handler, parses the response, and handles routing exceptions."""
         scope = request.scope
         path = f"{ scope.get('root_path', '') }{ scope['path'] }"
         try:
@@ -159,7 +179,8 @@ class App:
 
         scope["endpoint"] = match.target
         scope["path_params"] = {} if match.params is None else match.params
-        response = await match.target(request)  # type: ignore[]
+        handler = cast("Callable[[Request], Any]", match.target)
+        response = await handler(request)
 
         if scope["type"] == "http":
             return parse_response(response)
@@ -170,14 +191,30 @@ class App:
         return None
 
     def __route__(self, router: Router, *prefixes: str, **_) -> "App":
-        """Mount self as a nested application."""
+        """Mount this app as a nested application under given prefixes."""
         for prefix in prefixes:
             route = RouteApp(prefix, set(), target=self)
             router.dynamic.insert(0, route)
         return self
 
-    def middleware(self, md: TVCallable, *, insert_first: bool = False) -> TVCallable:
-        """Register a middleware."""
+    def middleware(self, md: TCallable, *, insert_first: bool = False) -> TCallable:
+        """Register a middleware for the application.
+
+        Middleware can be a coroutine (request/response) or a regular callable (lifespan).
+
+        :param md: The middleware function or class
+        :type md: TCallable
+        :param insert_first: If True, insert as the first middleware
+        :type insert_first: bool
+        :return: The registered middleware
+        :rtype: TCallable
+
+        Example:
+            >>> @app.middleware
+            ... async def log_requests(handler, request):
+            ...     print(f"Request: {request.method} {request.url}")
+            ...     return await handler(request)
+        """
         # Register as a simple middleware
         if iscoroutinefunction(md):
             if md not in self.internal_middlewares:
@@ -197,33 +234,50 @@ class App:
 
         return md
 
-    def route(self, *paths: TPath, methods: Optional[TMethods] = None, **opts):
-        """Register a route."""
+    def route(
+        self, *paths: TPath, methods: TMethods | None = None, **opts: Any
+    ) -> Callable[[TRouteHandler], TRouteHandler]:
+        """Register a route handler.
+
+        :param paths: One or more URL paths to match
+        :type paths: TPath
+        :param methods: HTTP methods to match (GET, POST, etc.)
+        :type methods: Optional[TMethods]
+        :param opts: Additional options for the route
+        :type opts: Any
+        :return: Decorator function
+        :rtype: Callable[[TRouteHandler], TRouteHandler]
+        """
         return self.router.route(*paths, methods=methods, **opts)
 
     def on_startup(self, fn: Callable) -> None:
-        """Register a startup handler."""
+        """Register a startup event handler.
+
+        :param fn: The function to call on startup
+        :type fn: Callable
+        """
         return self.lifespan.on_startup(fn)
 
     def on_shutdown(self, fn: Callable) -> None:
-        """Register a shutdown handler."""
+        """Register a shutdown event handler.
+
+        :param fn: The function to call on shutdown
+        :type fn: Callable
+        """
         return self.lifespan.on_shutdown(fn)
 
     def on_error(self, etype: type[BaseException]):
-        """Register an exception handler.
+        """Register a custom exception handler for a given exception type.
 
-        .. code-block::
+        :param etype: The exception type to handle
+        :type etype: type[BaseException]
+        :return: A decorator to register the handler
+        :rtype: Callable
 
-            @app.on_error(TimeoutError)
-            async def timeout(request, error):
-                return 'Something bad happens'
-
-            @app.on_error(ResponseError)
-            async def process_http_errors(request, response_error):
-                if response_error.status_code == 404:
-                    return render_template('page_not_found.html'), 404
-                return response_error
-
+        Example:
+            >>> @app.on_error(TimeoutError)
+            ... async def timeout_handler(request, error):
+            ...     return 'Timeout occurred'
         """
         assert isclass(etype), f"Invalid exception type: {etype}"
         assert issubclass(etype, BaseException), f"Invalid exception type: {etype}"
@@ -236,10 +290,10 @@ class App:
 
 
 class RouteApp(PrefixedRoute):
-    """Custom route to submount an application."""
+    """Custom route to submount an application under a given path prefix."""
 
     def __init__(self, path: str, methods: set, target: App):
-        """Create app callable."""
+        """Create a submounted app callable for the given prefix."""
         path = path.rstrip("/")
 
         def app(request: Request):

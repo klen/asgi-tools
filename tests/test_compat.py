@@ -18,7 +18,7 @@ async def test_aio_timeout_disabled():
 
 
 async def test_aio_timeout():
-    with pytest.raises((TimeoutError, asyncio.TimeoutError)):  # python 39, 310
+    with pytest.raises((TimeoutError, asyncio.TimeoutError)):  # python 310
         async with aio_timeout(1e-2):
             await aio_sleep(1)
 

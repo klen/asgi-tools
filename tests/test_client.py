@@ -46,8 +46,8 @@ async def test_client(app, client):
     @app.route("/test")
     async def test(request):
         data = await request.data()
-        if not isinstance(data, str):
-            data = dict(data)
+        if isinstance(data, bytes):
+            data = data.decode("utf-8")
 
         return {
             "query": dict(request.query),

@@ -8,7 +8,7 @@ from contextvars import ContextVar
 from functools import partial
 from inspect import isawaitable
 from pathlib import Path
-from typing import TYPE_CHECKING, Awaitable, Callable, Final, Mapping, Optional, Union
+from typing import TYPE_CHECKING, Awaitable, Callable, Final, Mapping
 
 from http_router import Router
 
@@ -27,7 +27,7 @@ class BaseMiddleware(metaclass=abc.ABCMeta):
 
     scopes: tuple[str, ...] = ("http", "websocket")
 
-    def __init__(self, app: Optional[TASGIApp] = None) -> None:
+    def __init__(self, app: TASGIApp | None = None) -> None:
         """Save ASGI App."""
         self.bind(app)
 
@@ -48,7 +48,7 @@ class BaseMiddleware(metaclass=abc.ABCMeta):
         """Setup the middleware without an initialization."""
         return partial(cls, **params)  # type: ignore[abstract]
 
-    def bind(self, app: Optional[TASGIApp] = None):
+    def bind(self, app: TASGIApp | None = None):
         """Rebind the middleware to an ASGI application if it has been inited already."""
         self.app = app or ResponseError.NOT_FOUND()
         return self
@@ -125,9 +125,9 @@ class ResponseMiddleware(BaseMiddleware):
             await exc(scope, receive, send)
 
     def send(self, _: TASGIMessage):
-        raise RuntimeError("You can't use send() method in ResponseMiddleware")  # noqa: TRY003
+        raise RuntimeError("You can't use send() method in ResponseMiddleware")
 
-    def bind(self, app: Optional[TASGIApp] = None):
+    def bind(self, app: TASGIApp | None = None):
         """Rebind the middleware to an ASGI application if it has been inited already."""
         self.app = app or to_awaitable(lambda *_: ResponseError.NOT_FOUND())
         return self
@@ -140,7 +140,7 @@ class RequestMiddleware(BaseMiddleware):
 
         from asgi_tools import RequestMiddleware, Response
 
-        async def app(request, receive, send):
+        async def app(scope, receive, send):
             content = f"{ request.method } { request.url.path }"
             response = Response(content)
             await response(scope, receive, send)
@@ -197,12 +197,12 @@ class LifespanMiddleware(BaseMiddleware):
 
     def __init__(
         self,
-        app: Optional[TASGIApp] = None,
+        app: TASGIApp | None = None,
         *,
         logger=logger,
         ignore_errors: bool = False,
-        on_startup: Union[Callable, list[Callable], None] = None,
-        on_shutdown: Union[Callable, list[Callable], None] = None,
+        on_startup: Callable | list[Callable] | None = None,
+        on_shutdown: Callable | list[Callable] | None = None,
     ) -> None:
         """Prepare the middleware."""
         super(LifespanMiddleware, self).__init__(app)
@@ -227,7 +227,7 @@ class LifespanMiddleware(BaseMiddleware):
                 break
 
     def __register__(
-        self, handlers: Union[Callable, list[Callable], None], container: list[Callable]
+        self, handlers: Callable | list[Callable] | None, container: list[Callable]
     ) -> None:
         """Register lifespan handlers."""
         if not handlers:
@@ -247,7 +247,7 @@ class LifespanMiddleware(BaseMiddleware):
         """Use the lifespan middleware as a context manager."""
         await self.run("shutdown")
 
-    async def run(self, event: str, _: Optional[TASGISend] = None):
+    async def run(self, event: str, _: TASGISend | None = None):
         """Run startup/shutdown handlers."""
         assert event in {"startup", "shutdown"}
         handlers = getattr(self, f"__{event}__")
@@ -332,7 +332,7 @@ class RouterMiddleware(BaseMiddleware):
 
     """
 
-    def __init__(self, app: Optional[TASGIApp] = None, router: Optional[Router] = None) -> None:
+    def __init__(self, app: TASGIApp | None = None, router: Router | None = None) -> None:
         """Initialize HTTP router."""
         super().__init__(app)
         self.router = router or Router(validator=callable)
@@ -342,7 +342,7 @@ class RouterMiddleware(BaseMiddleware):
         app, scope["path_params"] = self.__dispatch__(scope)
         return await app(scope, *args)
 
-    def __dispatch__(self, scope: TASGIScope) -> tuple[Callable, Optional[Mapping]]:
+    def __dispatch__(self, scope: TASGIScope) -> tuple[Callable, Mapping | None]:
         """Lookup for a callback."""
         path = f"{scope.get('root_path', '')}{scope['path']}"
         try:
@@ -384,9 +384,9 @@ class StaticFilesMiddleware(BaseMiddleware):
 
     def __init__(
         self,
-        app: Optional[TASGIApp] = None,
+        app: TASGIApp | None = None,
         url_prefix: str = "/static",
-        folders: Optional[list[Union[str, Path]]] = None,
+        folders: list[str | Path] | None = None,
     ) -> None:
         """Initialize the middleware."""
         super().__init__(app)
@@ -399,10 +399,12 @@ class StaticFilesMiddleware(BaseMiddleware):
         path = scope["path"]
         url_prefix = self.url_prefix
         if path.startswith(url_prefix):
-            response: Optional[Response] = None
+            response: Response | None = None
             filename = path[len(url_prefix) :].strip("/")
             for folder in self.folders:
                 filepath = folder.joinpath(filename).resolve()
+                if folder != filepath.parent:
+                    continue
                 with suppress(ASGIError):
                     response = ResponseFile(filepath, headers_only=scope["method"] == "HEAD")
                     break
@@ -414,7 +416,7 @@ class StaticFilesMiddleware(BaseMiddleware):
             await self.app(scope, receive, send)
 
 
-BACKGROUND_TASK: Final = ContextVar[Optional[Awaitable]]("background_task", default=None)
+BACKGROUND_TASK: Final = ContextVar[list[Awaitable] | None]("background_task", default=None)
 
 
 class BackgroundMiddleware(BaseMiddleware):
@@ -443,11 +445,14 @@ class BackgroundMiddleware(BaseMiddleware):
     async def __process__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):
         """Run background tasks."""
         await self.app(scope, receive, send)
-        bgtask = BACKGROUND_TASK.get()
-        if bgtask is not None and isawaitable(bgtask):
-            await bgtask
+        for task in BACKGROUND_TASK.get() or []:
+            await task
+
+        BACKGROUND_TASK.set(None)  # Clear the context variable
 
     @staticmethod
     def set_task(task: Awaitable):
         """Set a task for background execution."""
-        BACKGROUND_TASK.set(task)
+        tasks = BACKGROUND_TASK.get() or []
+        tasks.append(task)
+        BACKGROUND_TASK.set(tasks)

@@ -22,8 +22,6 @@ from typing import (
     Callable,
     Coroutine,
     Deque,
-    Optional,
-    Union,
     cast,
 )
 from urllib.parse import urlencode
@@ -124,7 +122,7 @@ class TestWebSocketResponse(ResponseWebSocket):
 
 
 class ASGITestClient:
-    """The test client allows you to make requests against an ASGI application.
+    """Built-in test client for ASGI applications.
 
     Features:
 
@@ -152,10 +150,10 @@ class ASGITestClient:
         path: str,
         method: str = "GET",
         *,
-        query: Union[str, dict] = "",
-        headers: Optional[dict[str, str]] = None,
-        cookies: Optional[dict[str, str]] = None,
-        data: Union[bytes, str, dict, AsyncGenerator[Any, bytes]] = b"",
+        query: str | dict = "",
+        headers: dict[str, str] | None = None,
+        cookies: dict[str, str] | None = None,
+        data: bytes | str | dict | AsyncGenerator[Any, bytes] = b"",
         json: TJSON = None,
         follow_redirect: bool = True,
         timeout: float = 10.0,
@@ -215,9 +213,9 @@ class ASGITestClient:
     async def websocket(
         self,
         path: str,
-        query: Union[str, dict, None] = None,
-        headers: Optional[dict] = None,
-        cookies: Optional[dict] = None,
+        query: str | dict | None = None,
+        headers: dict | None = None,
+        cookies: dict | None = None,
     ):
         """Connect to a websocket."""
         pipe = Pipe()
@@ -251,9 +249,9 @@ class ASGITestClient:
     def build_scope(
         self,
         path: str,
-        headers: Union[dict, CIMultiDict, None] = None,
-        query: Union[str, dict, None] = None,
-        cookies: Optional[dict] = None,
+        headers: dict | CIMultiDict | None = None,
+        query: str | dict | None = None,
+        cookies: dict | None = None,
         **scope,
     ) -> TASGIScope:
         """Prepare a request scope."""
@@ -367,7 +365,7 @@ class Pipe:
             await aio_sleep(self.delay)
         return self.app_queue.popleft()
 
-    async def stream(self, data: Union[bytes, AsyncGenerator[Any, bytes]]):
+    async def stream(self, data: bytes | AsyncGenerator[Any, bytes]):
         if isinstance(data, bytes):
             return await self.send_to_app(
                 {"type": "http.request", "body": data, "more_body": False},
@@ -393,7 +391,7 @@ async def manage_lifespan(app, timeout: float = 3e-2):
     async with aio_spawn(safe_spawn) as task:
         await pipe.send_to_app({"type": "lifespan.startup"})
 
-        with suppress(TimeoutError, asyncio.TimeoutError):  # python 39, 310
+        with suppress(TimeoutError, asyncio.TimeoutError):  # python 310
             async with aio_timeout(timeout):
                 msg = await pipe.receive_from_client()
                 if msg["type"] == "lifespan.startup.failed":
@@ -402,6 +400,6 @@ async def manage_lifespan(app, timeout: float = 3e-2):
         yield
 
         await pipe.send_to_app({"type": "lifespan.shutdown"})
-        with suppress(TimeoutError, asyncio.TimeoutError):  # python 39, 310
+        with suppress(TimeoutError, asyncio.TimeoutError):  # python 310
             async with aio_timeout(timeout):
                 await pipe.receive_from_client()

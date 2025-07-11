@@ -1,4 +1,5 @@
 """test middlewares"""
+
 from __future__ import annotations
 
 import pytest
@@ -217,6 +218,8 @@ async def test_staticfiles_middleware(client_cls, app):
 
 
 async def test_background_middleware(client_cls, app):
+    import time
+
     from asgi_tools import BackgroundMiddleware, ResponseText, RouterMiddleware
     from asgi_tools._compat import aio_sleep
 
@@ -236,6 +239,22 @@ async def test_background_middleware(client_cls, app):
         await response(scope, receive, send)
 
     client = client_cls(app)
+    start = time.monotonic()
     res = await client.get("/test")
+    end = time.monotonic()
     assert res.status_code == 200
     assert results == ["test1"]
+    assert end - start >= 0.1  # ensure background_task executed before response end
+    results.clear()
+
+    @router.route("/multi")
+    async def multi(scope, receive, send):
+        BackgroundMiddleware.set_task(background_task("task1"))
+        BackgroundMiddleware.set_task(background_task("task2"))
+        response = ResponseText("multi")
+        await response(scope, receive, send)
+
+    res = await client.get("/multi")
+    assert res.status_code == 200
+    assert "task1" in results
+    assert "task2" in results

@@ -6,7 +6,7 @@ name = "asgi-tools"
 version = "1.1.0"
 description = "ASGI Toolkit to build web applications"
 readme = "README.rst"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { "text" = "MIT License" }
 authors = [{ name = "Kirill Klenov", email = "horneds@gmail.com" }]
 keywords = ["asgi", "asgi-tools", "request", "response", "asyncio", "trio"]
@@ -16,7 +16,6 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -29,7 +28,7 @@ classifiers = [
 ]
 dependencies = [
   "http-router >= 4.0.0",
-  "multidict",
+  "multidict >= 6.6.3",
   "sniffio",
   "yarl >= 1.8.2",
   "async-timeout;python_version<'3.11'",
@@ -77,7 +76,7 @@ ignore_missing_imports = true
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py39,py310,py311,py312,py313,pypy310
+envlist = py310,py311,py312,py313,pypy310
 
 [testenv]
 deps = -e .[tests]
@@ -89,7 +88,7 @@ commands =
 [tool.ruff]
 fix = false
 line-length = 100
-target-version = "py39"
+target-version = "py310"
 exclude = [".venv", "docs", "examples"]
 
 [tool.ruff.lint]
@@ -109,6 +108,7 @@ ignore = [
   "S101",
   "SLF",
   "TD",
+  "TRY003",
   "UP",
 ]
 
@@ -120,5 +120,5 @@ required-imports = ["from __future__ import annotations"]
 
 [tool.black]
 line-length = 100
-target-version = ["py39", "py310", "py311", "py312", "py313"]
+target-version = ["py310", "py311", "py312", "py313"]
 preview = true

@@ -11,7 +11,7 @@ from http.cookies import SimpleCookie
 from mimetypes import guess_type
 from pathlib import Path
 from stat import S_ISDIR
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Callable, Mapping, Optional, Union
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Callable, Mapping, TypeVar
 from urllib.parse import quote, quote_plus
 
 from multidict import MultiDict
@@ -24,12 +24,15 @@ from .request import Request
 if TYPE_CHECKING:
     from .types import TASGIMessage, TASGIReceive, TASGIScope, TASGISend
 
+T = TypeVar("T")
+TContent = TypeVar("TContent", str, bytes, dict, list, None)
+
 
 class Response:
-    """A base class to make ASGI_ responses.
+    """Base class for creating HTTP responses.
 
     :param content: A response's body
-    :type content: str | bytes
+    :type content: str | bytes | dict | list | None
     :param status_code: An HTTP status code
     :type status_code: int
     :param headers: A dictionary of HTTP headers
@@ -57,17 +60,17 @@ class Response:
       strategy ('lax'|'strict'|'none')
 
     """
-    content_type: Optional[str] = None
+    content_type: str | None = None
     status_code: int = HTTPStatus.OK.value
 
     def __init__(
         self,
-        content,
+        content: TContent,
         *,
-        status_code: Optional[int] = None,
-        content_type: Optional[str] = None,
-        headers: Optional[dict[str, str]] = None,
-        cookies: Optional[dict[str, str]] = None,
+        status_code: int | None = None,
+        content_type: str | None = None,
+        headers: dict[str, str] | None = None,
+        cookies: dict[str, str] | None = None,
     ):
         """Setup the response."""
         self.content = self.process_content(content)
@@ -100,7 +103,8 @@ class Response:
         await send({"type": "http.response.body", "body": self.content})
 
     @staticmethod
-    def process_content(content) -> bytes:
+    def process_content(content: TContent) -> bytes:
+        """Process content into bytes."""
         if not isinstance(content, bytes):
             return str(content).encode(DEFAULT_CHARSET)
         return content
@@ -126,19 +130,19 @@ class Response:
 
 
 class ResponseText(Response):
-    """A helper to return plain text responses (text/plain)."""
+    """Returns plain text responses (text/plain)."""
 
     content_type = "text/plain"
 
 
 class ResponseHTML(Response):
-    """A helper to return HTML responses (text/html)."""
+    """Returns HTML responses (text/html)."""
 
     content_type = "text/html"
 
 
 class ResponseJSON(Response):
-    """A helper to return JSON responses (application/json).
+    """Returns JSON responses (application/json).
 
     The class optionally supports `ujson <https://pypi.org/project/ujson/>`_ and `orjson
     <https://pypi.org/project/orjson/>`_ JSON libraries. Install one of them to use instead
@@ -155,7 +159,7 @@ class ResponseJSON(Response):
 
 
 class ResponseStream(Response):
-    """A helper to stream a response's body.
+    """Streams response body as chunks.
 
     :param content: An async generator to stream the response's body
     :type content: AsyncGenerator
@@ -196,7 +200,7 @@ class ResponseStream(Response):
 
 
 class ResponseSSE(ResponseStream):
-    """A helper to stream SSE (server side events).
+    """Streams Server-Sent Events (SSE).
 
     :param content: An async generator to stream the events
     :type content: AsyncGenerator
@@ -210,19 +214,19 @@ class ResponseSSE(ResponseStream):
         return super().msg_start()
 
     @staticmethod
-    def process_content(chunk) -> bytes:
+    def process_content(content) -> bytes:
         """Prepare a chunk from stream generator to send."""
-        if isinstance(chunk, dict):
-            chunk = "\n".join(f"{k}: {v}" for k, v in chunk.items())
+        if isinstance(content, dict):
+            content = "\n".join(f"{k}: {v}" for k, v in content.items())
 
-        if not isinstance(chunk, bytes):
-            chunk = chunk.encode(DEFAULT_CHARSET)
+        if not isinstance(content, bytes):
+            content = content.encode(DEFAULT_CHARSET)
 
-        return chunk + b"\n\n"
+        return content + b"\n\n"
 
 
 class ResponseFile(ResponseStream):
-    """A helper to stream files as a response body.
+    """Serves files as HTTP responses.
 
     :param filepath: The filepath to the file
     :type filepath: str | Path
@@ -237,10 +241,10 @@ class ResponseFile(ResponseStream):
 
     def __init__(
         self,
-        filepath: Union[str, Path],
+        filepath: str | Path,
         *,
         chunk_size: int = 64 * 1024,
-        filename: Optional[str] = None,
+        filename: str | None = None,
         headers_only: bool = False,
         **kwargs,
     ) -> None:
@@ -251,7 +255,7 @@ class ResponseFile(ResponseStream):
             raise ASGIError(*exc.args) from exc
 
         if S_ISDIR(stat.st_mode):
-            raise ASGIError(f"It's a directory: {filepath}")  # noqa: TRY003
+            raise ASGIError(f"It's a directory: {filepath}")
 
         super().__init__(
             empty() if headers_only else aio_stream_file(filepath, chunk_size),
@@ -260,7 +264,7 @@ class ResponseFile(ResponseStream):
 
         headers = self.headers
         if filename and "content-disposition" not in headers:
-            headers["content-disposition"] = f'attachment; filename="{quote(filename)}"'
+            headers["content-disposition"] = f"attachment; filename*=UTF-8''{quote(filename)}"
 
         if "content-type" not in headers:
             headers["content-type"] = guess_type(filename or str(filepath))[0] or "text/plain"
@@ -272,13 +276,7 @@ class ResponseFile(ResponseStream):
 
 
 class ResponseWebSocket(Response):
-    """A helper to work with websockets.
-
-    :param scope: Request info (ASGI Scope | ASGI-Tools Request)
-    :type scope: dict
-    :param receive: ASGI receive function
-    :param send: ASGI send function
-    """
+    """Provides a WebSocket handler interface."""
 
     class STATES(Enum):
         """Represent websocket states."""
@@ -290,15 +288,15 @@ class ResponseWebSocket(Response):
     def __init__(
         self,
         scope: TASGIScope,
-        receive: Optional[TASGIReceive] = None,
-        send: Optional[TASGISend] = None,
+        receive: TASGIReceive | None = None,
+        send: TASGISend | None = None,
     ) -> None:
         """Initialize the websocket response."""
         if isinstance(scope, Request):
             receive, send = scope.receive, scope.send
 
         if not receive or not send:
-            raise ASGIError("Invalid initialization")  # noqa: TRY003
+            raise ASGIError("Invalid initialization")
 
         super().__init__(b"")
         self._receive: TASGIReceive = receive
@@ -316,7 +314,7 @@ class ResponseWebSocket(Response):
         return self
 
     async def __aexit__(self, *_):
-        """Use it as async context manager."""
+        """Exit async context."""
         await self.close()
 
     @property
@@ -347,7 +345,7 @@ class ResponseWebSocket(Response):
             await self.send({"type": "websocket.close", "code": code})
         self.state = self.STATES.DISCONNECTED
 
-    async def send(self, msg: Union[dict, str, bytes], msg_type="websocket.send") -> None:
+    async def send(self, msg: dict | str | bytes, msg_type="websocket.send") -> None:
         """Send the given message to a client."""
         if self.state == self.STATES.DISCONNECTED:
             raise ASGIConnectionClosedError
@@ -361,7 +359,7 @@ class ResponseWebSocket(Response):
         """Serialize the given data to JSON and send to a client."""
         return await self._send({"type": "websocket.send", "bytes": json_dumps(data)})
 
-    async def receive(self, *, raw: bool = False) -> Union[TASGIMessage, str]:
+    async def receive(self, *, raw: bool = False) -> TASGIMessage | str:
         """Receive messages from a client.
 
         :param raw: Receive messages as is.
@@ -381,7 +379,7 @@ class ResponseWebSocket(Response):
 
 
 class ResponseRedirect(Response, BaseException):
-    """A helper to return HTTP redirects. Uses a 307 status code by default.
+    """Creates HTTP redirects. Uses a 307 status code by default.
 
     :param url: A string with the new location
     :type url: str
@@ -389,7 +387,7 @@ class ResponseRedirect(Response, BaseException):
 
     status_code: int = HTTPStatus.TEMPORARY_REDIRECT.value
 
-    def __init__(self, url: str, status_code: Optional[int] = None, **kwargs) -> None:
+    def __init__(self, url: str, status_code: int | None = None, **kwargs) -> None:
         """Set status code and prepare location."""
         super().__init__(b"", status_code=status_code, **kwargs)
         assert (
@@ -412,7 +410,7 @@ class ResponseErrorMeta(type):
 
 
 class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
-    """A helper to return HTTP errors. Uses a 500 status code by default.
+    """Helper for returning HTTP errors. Uses a 500 status code by default.
 
     :param message: A string with the error's message (HTTPStatus messages will be used by default)
     :type message: str
@@ -476,7 +474,7 @@ class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):
         NOT_EXTENDED: Callable[..., ResponseError]  # 510
         NETWORK_AUTHENTICATION_REQUIRED: Callable[..., ResponseError]  # 511
 
-    def __init__(self, message=None, status_code: Optional[int] = None, **kwargs):
+    def __init__(self, message=None, status_code: int | None = None, **kwargs):
         """Check error status."""
         content = message or HTTPStatus(status_code or self.status_code).description
         super().__init__(content=content, status_code=status_code, **kwargs)
@@ -494,7 +492,7 @@ CAST_RESPONSE: Mapping[type, type[Response]] = {
 }
 
 
-def parse_response(response, headers: Optional[dict] = None) -> Response:
+def parse_response(response, headers: dict | None = None) -> Response:
     """Parse the given object and convert it into a asgi_tools.Response."""
     if isinstance(response, Response):
         return response
@@ -519,9 +517,7 @@ def parse_response(response, headers: Optional[dict] = None) -> Response:
     return ResponseText(str(response), headers=headers)
 
 
-def parse_websocket_msg(
-    msg: TASGIMessage, charset: Optional[str] = None
-) -> Union[TASGIMessage, str]:
+def parse_websocket_msg(msg: TASGIMessage, charset: str | None = None) -> TASGIMessage | str:
     """Prepare websocket message."""
     data = msg.get("text")
     if data:

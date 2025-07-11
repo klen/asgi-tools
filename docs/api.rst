@@ -3,14 +3,16 @@ API Reference
 
 .. module:: asgi_tools
 
-This part of the documentation covers all the interfaces of ASGI-Tools.
+This section covers all public interfaces of **ASGI-Tools**, with concise examples for each class.
 
 Request
 -------
 
 .. autoclass:: Request
 
-    The class gives you an nicer interface to incoming HTTP request.
+    Provides a convenient, high-level interface for incoming HTTP requests.
+
+    Example:
 
     .. code-block:: python
 
@@ -81,8 +83,6 @@ Responses
 ---------
 
 .. autoclass:: Response
-
-    A helper to make http responses.
 
     .. code-block:: python
 
@@ -412,8 +412,8 @@ Class Based Views
 .. autoclass:: HTTPView
 
 
-TestClient
------------
+Testing
+-------
 
 .. autoclass:: asgi_tools.tests.ASGITestClient
 
@@ -532,6 +532,13 @@ TestClient
 
             assert SIDE_EFFECTS['started']
             assert SIDE_EFFECTS['finished']
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
 
 .. Links
 

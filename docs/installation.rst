@@ -1,52 +1,103 @@
 Installation
 ============
 
-Python Version
---------------
+Supported Python Versions
+-------------------------
 
-We recommend using the latest version of Python. **ASGI-Tools** supports Python
-3.9 and newer.
+ASGI-Tools requires **Python 3.9 or newer**. We recommend using the latest stable release for best performance and compatibility.
 
+.. note::
+   **PyPy3** is also supported and can provide performance benefits for some workloads.
 
-Dependencies
-------------
+Core Dependencies
+-----------------
 
-These distributions will be installed automatically when installing
-**ASGI-Tools**.
+ASGI-Tools automatically installs its minimal dependencies:
 
-* `Http-Router`_ implements HTTP routing.
-* `Yarl`_ implements URL parsing
-* `Multidict`_ implements a dict-like collection of key-value pairs where key
-  might be occurred more than once in the container.  templates to avoid
-  injection attacks.
+* `Http-Router`_ – Fast and flexible HTTP routing
+* `Yarl`_ – URL parsing and manipulation
+* `Multidict`_ – Multi-value dictionary structures
 
 .. _Http-Router: https://github.com/klen/http-router
-.. _Yarl: https://palletsprojects.com/p/jinja/
-.. _Multidict: hhttps://github.com/aio-libs/multidict
+.. _Yarl: https://github.com/aio-libs/yarl
+.. _Multidict: https://github.com/aio-libs/multidict
 
+Installation Methods
+--------------------
 
-Install **ASGI-Tools**
-----------------------
+Using pip
+~~~~~~~~~
 
-Use the following command to install:
-
-.. code-block:: sh
-
-    $ pip install asgi-tools
-
-You'll also want to install an ASGI_ server, such as `Uvicorn`_, `Daphne`_, or `Hypercorn`_:
+Install the latest release from PyPI:
 
 .. code-block:: sh
 
-    $ pip install uvicorn
+    pip install asgi-tools
+
+For the latest development version directly from GitHub:
+
+.. code-block:: sh
+
+    pip install git+https://github.com/klen/asgi-tools.git
+
+Using Poetry
+~~~~~~~~~~~~
+
+If you manage dependencies with Poetry:
+
+.. code-block:: sh
+
+    poetry add asgi-tools
+
+ASGI Server Requirement
+------------------------
+
+ASGI-Tools is a **toolkit/framework** and requires an ASGI server to run your application. We recommend one of the following:
+
+* `Uvicorn`_ – Lightning-fast ASGI server
+* `Daphne`_ – HTTP, HTTP2, and WebSocket server
+* `Hypercorn`_ – ASGI server with HTTP/2 support
+
+Install your preferred server:
+
+.. code-block:: sh
+
+    pip install uvicorn  # or daphne, or hypercorn
 
 .. _Uvicorn: https://github.com/encode/uvicorn
 .. _Daphne: https://github.com/django/daphne
 .. _Hypercorn: https://gitlab.com/pgjones/hypercorn/
 
-**ASGI-Tools** is now installed. Check out the :doc:`/usage` or go to the
-:doc:`Documentation Overview </index>`.
+Verify Installation
+--------------------
 
-.. Links
+To verify that ASGI-Tools is installed correctly, create a simple test application:
+
+.. code-block:: python
+
+    from asgi_tools import App
+
+    app = App()
+
+    @app.route("/")
+    async def hello(request):
+        return "Hello, ASGI-Tools!"
+
+Save this as `test_app.py` and run it with your chosen ASGI server:
+
+.. code-block:: sh
+
+    uvicorn test_app:app
+
+Visit http://127.0.0.1:8000/ in your browser. You should see: `Hello, ASGI-Tools!`
+
+Next Steps
+----------
+
+✅ **Continue learning:**
+
+* Read the :doc:`usage` guide for detailed usage examples
+* Explore the :doc:`api` reference for all available components
+* Check out the `examples <https://github.com/klen/asgi-tools/tree/master/examples>`_ for real-world patterns and best practices
 
 .. _ASGI: https://asgi.readthedocs.io/en/latest/

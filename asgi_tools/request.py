@@ -5,7 +5,7 @@ incoming request.
 from __future__ import annotations
 
 from http import cookies
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Callable, Iterator, Optional, Union
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Iterator, Mapping, Protocol, TypeVar
 
 from yarl import URL
 
@@ -17,11 +17,21 @@ from .types import TJSON, TASGIReceive, TASGIScope, TASGISend
 from .utils import CIMultiDict, parse_headers, parse_options_header
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from multidict import MultiDict, MultiDictProxy
+
+T = TypeVar("T")
+
+
+class UploadHandler(Protocol):
+    """Protocol for file upload handlers."""
+
+    async def __call__(self, filename: str, content_type: str, content: bytes) -> str | Path: ...
 
 
 class Request(TASGIScope):
-    """Represent a HTTP Request.
+    """Provides a convenient, high-level interface for incoming HTTP requests.
 
     :param scope: HTTP ASGI Scope
     :param receive: an asynchronous callable which lets the application
@@ -51,12 +61,12 @@ class Request(TASGIScope):
         self.send = send
 
         self._is_read: bool = False
-        self._url: Optional[URL] = None
-        self._body: Optional[bytes] = None
-        self._form: Optional[MultiDict] = None
-        self._headers: Optional[CIMultiDict] = None
-        self._media: Optional[dict[str, str]] = None
-        self._cookies: Optional[dict[str, str]] = None
+        self._url: URL | None = None
+        self._body: bytes | None = None
+        self._form: MultiDict | None = None
+        self._headers: CIMultiDict | None = None
+        self._media: dict[str, str] | None = None
+        self._cookies: dict[str, str] | None = None
 
     def __str__(self) -> str:
         """Return the request's params."""
@@ -174,7 +184,7 @@ class Request(TASGIScope):
         return self._cookies
 
     @property
-    def media(self) -> dict[str, str]:
+    def media(self) -> Mapping[str, str]:
         """Prepare a media data for the request."""
         if self._media is None:
             content_type_header = self.headers.get("content-type", "")
@@ -215,16 +225,16 @@ class Request(TASGIScope):
         """
         if self._is_read:
             if self._body is None:
-                raise RuntimeError("Stream has been read")  # noqa: TRY003
+                raise RuntimeError("Stream has been read")
             yield self._body
 
         else:
             self._is_read = True
-            message = await self.receive()
-            yield message.get("body", b"")
-            while message.get("more_body"):
+            while True:
                 message = await self.receive()
                 yield message.get("body", b"")
+                if not message.get("more_body"):
+                    break
 
     async def body(self) -> bytes:
         """Read and return the request's body as bytes.
@@ -264,38 +274,38 @@ class Request(TASGIScope):
     async def form(
         self,
         max_size: int = 0,
-        upload_to: Optional[Callable] = None,
+        upload_to: UploadHandler | None = None,
         file_memory_limit: int = 1024 * 1024,
     ) -> MultiDict:
-        """Read and return the request's multipart formdata as a multidict.
+        """Read and return the request's form data.
 
-        The method reads the request's stream stright into memory formdata.
-        Any subsequent calls to :py:meth:`body`, :py:meth:`json` will raise an error.
-
-        :param max_size: The maximum size of the request body in bytes.
-        :param upload_to: A callable to be used to determine the upload path for files.
-        :param file_memory_limit: The maximum size of the file to be stored in memory in bytes.
+        :param max_size: Maximum size of the form data in bytes
+        :type max_size: int
+        :param upload_to: Callable to handle file uploads
+        :type upload_to: Optional[UploadHandler]
+        :param file_memory_limit: Maximum size of file to keep in memory
+        :type file_memory_limit: int
+        :return: Form data as MultiDict
+        :rtype: MultiDict
 
         `formdata = await request.form()`
-
         """
         if self._form is None:
-            try:
-                self._form = await read_formdata(
-                    self,
-                    max_size,
-                    upload_to,
-                    file_memory_limit,
-                )
-            except (LookupError, ValueError) as exc:
-                raise ASGIDecodeError from exc
-
+            self._form = await read_formdata(
+                self,
+                max_size=max_size,
+                upload_to=upload_to,
+                file_memory_limit=file_memory_limit,
+            )
         return self._form
 
-    async def data(self, *, raise_errors: bool = False) -> Union[str, bytes, MultiDict, TJSON]:
-        """The method checks Content-Type Header and parse the request's data automatically.
+    async def data(self, *, raise_errors: bool = False) -> str | bytes | MultiDict | TJSON:
+        """Read and return the request's data based on content type.
 
         :param raise_errors: Raise an error if the given data is invalid.
+        :return: Request data in appropriate format
+        :rtype: Union[str, bytes, MultiDict, TJSON]
+        :raises ASGIDecodeError: If data cannot be decoded and raise_errors is True
 
         `data = await request.data()`
 
@@ -305,14 +315,15 @@ class Request(TASGIScope):
         Returns data from :py:meth:`json` for `application/json`, :py:meth:`form` for
         `application/x-www-form-urlencoded`,  `multipart/form-data` and :py:meth:`text` otherwise.
         """
+        content_type = self.content_type
         try:
-            if self.content_type in {
-                "application/x-www-form-urlencoded",
+            if content_type in {
                 "multipart/form-data",
+                "application/x-www-form-urlencoded",
             }:
                 return await self.form()
 
-            if self.content_type == "application/json":
+            if content_type == "application/json":
                 return await self.json()
 
         except ASGIDecodeError:
@@ -320,5 +331,7 @@ class Request(TASGIScope):
                 raise
             return await self.body()
 
-        else:
+        if content_type.startswith("text/"):
             return await self.text()
+
+        return await self.body()

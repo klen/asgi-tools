@@ -44,7 +44,7 @@ __all__ = (
 
 try:
     from asyncio import timeout as asyncio_timeout  # type: ignore[attr-defined]
-except ImportError:  # python 39, 310
+except ImportError:  # python 310
     from async_timeout import timeout as asyncio_timeout  # type: ignore[no-redef]
 
 
@@ -213,7 +213,7 @@ async def aio_stream_file(
 
     else:
         if not aiofile_installed:
-            raise RuntimeError(  # noqa: TRY003
+            raise RuntimeError(
                 "`aiofile` is required to return files with asyncio",
             )
 

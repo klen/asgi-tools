@@ -1,4 +1,5 @@
 """ASGI Tools Responses Tests."""
+
 from __future__ import annotations
 
 from http import cookies
@@ -199,7 +200,7 @@ async def test_file_response():
     assert "content-disposition" not in response.headers
 
     response = ResponseFile(__file__, filename="tests.py")
-    assert response.headers["content-disposition"] == 'attachment; filename="tests.py"'
+    assert response.headers["content-disposition"] == "attachment; filename*=UTF-8''tests.py"
 
     messages = await read_response(response)
     assert len(messages) >= 3

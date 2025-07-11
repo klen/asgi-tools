@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from io import BytesIO
 from tempfile import SpooledTemporaryFile
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Callable
 from urllib.parse import unquote_to_bytes
 
 from multidict import MultiDict
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 async def read_formdata(
     request: "Request",
     max_size: int,
-    upload_to: Optional[Callable],
+    upload_to: Callable | None,
     file_memory_limit: int = 1024 * 1024,
 ) -> MultiDict:
     """Read formdata from the given request."""
@@ -91,7 +91,7 @@ class MultipartReader(FormReader):
         "upload_to",
     )
 
-    def __init__(self, charset: str, upload_to: Optional[Callable], file_memory_limit: int):
+    def __init__(self, charset: str, upload_to: Callable | None, file_memory_limit: int):
         super().__init__(charset)
         self.name = ""
         self.headers: dict[bytes, bytes] = {}
@@ -102,7 +102,7 @@ class MultipartReader(FormReader):
     def init_parser(self, request: "Request", max_size: int) -> BaseParser:
         boundary = request.media.get("boundary", "")
         if not boundary:
-            raise ValueError("Invalid content type boundary")  # noqa: TRY003
+            raise ValueError("Invalid content type boundary")
 
         return MultipartParser(
             boundary,
