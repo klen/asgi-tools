@@ -210,6 +210,14 @@ async def test_staticfiles_middleware(client_cls, app):
     text = await res.text()
     assert text.startswith('"""test middlewares"""')
 
+    res = await client.get("/static/fixtures/multipart/CR_in_header.http")
+    assert res.status_code == 200
+    text = await res.text()
+    assert text.startswith("------WebKitFormBoundaryT")
+
+    res = await client.get("/static/../asgi_tools/__init__.py")
+    assert res.status_code == 404
+
     res = await client.get("/static/unknown")
     assert res.status_code == 404
 

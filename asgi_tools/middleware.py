@@ -403,7 +403,7 @@ class StaticFilesMiddleware(BaseMiddleware):
             filename = path[len(url_prefix) :].strip("/")
             for folder in self.folders:
                 filepath = folder.joinpath(filename).resolve()
-                if folder != filepath.parent:
+                if not filepath.is_file() or not filepath.is_relative_to(folder):
                     continue
                 with suppress(ASGIError):
                     response = ResponseFile(filepath, headers_only=scope["method"] == "HEAD")
