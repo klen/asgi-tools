@@ -14,7 +14,6 @@ from typing import (
     Awaitable,
     Callable,
     Coroutine,
-    Union,
     cast,
 )
 
@@ -81,10 +80,10 @@ def aio_sleep(seconds: float = 0) -> Awaitable:
     """Return sleep coroutine."""
 
     if trio_installed and current_async_library() == "trio":
-        return trio_sleep(seconds)  # noqa: ASYNC105
+        return trio_sleep(seconds)  # noqa: ASYNC105  # type: ignore[]
 
     if curio_installed and current_async_library() == "curio":
-        return curio_sleep(seconds)
+        return curio_sleep(seconds)  # type: ignore[]
 
     return sleep(seconds)
 
@@ -93,12 +92,12 @@ def aio_sleep(seconds: float = 0) -> Awaitable:
 async def aio_spawn(fn: Callable[..., Awaitable], *args, **kwargs):
     """Spawn a given coroutine."""
     if trio_installed and current_async_library() == "trio":
-        async with open_nursery() as tasks:
+        async with open_nursery() as tasks:  # type: ignore[]
             tasks.start_soon(fn, *args, **kwargs)
             yield tasks
 
     elif curio_installed and current_async_library() == "curio":
-        task = await curio_spawn(fn, *args, **kwargs)
+        task = await curio_spawn(fn, *args, **kwargs)  # type: ignore[]
         yield task
         await task.join()  # type: ignore [union-attr]
 
@@ -118,18 +117,18 @@ async def aio_timeout(timeout: float):  # noqa: ASYNC109
 
     if trio_installed and current_async_library() == "trio":
         try:
-            with trio_fail_after(timeout):
+            with trio_fail_after(timeout):  # type: ignore[]
                 yield
 
-        except TooSlowError:
+        except TooSlowError:  # type: ignore[]
             raise TimeoutError(f"{timeout}s.") from None
 
     elif curio_installed and current_async_library() == "curio":
         try:
-            async with curio_fail_after(timeout):
+            async with curio_fail_after(timeout):  # type: ignore[]
                 yield
 
-        except TaskTimeout:
+        except TaskTimeout:  # type: ignore[]
             raise TimeoutError(f"{timeout}s.") from None
 
     else:
@@ -148,7 +147,7 @@ async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:
     if trio_installed and current_async_library() == "trio":
         send_channel, receive_channel = open_memory_channel(0)  # type: ignore[var-annotated]
 
-        async with open_nursery() as n:
+        async with open_nursery() as n:  # type: ignore[]
             for aw in aws:
                 n.start_soon(trio_jockey, aw, send_channel)
 
@@ -179,7 +178,7 @@ async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:
     return [t.result() for t in done]  # type: ignore[attr-defined]
 
 
-async def aio_cancel(task: Union[asyncio.Task, Any]):
+async def aio_cancel(task):
     """Cancel asyncio task / trio nursery."""
     if isinstance(task, asyncio.Task):
         return task.cancel()
@@ -193,7 +192,7 @@ async def aio_cancel(task: Union[asyncio.Task, Any]):
 
 
 async def aio_stream_file(
-    filepath: Union[str, Path], chunk_size: int = 32 * 1024
+    filepath: Path | str, chunk_size: int = 32 * 1024
 ) -> AsyncGenerator[bytes, None]:
     if trio_installed and current_async_library() == "trio":
         async with await trio_open_file(filepath, "rb") as fp:
@@ -238,7 +237,7 @@ def json_dumps(content) -> bytes:
     ).encode("utf-8")
 
 
-def json_loads(obj: Union[bytes, str]) -> TJSON:
+def json_loads(obj: bytes | str) -> TJSON:
     """Emulate orjson."""
     if isinstance(obj, bytes):
         obj = obj.decode("utf-8")

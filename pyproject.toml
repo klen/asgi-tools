@@ -6,7 +6,7 @@ name = "asgi-tools"
 version = "1.3.3"
 description = "ASGI Toolkit to build web applications"
 readme = "README.rst"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<4"
 license = { "text" = "MIT License" }
 authors = [{ name = "Kirill Klenov", email = "horneds@gmail.com" }]
 keywords = ["asgi", "asgi-tools", "request", "response", "asyncio", "trio"]
@@ -44,7 +44,7 @@ documentation = "https://klen.github.io/asgi-tools"
 tests = [
   "aiofile",
   "pytest",
-  "pytest-aio[curio,trio] >= 1.3.3",
+  "pytest-aio[curio,trio] >= 2",
   "pytest-benchmark",
   "PyYAML",
   "ruff",

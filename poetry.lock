@@ -459,19 +459,19 @@ files = [
 ]
 
 [[package]]
-name = "curio"
-version = "1.6"
-description = "Curio"
+name = "curio-compat"
+version = "1.6.7"
+description = "Curio is a coroutine-based library for concurrent systems programming."
 optional = true
-python-versions = ">= 3.7"
+python-versions = ">=3.8"
 groups = ["main"]
 markers = "extra == \"tests\""
 files = [
-    {file = "curio-1.6.tar.gz", hash = "sha256:562a586db20216ba7d2be8263deb9eb079e56048f9b8906d11d5f45aa81c5247"},
+    {file = "curio_compat-1.6.7.tar.gz", hash = "sha256:c7d38214aa8cf48dd4d7c1502b96c2343965fd3292f1cd711cb9b6e7b83963b4"},
 ]
 
 [package.extras]
-test = ["Sphinx", "pytest"]
+test = ["Sphinx", "bump2version", "mypy", "pre-commit", "pytest", "ruff"]
 
 [[package]]
 name = "cython"
@@ -567,6 +567,22 @@ typing-extensions = {version = ">=4.6.0", markers = "python_version < \"3.13\""}
 
 [package.extras]
 test = ["pytest (>=6)"]
+
+[[package]]
+name = "execnet"
+version = "2.1.1"
+description = "execnet: rapid multi-Python deployment"
+optional = true
+python-versions = ">=3.8"
+groups = ["main"]
+markers = "extra == \"tests\""
+files = [
+    {file = "execnet-2.1.1-py3-none-any.whl", hash = "sha256:26dee51f1b80cebd6d0ca8e74dd8745419761d3bef34163928cbebbdc4749fdc"},
+    {file = "execnet-2.1.1.tar.gz", hash = "sha256:5189b52c6121c24feae288166ab41b32549c7e2348652736540b9e6e7d4e72e3"},
+]
+
+[package.extras]
+testing = ["hatch", "pre-commit", "pytest", "tox"]
 
 [[package]]
 name = "filelock"
@@ -1616,26 +1632,24 @@ dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "requests
 
 [[package]]
 name = "pytest-aio"
-version = "1.5.0"
+version = "2.0.0"
 description = "Pytest plugin for testing async python code"
 optional = true
-python-versions = ">=3.7"
+python-versions = "<4.0,>=3.10"
 groups = ["main"]
 markers = "extra == \"tests\""
 files = [
-    {file = "pytest-aio-1.5.0.tar.gz", hash = "sha256:a00d0378adac57d6c24841b8d898aa083a4cb2ae5f94a339f5f0c8b1b5d16677"},
-    {file = "pytest_aio-1.5.0-py3-none-any.whl", hash = "sha256:427125f60445ded1b4eb16dcc30c9dd20b1c9181ccacfc5c678e49ae773ec127"},
+    {file = "pytest_aio-2.0.0-py3-none-any.whl", hash = "sha256:18cd0943fedd99a1d7f28b43a14da12143d905331c69137432e48fc119de3277"},
+    {file = "pytest_aio-2.0.0.tar.gz", hash = "sha256:c8ceb6a85930c1720e52b485f1daca9088b37197cca631bc4f589f1b0462a7cc"},
 ]
 
 [package.dependencies]
-curio = {version = "*", optional = true, markers = "extra == \"curio\""}
+curio-compat = {version = "*", optional = true, markers = "extra == \"curio\""}
 pytest = "*"
 trio = {version = "*", optional = true, markers = "extra == \"trio\""}
 
 [package.extras]
-build = ["bump2version", "wheel"]
-curio = ["curio"]
-tests = ["anyio", "curio", "hypothesis", "pytest", "pytest-mypy", "trio", "trio-asyncio", "uvloop"]
+curio = ["curio-compat"]
 trio = ["trio"]
 uvloop = ["uvloop"]
 
@@ -1678,6 +1692,28 @@ files = [
 filelock = ">=3.0"
 mypy = ">=1.0"
 pytest = ">=7.0"
+
+[[package]]
+name = "pytest-xdist"
+version = "3.8.0"
+description = "pytest xdist plugin for distributed testing, most importantly across multiple CPUs"
+optional = true
+python-versions = ">=3.9"
+groups = ["main"]
+markers = "extra == \"tests\""
+files = [
+    {file = "pytest_xdist-3.8.0-py3-none-any.whl", hash = "sha256:202ca578cfeb7370784a8c33d6d05bc6e13b4f25b5053c30a152269fd10f0b88"},
+    {file = "pytest_xdist-3.8.0.tar.gz", hash = "sha256:7e578125ec9bc6050861aa93f2d59f1d8d085595d6551c2c90b6f4fad8d3a9f1"},
+]
+
+[package.dependencies]
+execnet = ">=2.1"
+pytest = ">=7.0.0"
+
+[package.extras]
+psutil = ["psutil (>=3.0)"]
+setproctitle = ["setproctitle"]
+testing = ["filelock"]
 
 [[package]]
 name = "python-dotenv"
@@ -2722,10 +2758,10 @@ propcache = ">=0.2.1"
 dev = ["bump2version", "cython", "pre-commit", "pydata-sphinx-theme", "sphinx", "tox"]
 examples = ["httpx", "jinja2", "uvicorn"]
 orjson = ["orjson"]
-tests = ["PyYAML", "aiofile", "exceptiongroup", "mypy", "pytest", "pytest-aio", "pytest-benchmark", "pytest-mypy", "ruff", "ujson", "uvloop"]
+tests = ["PyYAML", "aiofile", "exceptiongroup", "mypy", "pytest", "pytest-aio", "pytest-benchmark", "pytest-mypy", "pytest-xdist", "ruff", "ujson", "uvloop"]
 ujson = ["ujson"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.10"
-content-hash = "fb835c199cae4e1829e21d8bb5c00be42d1f580b5f34d57471af20d0c06cf40b"
+python-versions = ">=3.10,<4"
+content-hash = "9f690945ce8c43e8dec67fbdd9fc95e98992d20c7351b16be669c574d458cb93"

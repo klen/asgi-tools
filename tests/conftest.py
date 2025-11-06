@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import pytest
+import uvloop
 
 
 @pytest.fixture(
     params=[
-        pytest.param(("asyncio", {"use_uvloop": False}), id="asyncio"),
-        pytest.param(("asyncio", {"use_uvloop": True}), id="asyncio+uvloop"),
+        pytest.param(("asyncio", {"loop_factory": None}), id="asyncio"),
+        pytest.param(("asyncio", {"loop_factory": uvloop.new_event_loop}), id="asyncio+uvloop"),
         "trio",
         "curio",
     ],

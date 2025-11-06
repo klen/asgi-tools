@@ -7,14 +7,14 @@ default_install_hook_types: [commit-msg, pre-commit, pre-push]
 repos:
 
 - repo: https://github.com/qoomon/git-conventional-commits
-  rev: 'v2.6.7'
+  rev: 'v2.7.2'
   hooks:
   - id: conventional-commits
     args: ["-c", ".git-commits.yaml"]
     stages: ["commit-msg"]
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.6.0
+  rev: v6.0.0
   hooks:
   - id: check-case-conflict
     stages: ["pre-commit"]
@@ -41,7 +41,7 @@ repos:
     stages: ["pre-commit"]
 
 - repo: https://github.com/psf/black
-  rev: 24.4.2
+  rev: 25.9.0
   hooks:
   - id: black
     stages: ["pre-commit"]

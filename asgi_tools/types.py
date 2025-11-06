@@ -9,7 +9,6 @@ from typing import (
     Mapping,
     MutableMapping,
     TypeVar,
-    Union,
 )
 
 if TYPE_CHECKING:
@@ -22,7 +21,7 @@ TASGIScope = MutableMapping[str, Any]
 TASGIHeaders = list[tuple[bytes, bytes]]
 TASGIApp = Callable[[TASGIScope, TASGIReceive, TASGISend], Awaitable[Any]]
 
-TJSON = Union[None, bool, int, float, str, list["TJSON"], Mapping[str, "TJSON"]]
+TJSON = None | bool | int | float | str | list["TJSON"] | Mapping[str, "TJSON"]
 TExceptionHandler = Callable[["Request", BaseException], Coroutine[None, None, Any]]
 
 TV = TypeVar("TV")
