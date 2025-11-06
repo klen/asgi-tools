@@ -299,7 +299,7 @@ ResponseWebSocket
 
     .. code-block:: python
 
-        from asgi_tools import ResponseWebsocket
+        from asgi_tools import ResponseWebSocket
 
         async def app(scope, receive, send):
             async with ResponseWebSocket(scope, receive, send) as ws:
