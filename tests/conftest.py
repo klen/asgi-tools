@@ -1,17 +1,24 @@
 from __future__ import annotations
 
+from contextlib import suppress
+
 import pytest
-import uvloop
+
+SUPPORTED_BACKENDS = [
+    pytest.param("asyncio", id="asyncio"),
+    pytest.param("trio", id="trio"),
+    pytest.param("curio", id="curio"),
+]
+
+with suppress(ImportError):
+    import uvloop
+
+    SUPPORTED_BACKENDS.append(
+        pytest.param(("asyncio", {"loop_factory": uvloop.new_event_loop}), id="asyncio+uvloop")
+    )
 
 
-@pytest.fixture(
-    params=[
-        pytest.param(("asyncio", {"loop_factory": None}), id="asyncio"),
-        pytest.param(("asyncio", {"loop_factory": uvloop.new_event_loop}), id="asyncio+uvloop"),
-        "trio",
-        "curio",
-    ],
-)
+@pytest.fixture(params=SUPPORTED_BACKENDS)
 def aiolib(request):
     return request.param
 
