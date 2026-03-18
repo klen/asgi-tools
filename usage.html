@@ -51,7 +51,7 @@
     <link rel="prev" title="Installation" href="installation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="1.4.0" />
+  <meta name="docsearch:version" content="2.0.0" />
   </head>
   
   
@@ -348,7 +348,7 @@
   <div class="bd-toc-item navbar-nav"></div>
 </nav></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 1.4.0
+    Version: 2.0.0
 </div>
 </div>
     </div>
@@ -466,6 +466,13 @@ Run it with an ASGI server:</p>
         <span class="c1"># Process file...</span>
 
     <span class="k">return</span> <span class="s2">&quot;Upload successful&quot;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default ASGI-Tools limits form data to 10MB. You can adjust this limit when read the form data:</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">form</span> <span class="o">=</span> <span class="k">await</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">(</span><span class="n">max_size</span><span class="o">=</span><span class="mi">20</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>  <span class="c1"># 20MB</span>
 </pre></div>
 </div>
 </section>

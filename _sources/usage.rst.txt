@@ -72,6 +72,13 @@ Form Data and File Uploads
 
         return "Upload successful"
 
+.. note::
+   By default ASGI-Tools limits form data to 10MB. You can adjust this limit when read the form data:
+
+.. code-block:: python
+
+    form = await request.form(max_size=20 * 1024 * 1024)  # 20MB
+
 JSON Data
 ~~~~~~~~~
 
