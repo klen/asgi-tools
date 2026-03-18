@@ -20,7 +20,7 @@ release:
 	git pull
 	git checkout $(STAGE_BRANCH)
 	git pull
-	$(VIRTUAL_ENV)/bin/bump2version $(VERSION)
+	@uvx bump-my-version bump $(VERSION) --tag
 	git checkout $(MAIN_BRANCH)
 	git merge $(STAGE_BRANCH)
 	git checkout $(STAGE_BRANCH)
