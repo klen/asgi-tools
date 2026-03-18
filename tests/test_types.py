@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from asgi_tools import types
+
 
 def test_types_available():
-    from asgi_tools import types
 
     assert types.TASGIMessage
     assert types.TASGIScope

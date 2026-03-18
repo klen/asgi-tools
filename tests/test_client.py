@@ -9,6 +9,16 @@ from sys import version_info
 
 import pytest
 
+from asgi_tools import (
+    ASGIConnectionClosedError,
+    Response,
+    ResponseRedirect,
+    ResponseStream,
+    ResponseWebSocket,
+)
+from asgi_tools._compat import aio_sleep
+from asgi_tools.errors import ASGIInvalidMessageError
+
 if version_info < (3, 11):
     from exceptiongroup import ExceptionGroup
 
@@ -154,7 +164,6 @@ async def test_files(app, client):
 
 
 async def test_cookies(app, client):
-    from asgi_tools import ResponseRedirect
 
     @app.route("/set-cookie")
     async def set_cookie(_):
@@ -180,7 +189,6 @@ async def test_cookies(app, client):
 
 
 async def test_redirects(app, client):
-    from asgi_tools import ResponseRedirect
 
     # Follow Redirect
     # ---------------
@@ -198,8 +206,6 @@ async def test_redirects(app, client):
 
 
 async def test_stream_response(app, client):
-    from asgi_tools import ResponseStream
-    from asgi_tools._compat import aio_sleep
 
     async def source(timeout=0.001):
         for idx in range(10):
@@ -219,7 +225,6 @@ async def test_stream_response(app, client):
 
 
 async def test_stream_request(app, client):
-    from asgi_tools._compat import aio_sleep
 
     async def source(timeout=0.001):
         for idx in range(10):
@@ -236,7 +241,6 @@ async def test_stream_request(app, client):
 
 
 async def test_websocket(app, client_cls):
-    from asgi_tools import ASGIConnectionClosedError, ResponseWebSocket
 
     @app.route("/websocket")
     async def websocket(request):
@@ -259,7 +263,6 @@ async def test_websocket(app, client_cls):
 
 
 async def test_websocket_disconnect(app, client_cls):
-    from asgi_tools import ResponseWebSocket
 
     @app.route("/websocket")
     async def websocket(request):
@@ -272,7 +275,6 @@ async def test_websocket_disconnect(app, client_cls):
 
 
 async def test_timeouts(app, client):
-    from asgi_tools._compat import aio_sleep
 
     @app.route("/sleep/{time}")
     async def sleep(request):
@@ -289,7 +291,6 @@ async def test_timeouts(app, client):
 
 
 async def test_lifespan_unsupported(client_cls):
-    from asgi_tools import Response
 
     async def app(scope, receive, send):
         assert scope["type"] == "http"
@@ -303,7 +304,6 @@ async def test_lifespan_unsupported(client_cls):
 
 
 async def test_lifespan(client_cls):
-    from asgi_tools import Response
 
     side_effects = {"started": False, "finished": False}
 
@@ -339,8 +339,6 @@ async def test_lifespan(client_cls):
 
 
 async def test_invalid_app(client_cls):
-    from asgi_tools import Response
-    from asgi_tools.errors import ASGIInvalidMessageError
 
     async def invalid(scope, receive, send):
         await Response("test")(scope, receive, send)

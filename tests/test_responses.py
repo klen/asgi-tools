@@ -2,17 +2,37 @@
 
 from __future__ import annotations
 
+import json
+from functools import partial
 from http import cookies
 from typing import TYPE_CHECKING, List
 
 import pytest
+
+from asgi_tools import (
+    ASGIConnectionClosedError,
+    ASGIError,
+    Response,
+    ResponseError,
+    ResponseFile,
+    ResponseHTML,
+    ResponseJSON,
+    ResponseRedirect,
+    ResponseSSE,
+    ResponseStream,
+    ResponseText,
+    ResponseWebSocket,
+    parse_response,
+)
+from asgi_tools._compat import aio_sleep
+from asgi_tools.tests import Pipe
+from asgi_tools.utils import to_awaitable
 
 if TYPE_CHECKING:
     from asgi_tools.types import TASGIMessage
 
 
 async def test_response():
-    from asgi_tools import Response
 
     response = Response("Content", content_type="text/html", cookies={"lang": "en"})
     response.cookies["session"] = "test-session"
@@ -47,7 +67,6 @@ async def test_response():
 
 
 async def test_html_response():
-    from asgi_tools import ResponseHTML
 
     response = ResponseHTML("Content")
     assert response.status_code == 200
@@ -69,7 +88,6 @@ async def test_html_response():
 
 
 async def test_text_response():
-    from asgi_tools import ResponseText
 
     response = ResponseText("Content")
     assert response.status_code == 200
@@ -91,7 +109,6 @@ async def test_text_response():
 
 
 async def test_json_response():
-    from asgi_tools import ResponseJSON
 
     response = ResponseJSON([1, 2, 3])
     assert response.status_code == 200
@@ -127,7 +144,6 @@ async def test_json_response():
 
 
 async def test_redirect_response():
-    from asgi_tools import ResponseRedirect
 
     response = ResponseRedirect("/logout")
     assert response.status_code == 307
@@ -145,7 +161,6 @@ async def test_redirect_response():
 
 
 async def test_error_response():
-    from asgi_tools import ResponseError
 
     response = ResponseError(status_code=503)
     assert response.content == b"The server cannot process the request due to a high load"
@@ -161,8 +176,6 @@ async def test_error_response():
 
 # TODO: Exceptions
 async def test_stream_response(client_cls):
-    from asgi_tools import ResponseStream
-    from asgi_tools._compat import aio_sleep
 
     async def filler(timeout=0.001):
         for idx in range(10):
@@ -190,7 +203,6 @@ async def test_stream_response(client_cls):
 
 
 async def test_file_response():
-    from asgi_tools import ASGIError, ResponseFile
 
     response = ResponseFile(__file__)
     assert response.headers["content-length"]
@@ -220,8 +232,6 @@ async def test_file_response():
 
 
 async def test_sse_response(client_cls):
-    from asgi_tools import ResponseSSE
-    from asgi_tools._compat import aio_sleep
 
     async def filler(timeout=0.001):
         for _idx in range(2):
@@ -247,10 +257,6 @@ async def test_sse_response(client_cls):
 
 
 async def test_websocket_response(client_cls):
-    import json
-
-    from asgi_tools import ASGIConnectionClosedError, ResponseWebSocket
-    from asgi_tools.tests import Pipe
 
     pipe = Pipe()
 
@@ -283,7 +289,6 @@ async def test_websocket_response(client_cls):
 
 
 async def test_parse_response():
-    from asgi_tools import parse_response
 
     response = parse_response({"test": "passed"})
     assert response.status_code == 200
@@ -305,14 +310,7 @@ async def test_parse_response():
 
 
 async def read_response(response) -> List[TASGIMessage]:
-    from functools import partial
-
-    from asgi_tools._compat import aio_sleep
-    from asgi_tools.utils import to_awaitable
 
     messages = []
     await response(None, partial(aio_sleep, 10), to_awaitable(messages.append))
     return messages
-
-
-# ruff: noqa: N803

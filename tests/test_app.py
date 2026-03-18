@@ -1,12 +1,15 @@
 """Application Tests."""
+
 from __future__ import annotations
 
 from pathlib import Path
 from unittest import mock
 
+from asgi_tools import HTTPView, ResponseHTML, ResponseWebSocket
+from asgi_tools.app import App, ResponseError
+
 
 async def test_app(client_cls):
-    from asgi_tools.app import App
 
     app = App(static_folders=[Path(__file__).parent])
 
@@ -63,7 +66,6 @@ async def test_app(client_cls):
 
 
 async def test_scope_endpoint(client_cls):
-    from asgi_tools.app import App, ResponseError
 
     app = App()
     client = client_cls(app)
@@ -78,7 +80,6 @@ async def test_scope_endpoint(client_cls):
 
 
 async def test_errors(client_cls):
-    from asgi_tools.app import App, ResponseError
 
     app = App()
     client = client_cls(app)
@@ -101,7 +102,6 @@ async def test_errors(client_cls):
 
 
 async def test_trim_last_slach(client_cls):
-    from asgi_tools.app import App
 
     app = App()
     client = client_cls(app)
@@ -151,7 +151,6 @@ async def test_trim_last_slach(client_cls):
 
 
 async def test_app_static(client_cls):
-    from asgi_tools.app import App
 
     app = App(static_folders=[Path(__file__).parent])
     client = client_cls(app)
@@ -164,7 +163,6 @@ async def test_app_static(client_cls):
 
 
 async def test_app_handle_exception(client_cls):
-    from asgi_tools.app import App, ResponseError
 
     app = App()
 
@@ -208,7 +206,6 @@ async def test_app_handle_exception(client_cls):
 
 
 async def test_app_middleware_simple(client, app):
-    from asgi_tools import ResponseHTML
 
     md_mock = mock.MagicMock()
 
@@ -270,7 +267,6 @@ async def test_app_middleware_simple(client, app):
 
 #  @pytest.mark.skip
 async def test_app_middleware_classic(client, app):
-    from asgi_tools import ResponseError, ResponseHTML
 
     @app.route("/err")
     async def err(request):
@@ -307,7 +303,6 @@ async def test_app_middleware_classic(client, app):
 
 
 async def test_cbv(app, client):
-    from asgi_tools import HTTPView
 
     @app.route("/cbv")
     class Custom(HTTPView):
@@ -330,7 +325,6 @@ async def test_cbv(app, client):
 
 
 async def test_websockets(app, client):
-    from asgi_tools import ResponseWebSocket
 
     @app.route("/websocket")
     async def websocket(request):
@@ -370,7 +364,6 @@ async def test_app_lifespan(app, client):
 
 
 async def test_nested(app, client):
-    from asgi_tools.app import App
 
     @app.middleware
     async def mid(app, request, receive, send):

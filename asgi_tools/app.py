@@ -167,7 +167,7 @@ class App:
     ) -> Response | None:
         """Finds and calls a route handler, parses the response, and handles routing exceptions."""
         scope = request.scope
-        path = f"{ scope.get('root_path', '') }{ scope['path'] }"
+        path = f"{scope.get('root_path', '')}{scope['path']}"
         try:
             match = self.router(path, scope.get("method", "GET"))
 

@@ -9,31 +9,36 @@ $(VIRTUAL_ENV): pyproject.toml .pre-commit-config.yaml
 	@$(VIRTUAL_ENV)/bin/pre-commit install
 	@touch $(VIRTUAL_ENV)
 
-VPART	?= minor
+VERSION	?= minor
+MAIN_BRANCH = master
+STAGE_BRANCH = develop
 
 .PHONY: release
-release: $(VIRTUAL_ENV)
-	git checkout develop
+# target: release - Bump version
+release:
+	git checkout $(MAIN_BRANCH)
 	git pull
-	git checkout master
+	git checkout $(STAGE_BRANCH)
 	git pull
-	git merge develop
-	$(VIRTUAL_ENV)/bin/bump2version $(VPART)
-	git checkout develop
-	git merge master
-	git push --tags origin develop master
+	$(VIRTUAL_ENV)/bin/bump2version $(VERSION)
+	git checkout $(MAIN_BRANCH)
+	git merge $(STAGE_BRANCH)
+	git checkout $(STAGE_BRANCH)
+	git merge $(MAIN_BRANCH)
+	@git -c push.followTags=false push origin $(STAGE_BRANCH) $(MAIN_BRANCH)
+	@git push --tags origin
 
 .PHONY: minor
 minor:
-	make release VPART=minor
+	make release VERSION=minor
 
 .PHONY: patch
 patch:
-	make release VPART=patch
+	make release VERSION=patch
 
 .PHONY: major
 major:
-	make release VPART=major
+	make release VERSION=major
 
 
 .PHONY: clean

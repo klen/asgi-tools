@@ -272,10 +272,7 @@ class Request(TASGIScope):
             raise ASGIDecodeError from exc
 
     async def form(
-        self,
-        max_size: int = 0,
-        upload_to: UploadHandler | None = None,
-        file_memory_limit: int = 1024 * 1024,
+        self, max_size: int = 1014 * 1024 * 10, upload_to: UploadHandler | None = None
     ) -> MultiDict:
         """Read and return the request's form data.
 
@@ -283,20 +280,13 @@ class Request(TASGIScope):
         :type max_size: int
         :param upload_to: Callable to handle file uploads
         :type upload_to: Optional[UploadHandler]
-        :param file_memory_limit: Maximum size of file to keep in memory
-        :type file_memory_limit: int
         :return: Form data as MultiDict
         :rtype: MultiDict
 
         `formdata = await request.form()`
         """
         if self._form is None:
-            self._form = await read_formdata(
-                self,
-                max_size=max_size,
-                upload_to=upload_to,
-                file_memory_limit=file_memory_limit,
-            )
+            self._form = await read_formdata(self, max_size=max_size, upload_to=upload_to)
         return self._form
 
     async def data(self, *, raise_errors: bool = False) -> str | bytes | MultiDict | TJSON:

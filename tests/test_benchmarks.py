@@ -4,10 +4,12 @@ from contextlib import suppress
 
 import pytest
 
+from asgi_tools import Request, parse_response
+from asgi_tools.forms import FormReader
+
 
 @pytest.mark.benchmark(group="req-res", disable_gc=True)
 def test_benchmark_req_res(benchmark, gen_request, receive):
-    from asgi_tools import Request, parse_response
 
     scope = gen_request(
         "/test",
@@ -36,7 +38,6 @@ def test_benchmark_req_res(benchmark, gen_request, receive):
 
 @pytest.mark.benchmark(group="formdata", disable_gc=True)
 def test_benchmark_formdata(benchmark):
-    from asgi_tools.forms import FormReader
 
     def run_benchmark():
         reader = FormReader("utf-8")

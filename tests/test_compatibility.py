@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+from asgi_tools._compat import FIRST_COMPLETED, aio_sleep, aio_spawn, aio_wait
+
 
 async def test_aio_sleep():
-    from asgi_tools._compat import aio_sleep
 
     await aio_sleep(1e-2)
 
 
 async def test_aio_spawn():
-    from asgi_tools._compat import aio_sleep, aio_spawn
 
     side_effects = {}
 
@@ -22,7 +22,6 @@ async def test_aio_spawn():
 
 
 async def test_aio_wait():
-    from asgi_tools._compat import FIRST_COMPLETED, aio_sleep, aio_wait
 
     async def task(name, time):
         await aio_sleep(time)

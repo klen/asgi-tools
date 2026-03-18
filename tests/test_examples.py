@@ -1,13 +1,27 @@
 from __future__ import annotations
 
+import json
 import re
+
+from http_router import Router
+
+from asgi_tools import (
+    App,
+    Request,
+    RequestMiddleware,
+    Response,
+    ResponseError,
+    ResponseHTML,
+    ResponseMiddleware,
+    ResponseRedirect,
+    ResponseStream,
+    ResponseText,
+    RouterMiddleware,
+)
+from asgi_tools._compat import aio_sleep  # for compatibility with different async libs
 
 
 async def test_readme_request_response(client_cls):
-    # Example
-    import json
-
-    from asgi_tools import Request, Response
 
     async def app(scope, receive, send):
         if scope["type"] != "http":
@@ -45,8 +59,6 @@ async def test_readme_request_response(client_cls):
 
 
 async def test_readme_request_response_middleware(client_cls):
-    # Example
-    from asgi_tools import RequestMiddleware, ResponseHTML
 
     async def simple_app(request, receive, send):
         # We will get a parsed request here
@@ -62,9 +74,6 @@ async def test_readme_request_response_middleware(client_cls):
     assert res.status_code == 200
     assert await res.text() == "passed"
 
-    # Example
-    from asgi_tools import ResponseMiddleware
-
     async def simple_app2(request, receive, send):
         return "Hello World!"
 
@@ -79,7 +88,6 @@ async def test_readme_request_response_middleware(client_cls):
 
 
 async def test_readme_router_middleware():
-    from http_router import Router
 
     router = Router()
 
@@ -93,7 +101,6 @@ async def test_readme_router_middleware():
 
 
 async def test_docs(client_cls):
-    from asgi_tools import App
 
     app = App()
 
@@ -109,7 +116,6 @@ async def test_docs(client_cls):
 
 
 async def test_docs_response_redirect(client_cls):
-    from asgi_tools import ResponseRedirect
 
     async def simple_app(scope, receive, send):
         response = ResponseRedirect("/login")
@@ -120,8 +126,6 @@ async def test_docs_response_redirect(client_cls):
     res = await client.get("/", follow_redirect=False)
     assert res.status_code == 307
     assert res.headers["location"] == "/login"
-
-    from asgi_tools import Request, ResponseMiddleware
 
     async def simple_app2(scope, receive, send):
         request = Request(scope, receive, send)
@@ -147,7 +151,6 @@ async def test_docs_response_redirect(client_cls):
 
 
 async def test_docs_response_error(client_cls):
-    from asgi_tools import ResponseError
 
     async def simple_app(scope, receive, send):
         response = ResponseError("Timeout", 502)
@@ -158,8 +161,6 @@ async def test_docs_response_error(client_cls):
     res = await client.get("/")
     assert res.status_code == 502
     assert await res.text() == "Timeout"
-
-    from asgi_tools import Request, ResponseError, ResponseMiddleware
 
     async def simple_app2(scope, receive, send):
         request = Request(scope, receive, send)
@@ -180,8 +181,6 @@ async def test_docs_response_error(client_cls):
 
 
 async def test_docs_response_stream(client_cls):
-    from asgi_tools import ResponseStream
-    from asgi_tools._compat import aio_sleep  # for compatibility with different async libs
 
     async def stream_response():
         for number in range(10):
@@ -201,7 +200,6 @@ async def test_docs_response_stream(client_cls):
 
 
 async def test_docs_response_middleware(client_cls):
-    from asgi_tools import ResponseMiddleware, ResponseRedirect, ResponseText
 
     async def simple_app(scope, receive, send):
         # ResponseMiddleware catches ResponseError, ResponseRedirect and convert the exceptions
@@ -248,7 +246,6 @@ async def test_docs_response_middleware(client_cls):
 
 
 async def test_docs_router_middleware(client_cls):
-    from asgi_tools import ResponseError, ResponseHTML, RouterMiddleware
 
     async def default_app(scope, receive, send):
         response = ResponseError.NOT_FOUND()
@@ -274,7 +271,7 @@ async def test_docs_router_middleware(client_cls):
     @router.route(re.compile(r"/\d+/?"))
     async def num(scope, receive, send):
         num = int(scope["path"].strip("/"))
-        response = ResponseHTML(f"Number { num }")
+        response = ResponseHTML(f"Number {num}")
         await response(scope, receive, send)
 
     # Dynamic paths
@@ -283,7 +280,7 @@ async def test_docs_router_middleware(client_cls):
     @router.route("/hello/{name}")
     async def hello(scope, receive, send):
         name = scope["path_params"]["name"]
-        response = ResponseHTML(f"Hello { name.title() }")
+        response = ResponseHTML(f"Hello {name.title()}")
         await response(scope, receive, send)
 
     # Set regexp for params

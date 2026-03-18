@@ -5,7 +5,14 @@ from multiprocessing import Value
 
 import pytest
 
-from asgi_tools._compat import FIRST_COMPLETED, aio_sleep, aio_timeout, aio_wait
+from asgi_tools._compat import (
+    FIRST_COMPLETED,
+    aio_sleep,
+    aio_timeout,
+    aio_wait,
+    json_dumps,
+    json_loads,
+)
 
 
 async def test_aio_sleep():
@@ -41,7 +48,6 @@ async def test_aio_wait_first_completed():
 
 
 def test_compat_json():
-    from asgi_tools._compat import json_dumps, json_loads
 
     data = json_dumps({"test": 42})
     assert data

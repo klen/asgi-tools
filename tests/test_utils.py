@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from asgi_tools.utils import is_awaitable, parse_options_header, to_awaitable
+
 
 def test_parse_options_header():
-    from asgi_tools.utils import parse_options_header
 
     ct, opts = parse_options_header('text/plain; charset="utf-8"')
     assert ct == "text/plain"
@@ -16,7 +17,6 @@ def test_parse_options_header():
 
 
 async def test_awaitable():
-    from asgi_tools.utils import is_awaitable, to_awaitable
 
     def test1():
         return 1

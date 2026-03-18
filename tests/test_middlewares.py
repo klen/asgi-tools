@@ -2,11 +2,26 @@
 
 from __future__ import annotations
 
+import time
+from pathlib import Path
+
 import pytest
+
+from asgi_tools import (
+    BackgroundMiddleware,
+    LifespanMiddleware,
+    RequestMiddleware,
+    Response,
+    ResponseError,
+    ResponseMiddleware,
+    ResponseText,
+    RouterMiddleware,
+    StaticFilesMiddleware,
+)
+from asgi_tools._compat import aio_sleep
 
 
 async def test_response_middleware(client_cls):
-    from asgi_tools import ResponseError, ResponseMiddleware
 
     # Test default response
     md = ResponseMiddleware()
@@ -44,13 +59,12 @@ async def test_response_middleware(client_cls):
 
 
 async def test_request_response_middlewares(client_cls):
-    from asgi_tools import RequestMiddleware, ResponseMiddleware
 
     async def simple_app(request, receive, send):
         data = await request.json()
         first_name = data.get("first_name", "Anonymous")
         last_name = request.query.get("last_name", "Test")
-        return f"Hello {first_name} {last_name} from '{ request.url.path }'"
+        return f"Hello {first_name} {last_name} from '{request.url.path}'"
 
     app = RequestMiddleware(ResponseMiddleware(simple_app))
 
@@ -69,7 +83,6 @@ async def test_request_response_middlewares(client_cls):
 
 
 async def test_lifespan_middleware(client_cls):
-    from asgi_tools import LifespanMiddleware
 
     side_effects = []
 
@@ -90,7 +103,6 @@ async def test_lifespan_middleware(client_cls):
 
 
 async def test_lifespan_middleware_errors(client_cls):
-    from asgi_tools import LifespanMiddleware
 
     side_effects = {}
 
@@ -129,7 +141,6 @@ async def test_lifespan_middleware_errors(client_cls):
 
 
 async def test_router_middleware(client_cls):
-    from asgi_tools import Response, RouterMiddleware
 
     app = RouterMiddleware()
 
@@ -165,7 +176,6 @@ async def test_router_middleware(client_cls):
 
 
 async def test_router_middleware2(client_cls):
-    from asgi_tools import ResponseError, ResponseMiddleware, RouterMiddleware
 
     async def page404(scope, receive, send):
         return ResponseError.NOT_FOUND()
@@ -188,9 +198,6 @@ async def test_router_middleware2(client_cls):
 
 
 async def test_staticfiles_middleware(client_cls, app):
-    from pathlib import Path
-
-    from asgi_tools import StaticFilesMiddleware
 
     app = StaticFilesMiddleware(app, folders=["tests"])
 
@@ -226,10 +233,6 @@ async def test_staticfiles_middleware(client_cls, app):
 
 
 async def test_background_middleware(client_cls, app):
-    import time
-
-    from asgi_tools import BackgroundMiddleware, ResponseText, RouterMiddleware
-    from asgi_tools._compat import aio_sleep
 
     router = RouterMiddleware()
     app = BackgroundMiddleware(router)

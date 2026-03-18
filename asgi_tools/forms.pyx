@@ -13,12 +13,11 @@ from .multipart cimport QueryStringParser, MultipartParser, BaseParser
 from .utils import parse_options_header
 
 
-async def read_formdata(object request, int max_size, object upload_to,
-                        int file_memory_limit=1024 * 1024) -> MultiDict:
+async def read_formdata(object request, int max_size, object upload_to) -> MultiDict:
     """Read formdata from the given request."""
     cdef str content_type = request.content_type
     if content_type == 'multipart/form-data':
-        reader = MultipartReader(request.charset, upload_to, file_memory_limit)
+        reader = MultipartReader(request.charset, upload_to, max_size)
     else:
         reader = FormReader(request.charset)
 
@@ -73,9 +72,9 @@ cdef class MultipartReader(FormReader):
     cdef dict headers
     cdef object partdata
     cdef object upload_to
-    cdef int file_memory_limit
+    cdef int max_size
 
-    def __init__(self, str charset, object upload_to, int file_memory_limit):
+    def __init__(self, str charset, object upload_to, int max_size):
         self.curname = bytearray()
         self.curvalue = bytearray()
         self.form: MultiDict = MultiDict()
@@ -84,7 +83,7 @@ cdef class MultipartReader(FormReader):
         self.headers = {}
         self.partdata = BytesIO()
         self.upload_to = upload_to
-        self.file_memory_limit = file_memory_limit
+        self.max_size = max_size
 
     cpdef BaseParser init_parser(self, object request, int max_size):
         cdef str boundary = request.media.get('boundary', '')
@@ -121,7 +120,7 @@ cdef class MultipartReader(FormReader):
                 self.partdata = f = open(filename, 'wb+')
 
             else:
-                self.partdata = f = SpooledTemporaryFile(self.file_memory_limit)
+                self.partdata = f = SpooledTemporaryFile(self.max_size)
                 f._file.name = options['filename']
 
             f.content_type = self.headers[b'content-type'].decode(self.charset)

@@ -4,6 +4,9 @@ from contextlib import suppress
 
 import pytest
 
+from asgi_tools import App, Request
+from asgi_tools.tests import ASGITestClient
+
 SUPPORTED_BACKENDS = [
     pytest.param("asyncio", id="asyncio"),
     pytest.param("trio", id="trio"),
@@ -25,14 +28,12 @@ def aiolib(request):
 
 @pytest.fixture(scope="session")
 def client_cls():
-    from asgi_tools.tests import ASGITestClient
 
     return ASGITestClient
 
 
 @pytest.fixture()
 def app():
-    from asgi_tools import App
 
     app = App(debug=True)
 
@@ -66,7 +67,6 @@ def send():
 
 @pytest.fixture()
 def gen_request(client, send):
-    from asgi_tools import Request
 
     def gen_request(path="/", body=None, scope_type="http", method="GET", **opts):
         scope = client.build_scope(path, type=scope_type, method=method, **opts)

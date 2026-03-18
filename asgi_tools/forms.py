@@ -20,15 +20,10 @@ async def read_formdata(
     request: "Request",
     max_size: int,
     upload_to: Callable | None,
-    file_memory_limit: int = 1024 * 1024,
 ) -> MultiDict:
     """Read formdata from the given request."""
     if request.content_type == "multipart/form-data":
-        reader: FormReader = MultipartReader(
-            request.charset,
-            upload_to,
-            file_memory_limit,
-        )
+        reader: FormReader = MultipartReader(request.charset, upload_to, max_size)
     else:
         reader = FormReader(request.charset)
 
@@ -83,21 +78,21 @@ class MultipartReader(FormReader):
         "charset",
         "curname",
         "curvalue",
-        "file_memory_limit",
         "form",
         "headers",
+        "max_size",
         "name",
         "partdata",
         "upload_to",
     )
 
-    def __init__(self, charset: str, upload_to: Callable | None, file_memory_limit: int):
+    def __init__(self, charset: str, upload_to: Callable | None, max_size: int):
         super().__init__(charset)
         self.name = ""
         self.headers: dict[bytes, bytes] = {}
         self.partdata = BytesIO()
         self.upload_to = upload_to
-        self.file_memory_limit = file_memory_limit
+        self.max_size = max_size
 
     def init_parser(self, request: "Request", max_size: int) -> BaseParser:
         boundary = request.media.get("boundary", "")
@@ -140,7 +135,7 @@ class MultipartReader(FormReader):
                 self.partdata = f = open(filename, "wb+")  # noqa: SIM115, PTH123
 
             else:
-                self.partdata = f = SpooledTemporaryFile(self.file_memory_limit)  # noqa: SIM115
+                self.partdata = f = SpooledTemporaryFile(self.max_size)  # noqa: SIM115
                 f._file.name = options["filename"]  # type: ignore[]
 
             f.content_type = self.headers[b"content-type"].decode(self.charset)
