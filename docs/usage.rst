@@ -73,7 +73,7 @@ Form Data and File Uploads
         return "Upload successful"
 
 .. note::
-   By default ASGI-Tools limits form data to 10MB. You can adjust this limit when read the form data:
+   By default, ASGI-Tools limits form data to 10MB. You can adjust this limit when reading form data:
 
 .. code-block:: python
 
@@ -125,7 +125,7 @@ Basic Routing
 Dynamic URLs
 ~~~~~~~~~~~~
 
-Support dynamic URL parameters:
+Supports dynamic URL parameters:
 
 .. code-block:: python
 

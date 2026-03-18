@@ -3,7 +3,7 @@
 
 .. _description:
 
-**asgi-tools** -- Is a really lightweight ASGI_ Toolkit to build ASGI applications faster.
+**asgi-tools** is a lightweight ASGI_ toolkit for building ASGI applications faster.
 
 .. _badges:
 
@@ -42,7 +42,7 @@ For instance these middlewares were built with the library:
 
 **Features:**
 
-- Supports all most popular async python libraries: `Asyncio`_, `Trio`_ and Curio_
+- Supports the most popular async Python libraries: `Asyncio`_, `Trio`_, and Curio_
 - `Request`_                 -- Parse ASGI scope, get url, headers, cookies, read a request's data/json/form-data
 - `Response`_                -- Send HTTP (text, html, json, stream, sse, file, http errors) responses
 - `ResponseWebSocket`_       -- Work with websockets
@@ -84,7 +84,7 @@ A Quick Example
 
 You can use any of ASGI-Tools components independently.
 
-Despite this ASGI-Tools contains App_ helper to quickly build ASGI
+ASGI-Tools also includes an App_ helper to quickly build ASGI
 applications. For instance:
 
 Save this to ``app.py``.
@@ -99,7 +99,7 @@ Save this to ``app.py``.
     async def hello(request):
         return "Hello World!"
 
-Run it with `uvicorn`
+Run it with ``uvicorn``
 
 .. code-block:: sh
 
@@ -111,8 +111,8 @@ Run it with `uvicorn`
 Bug tracker
 ===========
 
-If you have any suggestions, bug reports or
-annoyances please report them to the issue tracker
+If you have any suggestions, bug reports, or
+annoyances, please report them to the issue tracker
 at https://github.com/klen/asgi-tools/issues
 
 .. _contributing:

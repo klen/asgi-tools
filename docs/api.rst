@@ -24,7 +24,7 @@ Request
             response = Response(content)
             await response(scope, receive, send)
 
-    Requests are based on a given scope and represents a mapping interface.
+    Requests are based on a given scope and represent a mapping interface.
 
     .. code-block:: python
 
@@ -34,9 +34,9 @@ Request
         assert request['scheme'] == scope['scheme']
         assert request['path'] == scope['path']
 
-        # and etc
+        # etc.
 
-        # ASGI Scope keys also are available as Request attrubutes.
+        # ASGI scope keys are also available as Request attributes.
 
         assert request.version == scope['version']
         assert request.method == scope['method']
@@ -172,7 +172,7 @@ ResponseRedirect
 
         async def app(scope, receive, send):
             request = Request(scope, receive, send)
-            if not request.headers.get('authorization):
+            if not request.headers.get('authorization'):
                 raise ResponseRedirect('/login')
 
             return 'OK'
@@ -214,14 +214,14 @@ ResponseError
 
         app = ResponseMiddleware(app)
 
-    You able to use :py:class:`http.HTTPStatus` properties with the `ResponseError` class
+    You can use :py:class:`http.HTTPStatus` properties with the ``ResponseError`` class.
 
     .. code-block:: python
 
         response = ResponseError.BAD_REQUEST('invalid data')
         response = ResponseError.NOT_FOUND()
         response = ResponseError.BAD_GATEWAY()
-        # and etc
+        # etc.
 
 ResponseStream
 ^^^^^^^^^^^^^^
@@ -250,16 +250,18 @@ ResponseSSE
 
     .. code-block:: python
 
+        import time
+
         from asgi_tools import ResponseSSE
         from asgi_tools.utils import aio_sleep  # for compatibility with different async libs
 
         async def stream_response():
             for number in range(10):
                 await aio_sleep(1)
-                # The response support messages as text
+                # The response supports messages as text.
                 yield "data: message text"
 
-                # And as dictionaties as weel
+                # And as dictionaries as well.
                 yield {
                     "event": "ping",
                     "data": time.time(),
@@ -395,7 +397,7 @@ Application
                 return handler
 
             # Register an internal middleware (the middleware function is async)
-            # The middlewares is guaranted to get a response from app and have to return a response
+            # This middleware is guaranteed to receive a response from app and must return a response.
             @app.middleware
             async def simple_middleware(app, request, receive, send):
                 response = await app(request, receive, send)
@@ -404,7 +406,7 @@ Application
 
         .. admonition:: Middleware Exceptions
 
-            Any exception raised from an middleware wouldn't be catched by the app
+            Any exception raised by a middleware will not be caught by the app.
 
 Class Based Views
 -----------------
@@ -424,7 +426,7 @@ Testing
             from asgi_tools import App
             from asgi_tools.tests import ASGITestClient
 
-            app = Application()
+            app = App()
 
             @app.route('/')
             async def index(request):
@@ -440,14 +442,16 @@ Testing
 
         .. code-block:: python
 
+            from asgi_tools.utils import aio_sleep
+
             async def test_app():
                 client = ASGITestClient(app)
                 async def stream():
                     for n in range(10):
-                        yield b'chunk%s' % bytes(n)
+                        yield f'chunk{n}'.encode()
                         await aio_sleep(1)
 
-                response = await client.get('/', data=stream)
+                response = await client.get('/', data=stream())
                 assert response.status_code == 200
 
 
@@ -455,14 +459,17 @@ Testing
 
         .. code-block:: python
 
+            from asgi_tools import ResponseStream
+            from asgi_tools.utils import aio_sleep
+
             @app.route('/')
             async def index(request):
                 async def stream():
                     for n in range(10):
-                        yield b'chunk%s' % bytes(n)
+                        yield f'chunk{n}'.encode()
                         await aio_sleep(1)
 
-                return ResponseStream(stream)
+                return ResponseStream(stream())
 
 
             async def test_app():
@@ -470,7 +477,7 @@ Testing
                 response = await client.get('/')
                 assert response.status_code == 200
                 async for chunk in response.stream():
-                    assert chunk.startswith('chunk')
+                    assert chunk.startswith(b'chunk')
 
 
    .. automethod:: websocket
@@ -480,7 +487,7 @@ Testing
             from asgi_tools import App, ResponseWebSocket
             from asgi_tools.tests import ASGITestClient
 
-            app = Application()
+            app = App()
 
             @app.route('/websocket')
             async def websocket(request):
@@ -522,7 +529,7 @@ Testing
                 # Otherwise return HTML response
                 await ResponseHTML('OK')(scope, receive, send)
 
-            client = Client(app)
+            client = ASGITestClient(app)
 
             async with client.lifespan():
                 assert SIDE_EFFECTS['started']
