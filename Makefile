@@ -54,6 +54,9 @@ docs: $(VIRTUAL_ENV)
 	rm -rf docs/_build/html
 	make -C docs html
 
+outdated: $(VIRTUAL_ENV)
+	poetry show --outdated
+
 
 LATEST_BENCHMARK = $(shell ls -t .benchmarks/* | head -1 | head -c4)
 test t: cyt $(VIRTUAL_ENV)

@@ -57,7 +57,14 @@ tests = [
 ujson = ["ujson"]
 orjson = ["orjson"]
 examples = ["uvicorn[standard]", "jinja2", "httpx"]
-dev = ["bump2version", "tox", "cython", "pre-commit", "sphinx", "pydata-sphinx-theme"]
+dev = [
+  "bump2version",
+  "tox",
+  "cython",
+  "pre-commit",
+  "sphinx",
+  "pydata-sphinx-theme",
+]
 
 [tool.setuptools]
 packages = ['asgi_tools']
@@ -117,7 +124,18 @@ ignore = [
 required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*.py" = ["ARG", "ASYNC", "TRY", "F", "PGH", "PLR", "PLW", "PTH", "RET504", "SIM"]
+"tests/*.py" = [
+  "ARG",
+  "ASYNC",
+  "TRY",
+  "F",
+  "PGH",
+  "PLR",
+  "PLW",
+  "PTH",
+  "RET504",
+  "SIM",
+]
 
 [tool.black]
 line-length = 100
