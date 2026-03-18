@@ -15,6 +15,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [2.1.0] - 2026-03-18
+
+### Changed
+
+- Refreshed documentation wording across `README.rst`, `docs/usage.rst`, and `docs/index.rst`.
+- Updated API docs examples for `ASGITestClient`, streaming snippets, and middleware notes to
+  match current interfaces and behavior.
+
+### Fixed
+
+- Corrected invalid and inconsistent code snippets in `docs/api.rst` (imports, stream usage,
+  byte-string assertions, and header example syntax).
+
 ## [2.0.1] - 2026-03-18
 
 ### Changed
@@ -212,7 +225,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-[unreleased]: https://github.com/klen/asgi-tools/compare/v2.0.1...HEAD
+[unreleased]: https://github.com/klen/asgi-tools/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/klen/asgi-tools/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/klen/asgi-tools/compare/1.4.0...v2.0.1
 [1.4.0]: https://github.com/klen/asgi-tools/compare/1.3.3...1.4.0
 [1.3.3]: https://github.com/klen/asgi-tools/compare/1.3.2...1.3.3
