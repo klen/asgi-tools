@@ -93,7 +93,7 @@ class Response:
 
     def __repr__(self) -> str:
         """Stringify the response."""
-        return f"<{ self.__class__.__name__ } '{ self }'>"
+        return f"<{self.__class__.__name__} '{self}'>"
 
     async def __call__(self, _, __, send: TASGISend):
         """Behave as an ASGI application."""
@@ -155,7 +155,10 @@ class ResponseJSON(Response):
     @staticmethod
     def process_content(content) -> bytes:
         """Dumps the given content."""
-        return json_dumps(content)
+        try:
+            return json_dumps(content)
+        except TypeError as exc:
+            raise ASGIError("Content is not JSON serializable") from exc
 
 
 class ResponseStream(Response):
@@ -390,9 +393,9 @@ class ResponseRedirect(Response, BaseException):
     def __init__(self, url: str, status_code: int | None = None, **kwargs) -> None:
         """Set status code and prepare location."""
         super().__init__(b"", status_code=status_code, **kwargs)
-        assert (
-            300 <= self.status_code < 400
-        ), f"Invalid status code for redirection: {self.status_code}"
+        assert 300 <= self.status_code < 400, (
+            f"Invalid status code for redirection: {self.status_code}"
+        )
         self.headers["location"] = quote_plus(url, safe=":/%#?&=@[]!$&'()*+,;")
 
 
@@ -402,10 +405,7 @@ class ResponseErrorMeta(type):
     def __getattr__(cls, name: str) -> partial[ResponseError]:
         """Generate Response Errors by HTTP names."""
         status = HTTPStatus[name]
-        return partial(
-            lambda *args, **kwargs: cls(*args, **kwargs),
-            status_code=status.value,
-        )
+        return partial(cls, status_code=status.value)
 
 
 class ResponseError(Response, BaseException, metaclass=ResponseErrorMeta):

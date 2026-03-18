@@ -61,7 +61,7 @@ async def test_client(app, client):
 
         return {
             "query": dict(request.query),
-            "headers": {**request.headers},
+            "headers": {str(k): v for k, v in request.headers.items()},
             "cookies": dict(request.cookies),
             "data": data,
         }
@@ -164,7 +164,6 @@ async def test_files(app, client):
 
 
 async def test_cookies(app, client):
-
     @app.route("/set-cookie")
     async def set_cookie(_):
         res = ResponseRedirect("/")
@@ -189,7 +188,6 @@ async def test_cookies(app, client):
 
 
 async def test_redirects(app, client):
-
     # Follow Redirect
     # ---------------
     @app.route("/redirect")
@@ -206,7 +204,6 @@ async def test_redirects(app, client):
 
 
 async def test_stream_response(app, client):
-
     async def source(timeout=0.001):
         for idx in range(10):
             await aio_sleep(timeout)
@@ -225,7 +222,6 @@ async def test_stream_response(app, client):
 
 
 async def test_stream_request(app, client):
-
     async def source(timeout=0.001):
         for idx in range(10):
             yield bytes(idx)
@@ -241,7 +237,6 @@ async def test_stream_request(app, client):
 
 
 async def test_websocket(app, client_cls):
-
     @app.route("/websocket")
     async def websocket(request):
         assert request.subprotocols == ["ship", "done"]
@@ -263,7 +258,6 @@ async def test_websocket(app, client_cls):
 
 
 async def test_websocket_disconnect(app, client_cls):
-
     @app.route("/websocket")
     async def websocket(request):
         async with ResponseWebSocket(request) as ws:
@@ -275,7 +269,6 @@ async def test_websocket_disconnect(app, client_cls):
 
 
 async def test_timeouts(app, client):
-
     @app.route("/sleep/{time}")
     async def sleep(request):
         time = float(request.path_params["time"])
@@ -291,7 +284,6 @@ async def test_timeouts(app, client):
 
 
 async def test_lifespan_unsupported(client_cls):
-
     async def app(scope, receive, send):
         assert scope["type"] == "http"
         await Response("OK")(scope, receive, send)
@@ -304,7 +296,6 @@ async def test_lifespan_unsupported(client_cls):
 
 
 async def test_lifespan(client_cls):
-
     side_effects = {"started": False, "finished": False}
 
     async def app(scope, receive, send):
@@ -339,7 +330,6 @@ async def test_lifespan(client_cls):
 
 
 async def test_invalid_app(client_cls):
-
     async def invalid(scope, receive, send):
         await Response("test")(scope, receive, send)
         await Response("test")(scope, receive, send)

@@ -97,6 +97,7 @@ commands =
 fix = false
 line-length = 100
 target-version = "py310"
+include = ["asgi_tools/*.py", "tests/*.py"]
 exclude = [".venv", "docs", "examples"]
 
 [tool.ruff.lint]
@@ -136,8 +137,3 @@ required-imports = ["from __future__ import annotations"]
   "RET504",
   "SIM",
 ]
-
-[tool.black]
-line-length = 100
-target-version = ["py310", "py311", "py312", "py313", "py314"]
-preview = true

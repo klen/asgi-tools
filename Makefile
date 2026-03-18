@@ -57,6 +57,10 @@ docs: $(VIRTUAL_ENV)
 outdated: $(VIRTUAL_ENV)
 	poetry show --outdated
 
+upgrade: $(VIRTUAL_ENV)
+	poetry update
+	poetry install --all-extras
+
 
 LATEST_BENCHMARK = $(shell ls -t .benchmarks/* | head -1 | head -c4)
 test t: cyt $(VIRTUAL_ENV)
@@ -64,7 +68,7 @@ test t: cyt $(VIRTUAL_ENV)
 
 lint: $(VIRTUAL_ENV)
 	$(VIRTUAL_ENV)/bin/mypy
-	$(VIRTUAL_ENV)/bin/ruff $(PACKAGE)
+	$(VIRTUAL_ENV)/bin/ruff check
 
 
 mypy: $(VIRTUAL_ENV)
