@@ -51,7 +51,7 @@
     <link rel="prev" title="Installation" href="installation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2.0.1" />
+  <meta name="docsearch:version" content="2.1.0" />
   </head>
   
   
@@ -348,7 +348,7 @@
   <div class="bd-toc-item navbar-nav"></div>
 </nav></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 2.0.1
+    Version: 2.1.0
 </div>
 </div>
     </div>
@@ -470,7 +470,7 @@ Run it with an ASGI server:</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>By default ASGI-Tools limits form data to 10MB. You can adjust this limit when read the form data:</p>
+<p>By default, ASGI-Tools limits form data to 10MB. You can adjust this limit when reading form data:</p>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">form</span> <span class="o">=</span> <span class="k">await</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">(</span><span class="n">max_size</span><span class="o">=</span><span class="mi">20</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>  <span class="c1"># 20MB</span>
 </pre></div>
@@ -516,7 +516,7 @@ Run it with an ASGI server:</p>
 </section>
 <section id="dynamic-urls">
 <h3>Dynamic URLs<a class="headerlink" href="#dynamic-urls" title="Link to this heading">#</a></h3>
-<p>Support dynamic URL parameters:</p>
+<p>Supports dynamic URL parameters:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/user/</span><span class="si">{username}</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">show_user_profile</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
     <span class="n">username</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">path_params</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span>

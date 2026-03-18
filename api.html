@@ -50,7 +50,7 @@
     <link rel="prev" title="Usage" href="usage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2.0.1" />
+  <meta name="docsearch:version" content="2.1.0" />
   </head>
   
   
@@ -347,7 +347,7 @@
   <div class="bd-toc-item navbar-nav"></div>
 </nav></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 2.0.1
+    Version: 2.1.0
 </div>
 </div>
     </div>
@@ -435,16 +435,16 @@ send event messages to the client</p></li>
     <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Requests are based on a given scope and represents a mapping interface.</p>
+<p>Requests are based on a given scope and represent a mapping interface.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span>
 <span class="k">assert</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span>
 <span class="k">assert</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;scheme&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;scheme&#39;</span><span class="p">]</span>
 <span class="k">assert</span> <span class="n">request</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span>
 
-<span class="c1"># and etc</span>
+<span class="c1"># etc.</span>
 
-<span class="c1"># ASGI Scope keys also are available as Request attrubutes.</span>
+<span class="c1"># ASGI scope keys are also available as Request attributes.</span>
 
 <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">version</span> <span class="o">==</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span>
 <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="n">scope</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span>
@@ -806,7 +806,7 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseRe
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">app</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
     <span class="n">request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;authorization):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;authorization&#39;</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">ResponseRedirect</span><span class="p">(</span><span class="s1">&#39;/login&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="s1">&#39;OK&#39;</span>
@@ -849,11 +849,11 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 <span class="n">app</span> <span class="o">=</span> <span class="n">ResponseMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>You able to use <a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">http.HTTPStatus</span></code></a> properties with the <cite>ResponseError</cite> class</p>
+<p>You can use <a class="reference external" href="https://docs.python.org/3/library/http.html#http.HTTPStatus" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">http.HTTPStatus</span></code></a> properties with the <code class="docutils literal notranslate"><span class="pre">ResponseError</span></code> class.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">BAD_REQUEST</span><span class="p">(</span><span class="s1">&#39;invalid data&#39;</span><span class="p">)</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">NOT_FOUND</span><span class="p">()</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">ResponseError</span><span class="o">.</span><span class="n">BAD_GATEWAY</span><span class="p">()</span>
-<span class="c1"># and etc</span>
+<span class="c1"># etc.</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -904,16 +904,18 @@ are able to raise the <a class="reference internal" href="#asgi_tools.ResponseEr
 </ul>
 </dd>
 </dl>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asgi_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResponseSSE</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">asgi_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResponseSSE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">asgi_tools.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">aio_sleep</span>  <span class="c1"># for compatibility with different async libs</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stream_response</span><span class="p">():</span>
     <span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
         <span class="k">await</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        <span class="c1"># The response support messages as text</span>
+        <span class="c1"># The response supports messages as text.</span>
         <span class="k">yield</span> <span class="s2">&quot;data: message text&quot;</span>
 
-        <span class="c1"># And as dictionaties as weel</span>
+        <span class="c1"># And as dictionaries as well.</span>
         <span class="k">yield</span> <span class="p">{</span>
             <span class="s2">&quot;event&quot;</span><span class="p">:</span> <span class="s2">&quot;ping&quot;</span><span class="p">,</span>
             <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
@@ -1499,7 +1501,7 @@ will be catched and returned as a response</p>
     <span class="k">return</span> <span class="n">handler</span>
 
 <span class="c1"># Register an internal middleware (the middleware function is async)</span>
-<span class="c1"># The middlewares is guaranted to get a response from app and have to return a response</span>
+<span class="c1"># This middleware is guaranteed to receive a response from app and must return a response.</span>
 <span class="nd">@app</span><span class="o">.</span><span class="n">middleware</span>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">simple_middleware</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
     <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">app</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
@@ -1509,7 +1511,7 @@ will be catched and returned as a response</p>
 </div>
 <div class="admonition-middleware-exceptions admonition">
 <p class="admonition-title">Middleware Exceptions</p>
-<p>Any exception raised from an middleware wouldn’t be catched by the app</p>
+<p>Any exception raised by a middleware will not be caught by the app.</p>
 </div>
 </dd></dl>
 
@@ -1582,7 +1584,7 @@ will be catched and returned as a response</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asgi_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">App</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">asgi_tools.tests</span><span class="w"> </span><span class="kn">import</span> <span class="n">ASGITestClient</span>
 
-<span class="n">app</span> <span class="o">=</span> <span class="n">Application</span><span class="p">()</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
 
 <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">index</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
@@ -1596,26 +1598,31 @@ will be catched and returned as a response</p>
 </pre></div>
 </div>
 <p>Stream Request</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_app</span><span class="p">():</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asgi_tools.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">aio_sleep</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_app</span><span class="p">():</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">ASGITestClient</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stream</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="sa">b</span><span class="s1">&#39;chunk</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="sa">f</span><span class="s1">&#39;chunk</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
             <span class="k">await</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">stream</span><span class="p">())</span>
     <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
 </pre></div>
 </div>
 <p>Stream Response</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asgi_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResponseStream</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">asgi_tools.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">aio_sleep</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">index</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stream</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="sa">b</span><span class="s1">&#39;chunk</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="sa">f</span><span class="s1">&#39;chunk</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
             <span class="k">await</span> <span class="n">aio_sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">ResponseStream</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ResponseStream</span><span class="p">(</span><span class="n">stream</span><span class="p">())</span>
 
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_app</span><span class="p">():</span>
@@ -1623,7 +1630,7 @@ will be catched and returned as a response</p>
     <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
     <span class="k">async</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">stream</span><span class="p">():</span>
-        <span class="k">assert</span> <span class="n">chunk</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;chunk&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">chunk</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;chunk&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1653,7 +1660,7 @@ will be catched and returned as a response</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asgi_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">App</span><span class="p">,</span> <span class="n">ResponseWebSocket</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">asgi_tools.tests</span><span class="w"> </span><span class="kn">import</span> <span class="n">ASGITestClient</span>
 
-<span class="n">app</span> <span class="o">=</span> <span class="n">Application</span><span class="p">()</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
 
 <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/websocket&#39;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">websocket</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
@@ -1709,7 +1716,7 @@ protocol.</p>
     <span class="c1"># Otherwise return HTML response</span>
     <span class="k">await</span> <span class="n">ResponseHTML</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">)(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 
-<span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">ASGITestClient</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
 
 <span class="k">async</span> <span class="k">with</span> <span class="n">client</span><span class="o">.</span><span class="n">lifespan</span><span class="p">():</span>
     <span class="k">assert</span> <span class="n">SIDE_EFFECTS</span><span class="p">[</span><span class="s1">&#39;started&#39;</span><span class="p">]</span>

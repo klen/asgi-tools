@@ -103,7 +103,7 @@ For detailed information on functions, classes, and methods:
 Contributing
 ------------
 
-ASGI-Tools is an open source project. Contributions, issues, and feature requests are welcome!
+ASGI-Tools is an open-source project. Contributions, issues, and feature requests are welcome!
 
 * GitHub: https://github.com/klen/asgi-tools
 * Report Issues: https://github.com/klen/asgi-tools/issues
