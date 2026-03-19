@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [2.1.1] - 2026-03-19
+
+### Fixed
+
+- Fixed the default form-data size handling for `request.form()`.
+
 ## [2.1.0] - 2026-03-18
 
 ### Changed
@@ -225,7 +231,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-[unreleased]: https://github.com/klen/asgi-tools/compare/v2.1.0...HEAD
+[unreleased]: https://github.com/klen/asgi-tools/compare/v2.1.1...HEAD
+[2.1.1]: https://github.com/klen/asgi-tools/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/klen/asgi-tools/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/klen/asgi-tools/compare/1.4.0...v2.0.1
 [1.4.0]: https://github.com/klen/asgi-tools/compare/1.3.3...1.4.0
