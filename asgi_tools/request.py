@@ -23,6 +23,8 @@ if TYPE_CHECKING:
 
 T = TypeVar("T")
 
+DEFAULT_FORMDATA_MAX_SIZE = 1024 * 1024 * 10  # 10 MB
+
 
 class UploadHandler(Protocol):
     """Protocol for file upload handlers."""
@@ -272,7 +274,7 @@ class Request(TASGIScope):
             raise ASGIDecodeError from exc
 
     async def form(
-        self, max_size: int = 1014 * 1024 * 10, upload_to: UploadHandler | None = None
+        self, max_size: int = DEFAULT_FORMDATA_MAX_SIZE, upload_to: UploadHandler | None = None
     ) -> MultiDict:
         """Read and return the request's form data.
 
