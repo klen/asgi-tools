@@ -182,13 +182,7 @@ ResponseRedirect
 ResponseError
 ^^^^^^^^^^^^^
 
-.. py:class:: ResponseError(message=None, status_code=500, **kwargs)
-
-    A helper to return HTTP errors. Uses a 500 status code by default.
-
-    .. :comment: ***
-
-    :param message: A string with the error's message (HTTPStatus messages will be used by default)
+.. autoclass:: ResponseError
 
     .. code-block:: python
 
@@ -222,6 +216,21 @@ ResponseError
         response = ResponseError.NOT_FOUND()
         response = ResponseError.BAD_GATEWAY()
         # etc.
+
+    When using :py:class:`~asgi_tools.App` or :py:class:`~asgi_tools.ResponseMiddleware`,
+    you can also raise them directly:
+
+    .. code-block:: python
+
+        from asgi_tools import App
+
+        app = App()
+
+        @app.route('/admin')
+        async def admin(request):
+            if not request.headers.get('authorization'):
+                raise ResponseError.UNAUTHORIZED()
+            return 'OK'
 
 ResponseStream
 ^^^^^^^^^^^^^^

@@ -98,6 +98,6 @@ Next Steps
 
 * Read the :doc:`usage` guide for detailed usage examples
 * Explore the :doc:`api` reference for all available components
-* Check out the `examples <https://github.com/klen/asgi-tools/tree/master/examples>`_ for real-world patterns and best practices
+* Check out the `examples <https://github.com/klen/asgi-tools/tree/main/examples>`_ for real-world patterns and best practices
 
 .. _ASGI: https://asgi.readthedocs.io/en/latest/

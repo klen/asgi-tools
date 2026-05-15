@@ -404,6 +404,9 @@ class ResponseErrorMeta(type):
 
     def __getattr__(cls, name: str) -> partial[ResponseError]:
         """Generate Response Errors by HTTP names."""
+        if name.startswith("__") and name.endswith("__"):
+            msg = f"type object '{cls.__name__}' has no attribute '{name}'"
+            raise AttributeError(msg)
         status = HTTPStatus[name]
         return partial(cls, status_code=status.value)
 

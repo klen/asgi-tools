@@ -20,7 +20,7 @@ from importlib.metadata import version
 # -- Project information -----------------------------------------------------
 
 project = "asgi-tools"
-copyright = "2021, Kirill Klenov"
+copyright = "2021-2026, Kirill Klenov"
 author = "Kirill Klenov"
 
 version = version("asgi-tools")
