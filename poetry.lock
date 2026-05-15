@@ -2183,6 +2183,26 @@ sphinxcontrib-qthelp = ">=1.0.6"
 sphinxcontrib-serializinghtml = ">=1.1.9"
 
 [[package]]
+name = "sphinx-copybutton"
+version = "0.5.2"
+description = "Add a copy button to each of your code cells."
+optional = true
+python-versions = ">=3.7"
+groups = ["main"]
+markers = "extra == \"dev\""
+files = [
+    {file = "sphinx-copybutton-0.5.2.tar.gz", hash = "sha256:4cf17c82fb9646d1bc9ca92ac280813a3b605d8c421225fd9913154103ee1fbd"},
+    {file = "sphinx_copybutton-0.5.2-py3-none-any.whl", hash = "sha256:fb543fd386d917746c9a2c50360c7905b605726b9355cd26e9974857afeae06e"},
+]
+
+[package.dependencies]
+sphinx = ">=1.8"
+
+[package.extras]
+code-style = ["pre-commit (==2.12.1)"]
+rtd = ["ipython", "myst-nb", "sphinx", "sphinx-book-theme", "sphinx-examples"]
+
+[[package]]
 name = "sphinxcontrib-applehelp"
 version = "2.0.0"
 description = "sphinxcontrib-applehelp is a Sphinx extension which outputs Apple help books"
@@ -2983,7 +3003,7 @@ multidict = ">=4.0"
 propcache = ">=0.2.1"
 
 [extras]
-dev = ["bump2version", "cython", "pre-commit", "pydata-sphinx-theme", "sphinx", "tox"]
+dev = ["bump2version", "cython", "pre-commit", "pydata-sphinx-theme", "sphinx", "sphinx-copybutton", "tox"]
 examples = ["httpx", "jinja2", "uvicorn"]
 orjson = ["orjson"]
 tests = ["PyYAML", "aiofile", "exceptiongroup", "mypy", "pytest", "pytest-aio", "pytest-benchmark", "pytest-mypy", "ruff", "ujson", "uvloop"]
@@ -2992,4 +3012,4 @@ ujson = ["ujson"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4"
-content-hash = "c1130d44b3de618709af6a60f99d16125406f464cda4e11017ae81e940cde432"
+content-hash = "9d0361416688ea3d8b83a3b3a32f7d27e96140a1263138c8dce591dea6c3b6d0"
