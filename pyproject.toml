@@ -140,8 +140,8 @@ required-imports = ["from __future__ import annotations"]
 
 [tool.bumpversion]
 current_version = "2.1.2"
-commit = true
-tag = true
+commit = false
+tag = false
 message = "build: Bump version: {current_version} → {new_version}"
 
 [[tool.bumpversion.files]]

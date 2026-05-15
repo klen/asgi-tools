@@ -9,37 +9,6 @@ $(VIRTUAL_ENV): pyproject.toml .pre-commit-config.yaml
 	@$(VIRTUAL_ENV)/bin/pre-commit install
 	@touch $(VIRTUAL_ENV)
 
-VERSION	?= minor
-MAIN_BRANCH = master
-STAGE_BRANCH = develop
-
-.PHONY: release
-# target: release - Bump version
-release:
-	git checkout $(MAIN_BRANCH)
-	git pull
-	git checkout $(STAGE_BRANCH)
-	git pull
-	@uvx bump-my-version bump $(VERSION) --tag
-	git checkout $(MAIN_BRANCH)
-	git merge $(STAGE_BRANCH)
-	git checkout $(STAGE_BRANCH)
-	git merge $(MAIN_BRANCH)
-	@git -c push.followTags=false push origin $(STAGE_BRANCH) $(MAIN_BRANCH)
-	@git push --tags origin
-
-.PHONY: minor
-minor:
-	make release VERSION=minor
-
-.PHONY: patch
-patch:
-	make release VERSION=patch
-
-.PHONY: major
-major:
-	make release VERSION=major
-
 
 .PHONY: clean
 # target: clean - Display callable targets
@@ -108,3 +77,54 @@ cyt: $(PACKAGE)/multipart.c $(PACKAGE)/forms.c
 
 compile: cyt
 	$(VIRTUAL_ENV)/bin/python setup.py build_ext --inplace
+
+# ======================
+#  Bump version (poetry)
+# ======================
+
+RELEASE	?= minor
+
+.PHONY: release
+# target: release - Bump version
+release:
+	@echo "Starting release process (bumping $(RELEASE) version)..."
+	@git checkout main
+	@git pull
+	@git checkout develop
+	@git pull
+	@echo "Bumping version and creating release commit and tag..."
+	@uvx bump-my-version bump $(RELEASE)
+	@echo "Version bumped to `poetry version --short`."
+	@poetry lock
+	@echo "Committing version bump and creating tag..."
+	@VERSION="$$(poetry version --short)"; \
+		{ \
+			printf 'build(release): %s\n\n' "$$VERSION"; \
+			printf 'Changes:\n\n'; \
+			git log --oneline --pretty=format:'%s [%an]' main..develop | grep -Evi 'github|^Merge' || true; \
+		} | git commit -a -F -
+	@echo "Merging changes between branches..."
+	@git checkout main
+	@git merge develop
+	@VERSION="$$(poetry version --short)"; \
+		git push origin main; \
+		git tag -a "$$VERSION" -m "$$VERSION"; \
+		git push origin tag "$$VERSION"
+	@git checkout develop
+	@git merge main
+	@git push origin develop
+	@echo "Release process complete for `poetry version --short`"
+
+.PHONY: minor
+minor: release
+
+.PHONY: patch
+patch:
+	make release RELEASE=patch
+
+.PHONY: major
+major:
+	make release RELEASE=major
+
+version v:
+	@poetry version --short
