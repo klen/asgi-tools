@@ -136,6 +136,8 @@ class ASGITestClient:
 
     """
 
+    __test__ = False
+
     def __init__(self, app: TASGIApp, base_url: str = "http://localhost"):
         self.app = app
         self.base_url = URL(base_url)
@@ -297,13 +299,13 @@ def encode_multipart(data: dict) -> tuple[bytes, str]:
     boundary = binascii.hexlify(os.urandom(16))
     for name, data_value in data.items():
         value = data_value
-        headers = f'Content-Disposition: form-data; name="{ name }"'
+        headers = f'Content-Disposition: form-data; name="{name}"'
         if hasattr(value, "read"):
             filename = getattr(value, "name", None)
             if filename:
-                headers = f'{ headers }; filename="{ Path(filename).name }"'
+                headers = f'{headers}; filename="{Path(filename).name}"'
                 content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
-                headers = f"{ headers }\r\nContent-Type: { content_type }"
+                headers = f"{headers}\r\nContent-Type: {content_type}"
             value = value.read()
 
         body.write(b"--%b\r\n" % boundary)
