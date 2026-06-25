@@ -5,7 +5,7 @@ incoming request.
 from __future__ import annotations
 
 from http import cookies
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Iterator, Mapping, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Iterator, Mapping, Protocol, TypeVar, cast
 
 from yarl import URL
 
@@ -206,7 +206,7 @@ class Request(TASGIScope):
         :py:class:`multidict.MultiDict`.
 
         """
-        return self.url.query
+        return cast("MultiDictProxy[str]", self.url.query)
 
     @property
     def content_type(self) -> str:
