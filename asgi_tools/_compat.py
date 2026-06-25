@@ -245,14 +245,5 @@ def json_loads(obj: bytes | str) -> TJSON:
 
 
 with suppress(ImportError):
-    from ujson import dumps as udumps
-    from ujson import loads as json_loads  # type: ignore[assignment]
-
-    def json_dumps(content) -> bytes:
-        """Emulate orjson."""
-        return udumps(content, ensure_ascii=False).encode("utf-8")
-
-
-with suppress(ImportError):
     from orjson import dumps as json_dumps  # type: ignore[assignment,no-redef]
     from orjson import loads as json_loads  # type: ignore[assignment,no-redef]

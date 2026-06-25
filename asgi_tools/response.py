@@ -144,9 +144,8 @@ class ResponseHTML(Response):
 class ResponseJSON(Response):
     """Returns JSON responses (application/json).
 
-    The class optionally supports `ujson <https://pypi.org/project/ujson/>`_ and `orjson
-    <https://pypi.org/project/orjson/>`_ JSON libraries. Install one of them to use instead
-    the standard library.
+    The class optionally supports `orjson <https://pypi.org/project/orjson/>`_ for faster
+    JSON handling. Install it to use instead of the standard library.
 
     """
 
