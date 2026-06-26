@@ -247,7 +247,7 @@ def json_loads(obj: bytes | str) -> TJSON:
 with suppress(ImportError):
     from orjson import OPT_NON_STR_KEYS
     from orjson import dumps as orjson_dumps
-    from orjson import loads as json_loads
+    from orjson import loads as json_loads  # type: ignore[assignment]
 
     def json_dumps(content) -> bytes:
         """Emulate orjson."""

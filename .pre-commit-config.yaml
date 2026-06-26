@@ -58,7 +58,7 @@ repos:
         language: system
         pass_filenames: false
         files: \.py$
-        stages: ["pre-push"]
+        stages: ["pre-commit"]
 
       - id: pytest
         name: pytest
