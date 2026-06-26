@@ -2,7 +2,7 @@
 
 ## Stack
 
-- Python `>=3.10,<4` — package: `asgi_tools` — async: asyncio, trio, curio
+- Python `>=3.11,<4` — package: `asgi_tools` — async: asyncio, trio, curio
 - Tests: `pytest`, `pytest-aio`, `pytest-benchmark`
 - Quality: `ruff`, `black`, `mypy`, `pre-commit`
 - Build: `setuptools`, optional Cython (`.pyx`)

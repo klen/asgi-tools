@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [3.0.0]
+
+### Removed
+
+- Dropped Python 3.10 support (minimum is now Python 3.11).
+  Removed `async-timeout` and `exceptiongroup` conditional dependencies.
+- Dropped `cp310` from cibuildwheel matrix.
+
 ## [2.1.1] - 2026-03-19
 
 ### Fixed

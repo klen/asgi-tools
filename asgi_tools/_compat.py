@@ -41,11 +41,7 @@ __all__ = (
     "trio_installed",
 )
 
-try:
-    from asyncio import timeout as asyncio_timeout
-except ImportError:  # python 310
-    from async_timeout import timeout as asyncio_timeout  # type: ignore[assignment,no-redef]
-
+from asyncio import timeout as asyncio_timeout
 
 aiofile_installed = False
 with suppress(ImportError):
@@ -109,7 +105,7 @@ async def aio_spawn(fn: Callable[..., Awaitable], *args, **kwargs):
 
 
 @asynccontextmanager
-async def aio_timeout(timeout: float):  # noqa: ASYNC109
+async def aio_timeout(timeout: float):
     """Fail after the given timeout."""
     if not timeout:
         yield

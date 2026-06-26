@@ -11,7 +11,7 @@ from http.cookies import SimpleCookie
 from mimetypes import guess_type
 from pathlib import Path
 from stat import S_ISDIR
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Callable, Mapping, TypeVar
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Callable, Mapping, Self, TypeVar
 from urllib.parse import quote, quote_plus
 
 from multidict import MultiDict
@@ -310,7 +310,7 @@ class ResponseWebSocket(Response):
         """Close websocket if the response has been returned."""
         await send({"type": "websocket.close"})
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         """Use it as async context manager."""
         await self.accept()
         return self

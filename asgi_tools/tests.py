@@ -45,7 +45,7 @@ class TestResponse(Response):
 
     def __init__(self):
         super().__init__(b"")
-        self.content = None
+        self.content = None  # type: ignore[assignment]
 
     async def __call__(self, _: TASGIScope, receive: TASGIReceive, send: TASGISend):  # noqa: ARG002
         self._receive = receive
