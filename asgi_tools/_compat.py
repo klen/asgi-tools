@@ -42,7 +42,7 @@ __all__ = (
 )
 
 try:
-    from asyncio import timeout as asyncio_timeout  # type: ignore[attr-defined]
+    from asyncio import timeout as asyncio_timeout
 except ImportError:  # python 310
     from async_timeout import timeout as asyncio_timeout  # type: ignore[assignment,no-redef]
 
@@ -197,7 +197,7 @@ async def aio_stream_file(
     if trio_installed and current_async_library() == "trio":
         async with await trio_open_file(filepath, "rb") as fp:
             while True:
-                chunk = cast("bytes", await fp.read(chunk_size))
+                chunk = await fp.read(chunk_size)
                 if not chunk:
                     break
                 yield chunk
@@ -245,5 +245,10 @@ def json_loads(obj: bytes | str) -> TJSON:
 
 
 with suppress(ImportError):
-    from orjson import dumps as json_dumps  # type: ignore[assignment,no-redef]
-    from orjson import loads as json_loads  # type: ignore[assignment,no-redef]
+    from orjson import OPT_NON_STR_KEYS
+    from orjson import dumps as orjson_dumps
+    from orjson import loads as json_loads
+
+    def json_dumps(content) -> bytes:
+        """Emulate orjson."""
+        return orjson_dumps(content, default=str, option=OPT_NON_STR_KEYS)
