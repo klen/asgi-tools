@@ -102,6 +102,7 @@ allowed-confusables = ["’"]
 select = ["ALL"]
 ignore = [
   "ANN",
+  "ASYNC109",
   "COM",
   "D",
   "DJ",

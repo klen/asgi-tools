@@ -105,7 +105,7 @@ async def aio_spawn(fn: Callable[..., Awaitable], *args, **kwargs):
 
 
 @asynccontextmanager
-async def aio_timeout(timeout: float):  # noqa: ASYNC109
+async def aio_timeout(timeout: float):
     """Fail after the given timeout."""
     if not timeout:
         yield
