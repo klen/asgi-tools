@@ -3,10 +3,10 @@ requires = ["setuptools", "wheel", "Cython"]
 
 [project]
 name = "asgi-tools"
-version = "2.2.3"
+version = "2.2.4"
 description = "ASGI Toolkit to build web applications"
 readme = "README.rst"
-requires-python = ">=3.10,<4"
+requires-python = ">=3.11,<4"
 license = { "text" = "MIT License" }
 authors = [{ name = "Kirill Klenov", email = "horneds@gmail.com" }]
 keywords = ["asgi", "asgi-tools", "request", "response", "asyncio", "trio"]
@@ -16,7 +16,6 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -32,7 +31,6 @@ dependencies = [
   "multidict >= 6.6.3",
   "sniffio",
   "yarl >= 1.8.2",
-  "async-timeout;python_version<'3.11'",
 ]
 
 [project.urls]
@@ -49,7 +47,6 @@ tests = [
   "PyYAML",
   "ruff",
   "mypy",
-  "exceptiongroup;python_version<'3.11'",
   "orjson; implementation_name == 'cpython'",
   "uvloop; implementation_name == 'cpython'",
   "pytest-mypy; implementation_name == 'cpython'",
@@ -84,7 +81,7 @@ ignore_missing_imports = true
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py310,py311,py312,py313,py314,pypy311
+envlist = py311,py312,py313,py314,pypy311
 
 [testenv]
 deps = -e .[tests]
@@ -96,7 +93,7 @@ commands =
 [tool.ruff]
 fix = false
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 include = ["asgi_tools/*.py", "tests/*.py"]
 exclude = [".venv", "docs", "examples"]
 
@@ -138,8 +135,11 @@ required-imports = ["from __future__ import annotations"]
   "SIM",
 ]
 
+# [tool.pyrefly]
+# min-severity = "warn"
+
 [tool.bumpversion]
-current_version = "2.2.3"
+current_version = "2.2.4"
 commit = false
 tag = false
 message = "build: Bump version: {current_version} → {new_version}"

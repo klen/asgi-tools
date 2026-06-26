@@ -8,7 +8,7 @@ from contextvars import ContextVar
 from functools import partial
 from inspect import isawaitable
 from pathlib import Path
-from typing import TYPE_CHECKING, Awaitable, Callable, Final, Mapping
+from typing import TYPE_CHECKING, Awaitable, Callable, Final, Mapping, Self
 
 from http_router import Router
 
@@ -48,7 +48,7 @@ class BaseMiddleware(metaclass=abc.ABCMeta):
         """Setup the middleware without an initialization."""
         return partial(cls, **params)  # type: ignore[abstract]
 
-    def bind(self, app: TASGIApp | None = None):
+    def bind(self, app: TASGIApp | None = None) -> Self:
         """Rebind the middleware to an ASGI application if it has been inited already."""
         self.app = app or ResponseError.NOT_FOUND()
         return self
@@ -127,7 +127,7 @@ class ResponseMiddleware(BaseMiddleware):
     def send(self, _: TASGIMessage):
         raise RuntimeError("You can't use send() method in ResponseMiddleware")
 
-    def bind(self, app: TASGIApp | None = None):
+    def bind(self, app: TASGIApp | None = None) -> Self:
         """Rebind the middleware to an ASGI application if it has been inited already."""
         self.app = app or to_awaitable(lambda *_: ResponseError.NOT_FOUND())
         return self
@@ -238,7 +238,7 @@ class LifespanMiddleware(BaseMiddleware):
 
         container += handlers
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         """Use the lifespan middleware as a context manager."""
         await self.run("startup")
         return self
@@ -258,7 +258,7 @@ class LifespanMiddleware(BaseMiddleware):
                 if isawaitable(res):
                     await res
 
-            except Exception as exc:  # noqa: PERF203
+            except Exception as exc:
                 self.logger.exception("%s method '%s' raises an exception.", event.title(), handler)
                 if self.ignore_errors:
                     continue

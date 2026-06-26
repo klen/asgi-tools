@@ -4,17 +4,16 @@ from __future__ import annotations
 
 from functools import partial
 from inspect import isclass
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Callable, Self, TypeVar, cast
 
 from http_router import PrefixedRoute
-
-from asgi_tools.router import Router
 
 from .errors import ASGIConnectionClosedError, ASGIInvalidMethodError, ASGINotFoundError
 from .logs import logger
 from .middleware import LifespanMiddleware, StaticFilesMiddleware, parse_response
 from .request import Request
 from .response import Response, ResponseError
+from .router import Router
 from .utils import iscoroutinefunction, to_awaitable
 
 if TYPE_CHECKING:
@@ -23,13 +22,7 @@ if TYPE_CHECKING:
 
     from http_router.types import TMethods, TPath
 
-    from .types import (
-        TASGIReceive,
-        TASGIScope,
-        TASGISend,
-        TExceptionHandler,
-        TVExceptionHandler,
-    )
+    from .types import TASGIReceive, TASGIScope, TASGISend, TExceptionHandler, TVExceptionHandler
 
 T = TypeVar("T")
 TRouteHandler = TypeVar("TRouteHandler", bound=Callable[[Request], Any])
@@ -190,7 +183,7 @@ class App:
 
         return None
 
-    def __route__(self, router: Router, *prefixes: str, **_) -> "App":
+    def __route__(self, router: Router, *prefixes: str, **_) -> Self:
         """Mount this app as a nested application under given prefixes."""
         for prefix in prefixes:
             route = RouteApp(prefix, set(), target=self)

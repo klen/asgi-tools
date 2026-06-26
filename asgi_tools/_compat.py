@@ -41,11 +41,7 @@ __all__ = (
     "trio_installed",
 )
 
-try:
-    from asyncio import timeout as asyncio_timeout
-except ImportError:  # python 310
-    from async_timeout import timeout as asyncio_timeout  # type: ignore[assignment,no-redef]
-
+from asyncio import timeout as asyncio_timeout
 
 aiofile_installed = False
 with suppress(ImportError):

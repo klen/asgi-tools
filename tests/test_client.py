@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import io
 from pathlib import Path
-from sys import version_info
 
 import pytest
 
@@ -18,9 +17,6 @@ from asgi_tools import (
 )
 from asgi_tools._compat import aio_sleep
 from asgi_tools.errors import ASGIInvalidMessageError
-
-if version_info < (3, 11):
-    from exceptiongroup import ExceptionGroup
 
 
 def test_build_scope(client):

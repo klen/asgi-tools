@@ -63,7 +63,7 @@ For instance these middlewares were built with the library:
 Requirements
 =============
 
-- python >= 3.10
+- python >= 3.11
 
 .. note:: pypy3 is also supported
 
