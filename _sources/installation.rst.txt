@@ -4,7 +4,7 @@ Installation
 Supported Python Versions
 -------------------------
 
-ASGI-Tools requires **Python 3.10 or newer**. We recommend using the latest stable release for best performance and compatibility.
+ASGI-Tools requires **Python 3.11 or newer**. We recommend using the latest stable release for best performance and compatibility.
 
 .. note::
    **PyPy3** is also supported and can provide performance benefits for some workloads.
@@ -40,14 +40,14 @@ For the latest development version directly from GitHub:
 
     pip install git+https://github.com/klen/asgi-tools.git
 
-Using Poetry
-~~~~~~~~~~~~
+Using uv
+~~~~~~~~
 
-If you manage dependencies with Poetry:
+If you manage dependencies with uv:
 
 .. code-block:: sh
 
-    poetry add asgi-tools
+    uv add asgi-tools
 
 ASGI Server Requirement
 ------------------------
@@ -98,6 +98,6 @@ Next Steps
 
 * Read the :doc:`usage` guide for detailed usage examples
 * Explore the :doc:`api` reference for all available components
-* Check out the `examples <https://github.com/klen/asgi-tools/tree/master/examples>`_ for real-world patterns and best practices
+* Check out the `examples <https://github.com/klen/asgi-tools/tree/main/examples>`_ for real-world patterns and best practices
 
 .. _ASGI: https://asgi.readthedocs.io/en/latest/
