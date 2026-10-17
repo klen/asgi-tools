@@ -369,6 +369,11 @@ class StaticFilesMiddleware(BaseMiddleware):
     :param folders: Paths to folders with static files
     :type folders: list[str]
 
+    .. note::
+        Under asyncio, serving files requires the optional `aiofile
+        <https://pypi.org/project/aiofile/>`_ package (``pip install aiofile``).
+        Trio and Curio use their native async file I/O and need nothing extra.
+
     .. code-block:: python
 
         from asgi_tools import StaticFilesMiddleware, ResponseHTML

@@ -189,6 +189,11 @@ Access via:
 * ``/static/js/app.js``
 * ``/static/images/logo.png``
 
+.. note::
+   Under asyncio, serving files requires the optional `aiofile
+   <https://pypi.org/project/aiofile/>`_ package (``pip install aiofile``).
+   Trio and Curio use their native async file I/O and need nothing extra.
+
 Middleware
 ----------
 

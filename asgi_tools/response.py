@@ -241,6 +241,11 @@ class ResponseFile(ResponseStream):
     :param headers_only: Return only file headers
     :type headers_only: bool
 
+    .. note::
+        Under asyncio, serving files requires the optional `aiofile
+        <https://pypi.org/project/aiofile/>`_ package (``pip install aiofile``).
+        Trio and Curio use their native async file I/O and need nothing extra.
+
     """
 
     def __init__(
