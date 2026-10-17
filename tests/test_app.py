@@ -12,7 +12,6 @@ from asgi_tools.app import App, ResponseError
 
 
 async def test_app(client_cls):
-
     app = App(static_folders=[Path(__file__).parent])
 
     @app.route("/test/{param}", methods="get")
@@ -68,7 +67,6 @@ async def test_app(client_cls):
 
 
 async def test_scope_endpoint(client_cls):
-
     app = App()
     client = client_cls(app)
 
@@ -82,7 +80,6 @@ async def test_scope_endpoint(client_cls):
 
 
 async def test_errors(client_cls):
-
     app = App()
     client = client_cls(app)
 
@@ -103,8 +100,24 @@ async def test_errors(client_cls):
     assert await res.text() == "Server got itself in trouble"
 
 
-async def test_trim_last_slach(client_cls):
+async def test_form_too_large(client_cls):
+    app = App()
 
+    @app.route("/", methods="post")
+    async def upload(request):
+        await request.form(max_size=8)
+        return "OK"
+
+    client = client_cls(app)
+    res = await client.post(
+        "/",
+        data="a=1&b=2&c=3",
+        headers={"content-type": "application/x-www-form-urlencoded"},
+    )
+    assert res.status_code == 413
+
+
+async def test_trim_last_slach(client_cls):
     app = App()
     client = client_cls(app)
 
@@ -153,7 +166,6 @@ async def test_trim_last_slach(client_cls):
 
 
 async def test_app_static(client_cls):
-
     app = App(static_folders=[Path(__file__).parent])
     client = client_cls(app)
 
@@ -165,7 +177,6 @@ async def test_app_static(client_cls):
 
 
 async def test_app_handle_exception(client_cls):
-
     app = App()
 
     @app.route("/500")
@@ -208,7 +219,6 @@ async def test_app_handle_exception(client_cls):
 
 
 async def test_app_middleware_simple(client, app):
-
     md_mock = mock.MagicMock()
 
     @app.route("/err")
@@ -269,7 +279,6 @@ async def test_app_middleware_simple(client, app):
 
 #  @pytest.mark.skip
 async def test_app_middleware_classic(client, app):
-
     @app.route("/err")
     async def err(request):
         raise RuntimeError("Handle me")
@@ -305,7 +314,6 @@ async def test_app_middleware_classic(client, app):
 
 
 async def test_cbv(app, client):
-
     @app.route("/cbv")
     class Custom(HTTPView):
         async def get(self, request):
@@ -327,7 +335,6 @@ async def test_cbv(app, client):
 
 
 async def test_websockets(app, client):
-
     @app.route("/websocket")
     async def websocket(request):
         ws = ResponseWebSocket(request)
@@ -366,7 +373,6 @@ async def test_app_lifespan(app, client):
 
 
 async def test_nested(app, client):
-
     @app.middleware
     async def mid(app, request, receive, send):
         response = await app(request, receive, send)

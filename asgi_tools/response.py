@@ -408,7 +408,11 @@ class ResponseErrorMeta(type):
         if name.startswith("__") and name.endswith("__"):
             msg = f"type object '{cls.__name__}' has no attribute '{name}'"
             raise AttributeError(msg)
-        status = HTTPStatus[name]
+        try:
+            status = HTTPStatus[name]
+        except KeyError:
+            msg = f"type object '{cls.__name__}' has no attribute '{name}'"
+            raise AttributeError(msg) from None
         return partial(cls, status_code=status.value)
 
 

@@ -11,7 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- ``request.form()`` now raises ``ASGIRequestEntityTooLargeError`` (returned as HTTP 413 by
+  :class:`~asgi_tools.App`) when the body exceeds ``max_size``, instead of silently truncating
+  the form data.
+
 ### Fixed
+
+- Multipart parts missing required headers no longer silently corrupt the form: a part without
+  a ``name`` now raises, and a file part without ``Content-Type`` defaults to an empty string.
+- ``ResponseError`` with an unknown HTTP status name now raises ``AttributeError`` instead of
+  ``KeyError``, so ``hasattr()`` works as expected.
 
 ### Removed
 

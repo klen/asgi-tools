@@ -286,6 +286,8 @@ class Request(TASGIScope):
         :type upload_to: Optional[UploadHandler]
         :return: Form data as MultiDict
         :rtype: MultiDict
+        :raises ASGIRequestEntityTooLargeError: If the form data exceeds ``max_size``.
+            :class:`~asgi_tools.App` turns this into an HTTP 413 response.
 
         `formdata = await request.form()`
         """

@@ -10,11 +10,10 @@ from pathlib import Path
 import pytest
 
 from asgi_tools import Request, ResponseHTML, ResponseMiddleware
-from asgi_tools.errors import ASGIDecodeError
+from asgi_tools.errors import ASGIDecodeError, ASGIRequestEntityTooLargeError
 
 
 async def test_base(receive, send):
-
     # Request is lazy
     request = Request({}, receive, send)
     assert request is not None
@@ -91,7 +90,6 @@ async def test_body(gen_request):
 
 
 async def test_json(gen_request):
-
     req = gen_request(body=[b"invalid"])
     with pytest.raises(ASGIDecodeError):
         await req.json()
@@ -102,7 +100,6 @@ async def test_json(gen_request):
 
 
 async def test_data(client_cls, gen_request):
-
     async def simple_app(scope, receive, send):
         request = Request(scope, receive, send)
         data = await request.data()
@@ -143,7 +140,6 @@ async def test_data(client_cls, gen_request):
 
 
 async def test_multipart(client_cls):
-
     async def app(scope, receive, send):
         request = Request(scope, receive, send)
         data = await request.form()
@@ -160,21 +156,14 @@ async def test_multipart(client_cls):
     assert res.headers["content-length"] == str(len(first_line))
 
 
-async def test_multipart_max_size(client_cls):
-
-    async def app(scope, receive, send):
-        request = Request(scope, receive, send)
-        data = await request.form(max_size=100)
-        if data:
-            response = ResponseHTML(data["test"].read().decode().split("\n")[0])
-        else:
-            response = ResponseHTML("No data")
-        return await response(scope, receive, send)
-
-    client = client_cls(app)
-    with Path(__file__).open() as f:
-        res = await client.post("/", data={"test": f})
-    assert res.status_code == 200
-    body = await res.text()
-    assert await res.text() == "No data"
-    assert res.headers["content-length"] == str(len("No data"))
+async def test_multipart_max_size(gen_request):
+    body = b"--boundary\r\n"
+    body += b'Content-Disposition: form-data; name="test"; filename="x.txt"\r\n'
+    body += b"Content-Type: text/plain\r\n\r\n"
+    body += b"x" * 200
+    body += b"\r\n--boundary--\r\n"
+    request = gen_request(
+        body=[body], headers={"content-type": "multipart/form-data; boundary=boundary"}
+    )
+    with pytest.raises(ASGIRequestEntityTooLargeError):
+        await request.form(max_size=100)

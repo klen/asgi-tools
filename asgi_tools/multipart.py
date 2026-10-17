@@ -11,6 +11,8 @@ from __future__ import annotations
 # Flags for the multipart parser.
 from typing import Final
 
+from .errors import ASGIRequestEntityTooLargeError
+
 FLAG_PART_BOUNDARY: Final = 1
 FLAG_LAST_BOUNDARY: Final = 2
 
@@ -584,6 +586,6 @@ class MultipartParser(BaseParser):
 
 def prune_data(data_len: int, cursize: int, max_size: int) -> int:
     if max_size and (cursize + data_len) > max_size:
-        return max_size - cursize
+        raise ASGIRequestEntityTooLargeError
 
     return data_len

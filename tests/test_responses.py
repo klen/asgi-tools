@@ -35,7 +35,6 @@ if TYPE_CHECKING:
 
 
 async def test_response():
-
     response = Response("Content", content_type="text/html", cookies={"lang": "en"})
     response.cookies["session"] = "test-session"
     response.cookies["session"]["path"] = "/"
@@ -69,7 +68,6 @@ async def test_response():
 
 
 async def test_html_response():
-
     response = ResponseHTML("Content")
     assert response.status_code == 200
     assert response.headers["content-type"] == "text/html; charset=utf-8"
@@ -90,7 +88,6 @@ async def test_html_response():
 
 
 async def test_text_response():
-
     response = ResponseText("Content")
     assert response.status_code == 200
     assert response.headers["content-type"] == "text/plain; charset=utf-8"
@@ -111,7 +108,6 @@ async def test_text_response():
 
 
 async def test_json_response():
-
     response = ResponseJSON([1, 2, 3])
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
@@ -146,7 +142,6 @@ async def test_json_response():
 
 
 async def test_redirect_response():
-
     response = ResponseRedirect("/logout")
     assert response.status_code == 307
     assert response.headers["location"] == "/logout"
@@ -163,7 +158,6 @@ async def test_redirect_response():
 
 
 async def test_error_response():
-
     response = ResponseError(status_code=503)
     assert response.content == b"The server cannot process the request due to a high load"
 
@@ -176,9 +170,16 @@ async def test_error_response():
     assert response.content == b"custom message"
 
 
+def test_error_response_unknown_status():
+    assert hasattr(ResponseError, "NOT_FOUND")
+    assert not hasattr(ResponseError, "NOT_A_REAL_STATUS")
+    assert getattr(ResponseError, "NOT_A_REAL_STATUS", None) is None
+    with pytest.raises(AttributeError):
+        _ = ResponseError.NOT_A_REAL_STATUS
+
+
 # TODO: Exceptions
 async def test_stream_response(client_cls):
-
     async def filler(timeout=0.001):
         for idx in range(10):
             await aio_sleep(timeout)
@@ -205,7 +206,6 @@ async def test_stream_response(client_cls):
 
 
 async def test_file_response():
-
     response = ResponseFile(__file__)
     assert response.headers["content-length"]
     assert response.headers["content-type"] == "text/x-python"
@@ -234,7 +234,6 @@ async def test_file_response():
 
 
 async def test_sse_response(client_cls):
-
     async def filler(timeout=0.001):
         for _idx in range(2):
             await aio_sleep(timeout)
@@ -259,7 +258,6 @@ async def test_sse_response(client_cls):
 
 
 async def test_websocket_response(client_cls):
-
     pipe = Pipe()
 
     ws = ResponseWebSocket({}, pipe.receive_from_app, pipe.send_to_client)
@@ -291,7 +289,6 @@ async def test_websocket_response(client_cls):
 
 
 async def test_parse_response():
-
     response = parse_response({"test": "passed"})
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
@@ -312,7 +309,6 @@ async def test_parse_response():
 
 
 async def read_response(response) -> List[TASGIMessage]:
-
     messages = []
     await response(None, partial(aio_sleep, 10), to_awaitable(messages.append))
     return messages

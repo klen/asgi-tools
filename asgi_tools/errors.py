@@ -11,6 +11,10 @@ class ASGIConnectionClosedError(ASGIError):
     """ASGI-Tools connection closed error."""
 
 
+class ASGIRequestEntityTooLargeError(ASGIError):
+    """Raised when a request body exceeds the allowed size."""
+
+
 class ASGIDecodeError(ASGIError, ValueError):
     """ASGI-Tools decoding error."""
 

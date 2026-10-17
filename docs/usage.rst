@@ -79,6 +79,10 @@ Form Data and File Uploads
 
     form = await request.form(max_size=20 * 1024 * 1024)  # 20MB
 
+   If the body exceeds ``max_size``, ``request.form()`` raises
+   ``ASGIRequestEntityTooLargeError``, which :class:`~asgi_tools.App` returns as an
+   HTTP 413 response.
+
 JSON Data
 ~~~~~~~~~
 

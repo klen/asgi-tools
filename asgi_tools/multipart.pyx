@@ -3,6 +3,9 @@
 
 The original code is licensed by Apache2 license.
 """
+
+from .errors import ASGIRequestEntityTooLargeError
+
 # Flags for the multipart parser.
 cdef unsigned char FLAG_PART_BOUNDARY = 1
 cdef unsigned char FLAG_LAST_BOUNDARY = 2
@@ -553,9 +556,9 @@ cdef class MultipartParser(BaseParser):
         self.cursize += data_len
 
 
-cdef int prune_data(int data_len, int cursize, int max_size):
+cdef int prune_data(int data_len, int cursize, int max_size) except *:
     if max_size and (cursize + data_len) > max_size:
-        data_len = max_size - cursize
+        raise ASGIRequestEntityTooLargeError
 
     return data_len
 

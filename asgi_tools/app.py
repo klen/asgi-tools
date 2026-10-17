@@ -10,7 +10,12 @@ from typing import TYPE_CHECKING, Any, Callable, Self, TypeVar, cast
 
 from http_router import PrefixedRoute
 
-from .errors import ASGIConnectionClosedError, ASGIInvalidMethodError, ASGINotFoundError
+from .errors import (
+    ASGIConnectionClosedError,
+    ASGIInvalidMethodError,
+    ASGINotFoundError,
+    ASGIRequestEntityTooLargeError,
+)
 from .logs import logger
 from .middleware import LifespanMiddleware, StaticFilesMiddleware, parse_response
 from .request import Request
@@ -93,6 +98,9 @@ class App:
         # Register base exception handlers
         self.exception_handlers = {
             ASGIConnectionClosedError: to_awaitable(lambda _, __: None),
+            ASGIRequestEntityTooLargeError: to_awaitable(
+                lambda _, __: ResponseError.REQUEST_ENTITY_TOO_LARGE()
+            ),
         }
 
         # Setup routing
