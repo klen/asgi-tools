@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, AsyncGenerator, Iterator, Mapping, Protoc
 from yarl import URL
 
 from ._compat import json_loads
-from .constants import DEFAULT_CHARSET
+from .constants import BASE_ENCODING, DEFAULT_CHARSET
 from .errors import ASGIDecodeError
 from .forms import read_formdata
 from .types import TJSON, TASGIReceive, TASGIScope, TASGISend
@@ -29,9 +29,9 @@ DEFAULT_FORMDATA_MAX_SIZE = 1024 * 1024 * 10  # 10 MB
 
 
 class UploadHandler(Protocol):
-    """Protocol for file upload handlers."""
+    """Resolve an uploaded filename to a storage path."""
 
-    async def __call__(self, filename: str, content_type: str, content: bytes) -> str | Path: ...
+    def __call__(self, filename: str) -> str | Path: ...
 
 
 class Request(TASGIScope):
@@ -143,7 +143,7 @@ class Request(TASGIScope):
                 scheme=scope.get("scheme", "http"),
                 encoded=True,
                 path=f"{scope.get('root_path', '')}{scope['path']}",
-                query_string=scope["query_string"].decode(encoding="ascii"),
+                query_string=scope["query_string"].decode(BASE_ENCODING),
             )
 
         return self._url

@@ -525,12 +525,12 @@ def parse_response(response, headers: dict | None = None) -> Response:
 def parse_websocket_msg(msg: TASGIMessage, charset: str | None = None) -> TASGIMessage | str:
     """Prepare websocket message."""
     data = msg.get("text")
-    if data:
+    if data is not None:
         return data
 
     data = msg.get("bytes")
-    if data:
-        return data.decode(charset)
+    if data is not None:
+        return data.decode(charset or DEFAULT_CHARSET)
 
     return msg
 

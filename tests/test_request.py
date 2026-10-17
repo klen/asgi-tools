@@ -68,6 +68,24 @@ async def test_base(receive, send):
     assert r2 is not request
 
 
+async def test_url_non_ascii_query(receive, send):
+    scope = {
+        "type": "http",
+        "asgi": {"version": "3.0"},
+        "http_version": "1.1",
+        "method": "GET",
+        "headers": [(b"host", b"testserver:8000")],
+        "scheme": "http",
+        "path": "/testurl",
+        "query_string": "q=caf\u00e9".encode("latin-1"),
+        "server": ("testserver", 8000),
+        "client": ("127.0.0.1", 123),
+    }
+    request = Request(scope, receive, send)
+    assert request.url.query_string == "q=caf\u00e9"
+    assert str(request.url) == "http://testserver:8000/testurl?q=caf\u00e9"
+
+
 async def test_media(gen_request):
     req = gen_request()
     assert req.media

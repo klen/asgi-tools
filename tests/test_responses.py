@@ -27,6 +27,7 @@ from asgi_tools import (
     parse_response,
 )
 from asgi_tools._compat import aio_sleep
+from asgi_tools.response import parse_websocket_msg
 from asgi_tools.tests import Pipe
 from asgi_tools.utils import to_awaitable
 
@@ -286,6 +287,15 @@ async def test_websocket_response(client_cls):
         assert msg == ["ping", "pong"]
         with pytest.raises(ASGIConnectionClosedError):
             await ws.receive()
+
+
+def test_parse_websocket_msg():
+    assert parse_websocket_msg({"type": "websocket.send", "text": ""}) == ""
+    assert parse_websocket_msg({"type": "websocket.send", "bytes": b""}) == ""
+    assert parse_websocket_msg({"type": "websocket.send", "text": "hi"}) == "hi"
+    assert parse_websocket_msg({"type": "websocket.send", "bytes": b"hi"}) == "hi"
+    msg = {"type": "websocket.close", "code": 1000}
+    assert parse_websocket_msg(msg) is msg
 
 
 async def test_parse_response():
