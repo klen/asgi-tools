@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Converted ``README.rst`` to ``README.md`` and updated the packaging metadata.
 - Expanded the guide with class-based views, ``RouterMiddleware``/``BackgroundMiddleware``,
   and lifespan testing sections, and the API reference with the ``errors`` module,
   ``parse_response`` and ``Request.media``.
