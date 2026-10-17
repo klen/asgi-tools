@@ -102,7 +102,7 @@ requires-dist = [
     { name = "aiofile", marker = "extra == 'tests'" },
     { name = "bump2version", marker = "extra == 'dev'" },
     { name = "cython", marker = "extra == 'dev'" },
-    { name = "http-router", specifier = ">=4.0.0" },
+    { name = "http-router", specifier = ">=7.1.0" },
     { name = "httpx", marker = "extra == 'examples'" },
     { name = "jinja2", marker = "extra == 'examples'" },
     { name = "multidict", specifier = ">=6.6.3" },

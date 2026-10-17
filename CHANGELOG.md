@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ``request.form()`` now raises ``ASGIRequestEntityTooLargeError`` (returned as HTTP 413 by
   :class:`~asgi_tools.App`) when the body exceeds ``max_size``, instead of silently truncating
   the form data.
+- Require ``http-router >= 7.1.0`` (adds the ``unquote_params`` option).
 
 ### Fixed
 
@@ -21,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a ``name`` now raises, and a file part without ``Content-Type`` defaults to an empty string.
 - ``ResponseError`` with an unknown HTTP status name now raises ``AttributeError`` instead of
   ``KeyError``, so ``hasattr()`` works as expected.
+- Path params are no longer double-decoded: ASGI servers percent-decode ``scope["path"]``, so
+  ``asgi_tools.Router`` now keeps captured params raw.
 
 ### Removed
 

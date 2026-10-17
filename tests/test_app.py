@@ -79,6 +79,20 @@ async def test_scope_endpoint(client_cls):
     assert await res.text() == "test_scope_endpoint.<locals>.endpoint"
 
 
+async def test_path_params_not_double_decoded(client_cls):
+    app = App()
+
+    @app.route("/users/{name}")
+    async def show(request):
+        return request.path_params["name"]
+
+    client = client_cls(app)
+    # ASGI decodes %2520 to the literal "%20" in scope["path"]; params must stay raw.
+    res = await client.get("/users/a%2520b")
+    assert res.status_code == 200
+    assert await res.text() == "a%20b"
+
+
 async def test_errors(client_cls):
     app = App()
     client = client_cls(app)

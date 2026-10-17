@@ -10,8 +10,12 @@ from .errors import ASGIError, ASGIInvalidMethodError, ASGINotFoundError
 
 
 class Router(HTTPRouter):
-    """Rebind router errors."""
+    """Rebind router errors; keep path params raw (ASGI paths are pre-decoded)."""
 
     NotFoundError: ClassVar[type[Exception]] = ASGINotFoundError
     RouterError: ClassVar[type[Exception]] = ASGIError
     InvalidMethodError: ClassVar[type[Exception]] = ASGIInvalidMethodError
+
+    def __init__(self, *, unquote_params=False, **kwargs):
+        # scope["path"] is percent-decoded by the ASGI server; unquoting again double-decodes.
+        super().__init__(unquote_params=unquote_params, **kwargs)
