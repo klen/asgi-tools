@@ -73,11 +73,12 @@ Form Data and File Uploads
         return "Upload successful"
 
 .. note::
-   By default, ASGI-Tools limits form data to 10MB. You can adjust this limit when reading form data:
+   By default, ASGI-Tools limits form data to 10MB. You can adjust this limit
+   when reading form data:
 
-.. code-block:: python
+   .. code-block:: python
 
-    form = await request.form(max_size=20 * 1024 * 1024)  # 20MB
+       form = await request.form(max_size=20 * 1024 * 1024)  # 20MB
 
    If the body exceeds ``max_size``, ``request.form()`` raises
    ``ASGIRequestEntityTooLargeError``, which :class:`~asgi_tools.App` returns as an
@@ -236,6 +237,41 @@ LifespanMiddleware
         # Cleanup resources
         pass
 
+RouterMiddleware
+~~~~~~~~~~~~~~~~
+
+Routes requests to handlers registered on the middleware itself (for use
+without :class:`~asgi_tools.App`):
+
+.. code-block:: python
+
+    from asgi_tools import ResponseHTML, RouterMiddleware
+
+    app = RouterMiddleware()
+
+    @app.route('/status')
+    async def status(scope, receive, send):
+        response = ResponseHTML('OK')
+        await response(scope, receive, send)
+
+BackgroundMiddleware
+~~~~~~~~~~~~~~~~~~~~
+
+Runs awaitables scheduled during a request after the response has been sent:
+
+.. code-block:: python
+
+    from asgi_tools import App, BackgroundMiddleware
+
+    app = App()
+
+    @app.route('/notify')
+    async def notify(request):
+        BackgroundMiddleware.set_task(send_email())
+        return 'Accepted'
+
+    app = BackgroundMiddleware(app)
+
 Error Handling
 --------------
 
@@ -243,7 +279,7 @@ Register custom error handlers:
 
 .. code-block:: python
 
-    from asgi_tools.response import ResponseError
+    from asgi_tools import ResponseError
 
     @app.on_error(TimeoutError)
     async def handle_timeout(request, error):
@@ -282,5 +318,36 @@ WebSocket Testing
         await ws.send('Hello')
         msg = await ws.receive()
         assert msg == 'Hello, Client!'
+
+Lifespan Testing
+~~~~~~~~~~~~~~~~
+
+Run startup/shutdown handlers around a test:
+
+.. code-block:: python
+
+    async with client.lifespan():
+        response = await client.get('/')
+        assert response.status_code == 200
+
+Class-Based Views
+-----------------
+
+Group HTTP methods for one path with :class:`~asgi_tools.HTTPView`:
+
+.. code-block:: python
+
+    from asgi_tools import HTTPView
+
+    @app.route('/items')
+    class ItemsView(HTTPView):
+
+        async def get(self, request):
+            return ['item1', 'item2']
+
+        async def post(self, request):
+            return {'created': True}
+
+A method that is not defined (e.g. ``PUT``) results in a 405 response.
 
 .. _ASGI: https://asgi.readthedocs.io/en/latest/

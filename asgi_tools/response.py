@@ -165,8 +165,8 @@ class ResponseJSON(Response):
 class ResponseStream(Response):
     """Streams response body as chunks.
 
-    :param content: An async generator to stream the response's body
-    :type content: AsyncGenerator
+    :param stream: An async generator to stream the response's body
+    :type stream: AsyncGenerator
     """
 
     def __init__(self, stream: AsyncGenerator[Any, None], **kwargs):
@@ -206,8 +206,8 @@ class ResponseStream(Response):
 class ResponseSSE(ResponseStream):
     """Streams Server-Sent Events (SSE).
 
-    :param content: An async generator to stream the events
-    :type content: AsyncGenerator
+    :param stream: An async generator to stream the events
+    :type stream: AsyncGenerator
     """
 
     content_type = "text/event-stream"
@@ -234,7 +234,7 @@ class ResponseFile(ResponseStream):
 
     :param filepath: The filepath to the file
     :type filepath: str | Path
-    :param chunk_size: Default chunk size (32768)
+    :param chunk_size: Default chunk size (65536)
     :type chunk_size: int
     :param filename: If set, `Content-Disposition` header will be generated
     :type filename: str
@@ -503,7 +503,13 @@ CAST_RESPONSE: Mapping[type, type[Response]] = {
 
 
 def parse_response(response, headers: dict | None = None) -> Response:
-    """Parse the given object and convert it into a asgi_tools.Response."""
+    """Convert the given object into an :class:`asgi_tools.Response`.
+
+    :param response: A :class:`Response`, ``str``/``bytes``/``dict``/``list``/``int``/
+        ``bool``/``None``, or a ``(status, body, headers)`` tuple.
+    :param headers: Optional headers to apply to the created response.
+    :return: The converted response.
+    """
     if isinstance(response, Response):
         return response
 

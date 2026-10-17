@@ -52,6 +52,8 @@ Request
 
     .. autoattribute:: content_type
 
+    .. autoattribute:: media
+
     .. autoattribute:: url
 
     .. automethod:: stream
@@ -107,6 +109,23 @@ Responses
                 await response(scope, receive, send)
 
     .. automethod:: __call__
+
+
+parse_response
+^^^^^^^^^^^^^^
+
+.. autofunction:: parse_response
+
+    Convert a handler's return value into a :class:`Response` using the
+    :class:`ResponseMiddleware` rules (see its documentation for the full
+    conversion table).
+
+    .. code-block:: python
+
+        from asgi_tools import parse_response
+
+        response = parse_response({'hello': 'world'})  # ResponseJSON
+        response = parse_response((404, 'Not Found'))  # Response with status 404
 
 
 ResponseText
@@ -249,7 +268,7 @@ ResponseStream
 
         async def app(scope, receive, send):
             generator = stream_response()
-            response = ResponseStream(generator, content_type='plain/text')
+            response = ResponseStream(generator, content_type='text/plain')
             await response(scope, receive, send)
 
 ResponseSSE
@@ -548,6 +567,17 @@ Testing
 
             assert SIDE_EFFECTS['started']
             assert SIDE_EFFECTS['finished']
+
+Exceptions
+----------
+
+Raised by ASGI-Tools internals; :class:`~asgi_tools.App` and
+:class:`~asgi_tools.ResponseMiddleware` convert routing errors into the
+matching HTTP responses.
+
+.. automodule:: asgi_tools.errors
+   :members:
+   :undoc-members:
 
 Indices and tables
 ==================

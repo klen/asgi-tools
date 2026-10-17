@@ -189,7 +189,10 @@ class Request(TASGIScope):
 
     @property
     def media(self) -> Mapping[str, str]:
-        """Prepare a media data for the request."""
+        """A lazy property that parses the request's ``Content-Type`` header into a mapping of
+        media options, with the media type under the ``content_type`` key (e.g.
+        ``{'content_type': 'text/html', 'charset': 'utf-8'}``).
+        """
         if self._media is None:
             content_type_header = self.headers.get("content-type", "")
             content_type, opts = parse_options_header(content_type_header)

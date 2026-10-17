@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Expanded the guide with class-based views, ``RouterMiddleware``/``BackgroundMiddleware``,
+  and lifespan testing sections, and the API reference with the ``errors`` module,
+  ``parse_response`` and ``Request.media``.
+- Fixed stale docstrings (``ResponseFile`` chunk size, ``ResponseStream``/``ResponseSSE``
+  parameter names) and moved the Sphinx intersphinx inventories to their current URLs.
 - ``request.form()`` now raises ``ASGIRequestEntityTooLargeError`` (returned as HTTP 413 by
   :class:`~asgi_tools.App`) when the body exceeds ``max_size``, instead of silently truncating
   the form data.

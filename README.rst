@@ -51,7 +51,7 @@ For instance these middlewares were built with the library:
 - `RouterMiddleware`_        -- Route HTTP requests
 - `LifespanMiddleware`_      -- Process a lifespan cycle
 - `StaticFilesMiddleware`_   -- Serve static files from URL prefixes
-- `asgi_tools.tests.TestClient <https://klen.github.io/asgi-tools/api.html#testclient>`_ -- A test client with websockets support to test asgi applications
+- `asgi_tools.tests.ASGITestClient <https://klen.github.io/asgi-tools/api.html#asgi_tools.tests.ASGITestClient>`_ -- A test client with websockets support to test asgi applications
 - `App`_                     -- A simple foundation for ASGI apps
 
 .. _contents:

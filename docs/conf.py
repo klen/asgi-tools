@@ -88,7 +88,7 @@ autodoc_typehints = "description"
 highlight_language = "python3"
 
 intersphinx_mapping = {
-    "python": ("http://docs.python.org/3", None),
-    "multidict": ("https://multidict.readthedocs.io/en/stable/", None),
-    "yarl": ("https://yarl.readthedocs.io/en/stable/", None),
+    "python": ("https://docs.python.org/3", None),
+    "multidict": ("https://multidict.aio-libs.org/en/stable/", None),
+    "yarl": ("https://yarl.aio-libs.org/en/stable/", None),
 }
