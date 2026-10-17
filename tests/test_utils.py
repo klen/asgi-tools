@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 from __future__ import annotations
 
 from asgi_tools.utils import is_awaitable, parse_options_header, to_awaitable

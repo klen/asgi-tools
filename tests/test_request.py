@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 """Test Request."""
 
 from __future__ import annotations
@@ -150,10 +152,12 @@ async def test_multipart(client_cls):
 
     client = client_cls(app)
     with Path(__file__).open() as f:
+        first_line = f.read().split("\n")[0]
+        f.seek(0)
         res = await client.post("/", data={"test": f})
     assert res.status_code == 200
-    assert await res.text() == '"""Test Request."""'
-    assert res.headers["content-length"] == str(len('"""Test Request."""'))
+    assert await res.text() == first_line
+    assert res.headers["content-length"] == str(len(first_line))
 
 
 async def test_multipart_max_size(client_cls):

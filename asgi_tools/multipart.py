@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 """The code is based on a great work of Andrew Dunham
 (https://github.com/andrew-d/python-multipart) and has been changed to improve speed.
 

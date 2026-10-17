@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 """Simple Base for ASGI Apps."""
 
 from __future__ import annotations

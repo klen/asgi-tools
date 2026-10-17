@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 """Testing tools."""
 
 from __future__ import annotations

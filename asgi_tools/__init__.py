@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 """ASGI-Tools -- Tools to make ASGI Applications"""
 
 from __future__ import annotations

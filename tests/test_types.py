@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 from __future__ import annotations
 
 from asgi_tools import types

@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 """ASGI-Tools includes a `asgi_tools.Request` class that gives you a nicer interface onto the
 incoming request.
 """

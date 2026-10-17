@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 """ASGI Tools Responses Tests."""
 
 from __future__ import annotations

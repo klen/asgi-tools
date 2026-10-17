@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 """Work with multipart."""
 
 from __future__ import annotations

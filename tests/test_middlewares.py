@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 """test middlewares"""
 
 from __future__ import annotations
@@ -215,7 +217,7 @@ async def test_staticfiles_middleware(client_cls, app):
     res = await client.get("/static/test_middlewares.py")
     assert res.status_code == 200
     text = await res.text()
-    assert text.startswith('"""test middlewares"""')
+    assert '"""test middlewares"""' in text
 
     res = await client.get("/static/fixtures/multipart/CR_in_header.http")
     assert res.status_code == 200

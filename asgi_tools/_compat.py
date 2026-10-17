@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 """Compatibility layer."""
 
 from __future__ import annotations

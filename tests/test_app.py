@@ -1,3 +1,5 @@
+# Copyright (c) 2020 Kirill Klenov
+
 """Application Tests."""
 
 from __future__ import annotations
@@ -26,7 +28,7 @@ async def test_app(client_cls):
     res = await client.get("/static/test_app.py")
     assert res.status_code == 200
     text = await res.text()
-    assert text.startswith('"""Application Tests."""')
+    assert '"""Application Tests."""' in text
 
     res = await client.post("/test/42")
     assert res.status_code == 405
@@ -159,7 +161,7 @@ async def test_app_static(client_cls):
         res = await client.get("/static/test_app.py")
         assert res.status_code == 200
         text = await res.text()
-        assert text.startswith('"""Application Tests."""')
+        assert '"""Application Tests."""' in text
 
 
 async def test_app_handle_exception(client_cls):
