@@ -20,6 +20,7 @@ repos:
       - id: check-merge-conflict
         stages: ["pre-commit"]
       - id: check-added-large-files
+        exclude: ^uv\.lock$
         stages: ["pre-commit"]
       - id: check-ast
         stages: ["pre-commit"]

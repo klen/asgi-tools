@@ -1,13 +1,11 @@
-VIRTUAL_ENV 	?= env
 PACKAGE		?= asgi_tools
 
-all: $(VIRTUAL_ENV)
+all: .venv
 
-$(VIRTUAL_ENV): pyproject.toml .pre-commit-config.yaml
-	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
-	@$(VIRTUAL_ENV)/bin/pip install -e .[tests,dev,examples,docs]
-	@$(VIRTUAL_ENV)/bin/pre-commit install
-	@touch $(VIRTUAL_ENV)
+.venv: pyproject.toml uv.lock .pre-commit-config.yaml
+	@uv sync --frozen --extra tests --extra dev --extra examples
+	@.venv/bin/pre-commit install
+	@touch .venv
 
 
 .PHONY: clean
@@ -19,35 +17,35 @@ clean:
 	find $(CURDIR) -name "__pycache__" | xargs rm -rf
 
 .PHONY: docs
-docs: $(VIRTUAL_ENV)
+docs: .venv
 	rm -rf docs/_build/html
 	make -C docs html
 
-outdated: $(VIRTUAL_ENV)
-	poetry show --outdated
+outdated: .venv
+	uv tree --outdated
 
-upgrade: $(VIRTUAL_ENV)
-	poetry update
-	poetry install --all-extras
+upgrade: .venv
+	uv lock --upgrade
+	uv sync --all-extras
 
 
 LATEST_BENCHMARK = $(shell ls -t .benchmarks/* | head -1 | head -c4)
-test t: cyt $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/pytest tests --benchmark-autosave --benchmark-compare=$(LATEST_BENCHMARK)
+test t: cyt .venv
+	.venv/bin/pytest tests --benchmark-autosave --benchmark-compare=$(LATEST_BENCHMARK)
 
-lint: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/mypy
-	$(VIRTUAL_ENV)/bin/ruff check
+lint: .venv
+	.venv/bin/mypy
+	.venv/bin/ruff check
 
 
-mypy: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/mypy
+mypy: .venv
+	.venv/bin/mypy
 
 
 EXAMPLE = rates
 
-example: $(VIRTUAL_ENV)
-	$(VIRTUAL_ENV)/bin/uvicorn --loop asyncio --reload examples.$(EXAMPLE):app
+example: .venv
+	.venv/bin/uvicorn --loop asyncio --reload examples.$(EXAMPLE):app
 
 example-rates:
 	make example EXAMPLE=rates
@@ -71,15 +69,15 @@ example-websocket:
 	make example EXAMPLE=websocket
 
 $(PACKAGE)/%.c: $(PACKAGE)/%.pyx
-	$(VIRTUAL_ENV)/bin/cython -a $<
+	.venv/bin/cython -a $<
 
 cyt: $(PACKAGE)/multipart.c $(PACKAGE)/forms.c
 
 compile: cyt
-	$(VIRTUAL_ENV)/bin/python setup.py build_ext --inplace
+	.venv/bin/python setup.py build_ext --inplace
 
 # ======================
-#  Bump version (poetry)
+#  Bump version
 # ======================
 
 RELEASE	?= minor
@@ -94,10 +92,10 @@ release:
 	@git pull
 	@echo "Bumping version and creating release commit and tag..."
 	@uvx bump-my-version bump $(RELEASE)
-	@echo "Version bumped to `poetry version --short`."
-	@poetry lock
+	@echo "Version bumped to `uvx bump-my-version show current_version`."
+	@uv lock
 	@echo "Committing version bump and creating tag..."
-	@VERSION="$$(poetry version --short)"; \
+	@VERSION="$$(uvx bump-my-version show current_version)"; \
 		{ \
 			printf 'build(release): %s\n\n' "$$VERSION"; \
 			printf 'Changes:\n\n'; \
@@ -106,14 +104,14 @@ release:
 	@echo "Merging changes between branches..."
 	@git checkout main
 	@git merge develop
-	@VERSION="$$(poetry version --short)"; \
+	@VERSION="$$(uvx bump-my-version show current_version)"; \
 		git push origin main; \
 		git tag -a "$$VERSION" -m "$$VERSION"; \
 		git push origin tag "$$VERSION"
 	@git checkout develop
 	@git merge main
 	@git push origin develop
-	@echo "Release process complete for `poetry version --short`"
+	@echo "Release process complete for `uvx bump-my-version show current_version`"
 
 .PHONY: minor
 minor: release
@@ -127,4 +125,4 @@ major:
 	make release RELEASE=major
 
 version v:
-	@poetry version --short
+	@uvx bump-my-version show current_version

@@ -40,14 +40,14 @@ For the latest development version directly from GitHub:
 
     pip install git+https://github.com/klen/asgi-tools.git
 
-Using Poetry
-~~~~~~~~~~~~
+Using uv
+~~~~~~~~
 
-If you manage dependencies with Poetry:
+If you manage dependencies with uv:
 
 .. code-block:: sh
 
-    poetry add asgi-tools
+    uv add asgi-tools
 
 ASGI Server Requirement
 ------------------------
