@@ -123,7 +123,7 @@ class App:
         if not debug:
 
             async def handle_unknown_exception(_: Request, exc: BaseException) -> Response:
-                self.logger.exception(exc)
+                self.logger.error(exc, exc_info=(type(exc), exc, exc.__traceback__))
                 return ResponseError.INTERNAL_SERVER_ERROR()
 
             self.exception_handlers[Exception] = handle_unknown_exception
