@@ -127,9 +127,12 @@ class MultipartReader(FormReader):
 
     def on_headers_finished(self, *_):
         _, options = parse_options_header(
-            self.headers[b"content-disposition"].decode(self.charset),
+            (self.headers.get(b"content-disposition") or b"").decode(self.charset),
         )
-        self.name = options["name"]
+        self.name = options.get("name", "")
+        if not self.name:
+            raise ValueError("Multipart part is missing a name")
+
         if "filename" in options:
             upload_to = self.upload_to
             if upload_to is not None:
@@ -140,7 +143,7 @@ class MultipartReader(FormReader):
                 self.partdata = f = SpooledTemporaryFile(self.max_size)  # noqa: SIM115
                 f._file.name = options["filename"]  # type: ignore[]
 
-            f.content_type = self.headers[b"content-type"].decode(self.charset)
+            f.content_type = self.headers.get(b"content-type", b"").decode(self.charset)
 
     def on_part_data(self, data: bytes, start: int, end: int):
         self.partdata.write(data[start:end])

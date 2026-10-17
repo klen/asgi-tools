@@ -8,8 +8,6 @@ The original code is licensed by Apache2 license.
 
 from __future__ import annotations
 
-from contextlib import suppress
-
 # Flags for the multipart parser.
 from typing import Final
 
@@ -56,8 +54,8 @@ class BaseParser:
         self.callbacks = callbacks
 
     def callback(self, name: str, data: bytes, start: int, end: int):
-        with suppress(KeyError):
-            func = self.callbacks[name]
+        func = self.callbacks.get(name)
+        if func is not None:
             func(data, start, end)
 
     def write(self, _: bytes):

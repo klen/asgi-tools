@@ -13,7 +13,6 @@ from asgi_tools.tests import encode_multipart
 
 
 async def test_formdata(gen_request, tmp_path):
-
     request = gen_request(body=[b"answer=42&na", b"mes=bob&test", b"&names=alice"])
     formdata = await read_formdata(request, 0, None)
     assert formdata["answer"] == "42"
@@ -60,7 +59,6 @@ async def test_formdata(gen_request, tmp_path):
     ],
 )
 def test_query(sample):
-
     data, expected = sample
 
     reader = FormReader("utf-8")
@@ -70,6 +68,37 @@ def test_query(sample):
 
 
 DATA = Path(__file__).parent / "fixtures/multipart"
+
+
+async def test_multipart_missing_headers(gen_request):
+    """A part missing `name` must raise, not inherit the previous part's name."""
+    raw = (
+        b"--boundary\r\n"
+        b'Content-Disposition: form-data; name="a"\r\n\r\n'
+        b"one\r\n"
+        b"--boundary\r\n"
+        b"Content-Disposition: form-data\r\n\r\n"
+        b"two\r\n"
+        b"--boundary--\r\n"
+    )
+    request = gen_request(
+        body=[raw], headers={"content-type": "multipart/form-data; boundary=boundary"}
+    )
+    with pytest.raises(ValueError, match="missing a name"):
+        await read_formdata(request, 0, None)
+
+    # A file part without Content-Type is legal; its content_type defaults to "".
+    raw = (
+        b"--boundary\r\n"
+        b'Content-Disposition: form-data; name="f"; filename="x.txt"\r\n\r\n'
+        b"data\r\n"
+        b"--boundary--\r\n"
+    )
+    request = gen_request(
+        body=[raw], headers={"content-type": "multipart/form-data; boundary=boundary"}
+    )
+    formdata = await read_formdata(request, 0, None)
+    assert formdata["f"].content_type == ""
 
 
 @pytest.mark.parametrize(
@@ -95,7 +124,6 @@ DATA = Path(__file__).parent / "fixtures/multipart"
     ],
 )
 def test_multipart(basename, gen_request):
-
     data, meta = loader(basename)
 
     # Initialize parsers

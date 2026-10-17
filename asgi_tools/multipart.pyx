@@ -45,11 +45,9 @@ cdef class BaseParser:
         self.callbacks = callbacks
 
     cdef void callback(self, str name, bytes data, int start, int end) except *:
-        try:
-            func = self.callbacks[name]
+        func = self.callbacks.get(name)
+        if func is not None:
             func(data, start, end)
-        except KeyError:
-            pass
 
     cpdef void write(self, bytes data) except *:
         pass

@@ -111,8 +111,13 @@ cdef class MultipartReader(FormReader):
         self.curvalue.clear()
 
     def on_headers_finished(self, data: bytes, start: int, end: int):
-        _, options = parse_options_header(self.headers[b'content-disposition'].decode(self.charset))
-        self.name = options['name']
+        _, options = parse_options_header(
+            (self.headers.get(b'content-disposition') or b'').decode(self.charset)
+        )
+        self.name = options.get('name', '')
+        if not self.name:
+            raise ValueError('Multipart part is missing a name')
+
         upload_to = self.upload_to
         if 'filename' in options:
             if upload_to is not None:
@@ -123,7 +128,7 @@ cdef class MultipartReader(FormReader):
                 self.partdata = f = SpooledTemporaryFile(self.max_size)
                 f._file.name = options['filename']
 
-            f.content_type = self.headers[b'content-type'].decode(self.charset)
+            f.content_type = self.headers.get(b'content-type', b'').decode(self.charset)
 
     def on_part_data(self, data: bytes, start: int, end: int):
         self.partdata.write(data[start:end])
