@@ -51,7 +51,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="3.1.0" />
+  <meta name="docsearch:version" content="3.2.0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -365,7 +365,7 @@
   <div class="bd-toc-item navbar-nav"></div>
 </nav></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 3.1.0
+    Version: 3.2.0
 </div>
 </div>
     </div>
@@ -1298,7 +1298,7 @@ will be catched and returned as a response</p>
 <h3>RouterMiddleware<a class="headerlink" href="#routermiddleware" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.RouterMiddleware">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">RouterMiddleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">router</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#RouterMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.RouterMiddleware" title="Link to this definition">#</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">RouterMiddleware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">router</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hosts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/middleware.html#RouterMiddleware"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.RouterMiddleware" title="Link to this definition">#</a></dt>
 <dd><p>Manage routing.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asgi_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">RouterMiddleware</span><span class="p">,</span> <span class="n">ResponseHTML</span><span class="p">,</span> <span class="n">ResponseError</span>
 
@@ -1353,6 +1353,7 @@ will be catched and returned as a response</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>app</strong> (<em>TASGIApp</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>router</strong> (<em>Router</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>use_hosts</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1427,7 +1428,7 @@ Trio and Curio use their native async file I/O and need nothing extra.</p>
 <h2>Application<a class="headerlink" href="#application" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="asgi_tools.App">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">App</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger=&lt;Logger</span> <span class="pre">asgi-tools</span> <span class="pre">(WARNING)&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_url_prefix='/static'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_folders=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_last_slash=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App" title="Link to this definition">#</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">asgi_tools.</span></span><span class="sig-name descname"><span class="pre">App</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger=&lt;Logger</span> <span class="pre">asgi-tools</span> <span class="pre">(WARNING)&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_url_prefix='/static'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_folders=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_last_slash=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hosts=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App" title="Link to this definition">#</a></dt>
 <dd><p>A helper class to build ASGI applications quickly and efficiently.</p>
 <dl class="simple">
 <dt>Features:</dt><dd><ul class="simple">
@@ -1448,6 +1449,7 @@ Trio and Curio use their native async file I/O and need nothing extra.</p>
 <li><p><strong>static_url_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – URL prefix for static files</p></li>
 <li><p><strong>static_folders</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><em>Path</em><em>]</em><em>]</em>) – List of folders to serve static files from</p></li>
 <li><p><strong>trim_last_slash</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Treat “/path” and “/path/” as the same route</p></li>
+<li><p><strong>use_hosts</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -1470,13 +1472,15 @@ Trio and Curio use their native async file I/O and need nothing extra.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="asgi_tools.App.route">
-<span class="sig-name descname"><span class="pre">route</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">methods</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">opts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.route"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App.route" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">route</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">methods</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hosts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">opts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/asgi_tools/app.html#App.route"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#asgi_tools.App.route" title="Link to this definition">#</a></dt>
 <dd><p>Register a route handler.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>paths</strong> (<em>TPath</em>) – One or more URL paths to match</p></li>
 <li><p><strong>methods</strong> (<em>Optional</em><em>[</em><em>TMethods</em><em>]</em>) – HTTP methods to match (GET, POST, etc.)</p></li>
+<li><p><strong>hosts</strong> (<em>Optional</em><em>[</em><em>THostsArg</em><em>]</em>) – Restrict the route to the given host(s), compared case-insensitively
+and ignoring the port. Requires <code class="docutils literal notranslate"><span class="pre">use_hosts=True</span></code> on the application</p></li>
 <li><p><strong>opts</strong> (<em>Any</em>) – Additional options for the route</p></li>
 </ul>
 </dd>

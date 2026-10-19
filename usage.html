@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="3.1.0" />
+  <meta name="docsearch:version" content="3.2.0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -366,7 +366,7 @@
   <div class="bd-toc-item navbar-nav"></div>
 </nav></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 3.1.0
+    Version: 3.2.0
 </div>
 </div>
     </div>
@@ -587,6 +587,37 @@ HTTP 413 response.</p>
 </pre></div>
 </div>
 </section>
+<section id="host-based-routing">
+<h3>Host-Based Routing<a class="headerlink" href="#host-based-routing" title="Link to this heading">#</a></h3>
+<p>Host matching is opt-in: enable it with <code class="docutils literal notranslate"><span class="pre">use_hosts=True</span></code> when creating the
+application. Then restrict a route to one or more hosts with <code class="docutils literal notranslate"><span class="pre">hosts</span></code>. The
+request’s <code class="docutils literal notranslate"><span class="pre">Host</span></code> header is matched case-insensitively, with the port stripped:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">App</span><span class="p">(</span><span class="n">use_hosts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/reports&#39;</span><span class="p">,</span> <span class="n">hosts</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;admin.example.com&#39;</span><span class="p">])</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">reports</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;Admin reports&#39;</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/search&#39;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;Search&#39;</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">/search</span></code> is served on every host, while <code class="docutils literal notranslate"><span class="pre">/reports</span></code> is served only on
+<code class="docutils literal notranslate"><span class="pre">admin.example.com</span></code> and returns 404 for other hosts. Routes registered
+without <code class="docutils literal notranslate"><span class="pre">hosts</span></code> keep matching every host. Without <code class="docutils literal notranslate"><span class="pre">use_hosts</span></code> (the
+default) the host is not processed, so <code class="docutils literal notranslate"><span class="pre">hosts</span></code> routes never match.</p>
+<p>The option works when mounting an application as well:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">api</span> <span class="o">=</span> <span class="n">App</span><span class="p">()</span>
+
+<span class="nd">@api</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/users&#39;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">users</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[]</span>
+
+<span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/api&#39;</span><span class="p">,</span> <span class="n">hosts</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;api.example.com&#39;</span><span class="p">])(</span><span class="n">api</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="static-files">
 <h2>Static Files<a class="headerlink" href="#static-files" title="Link to this heading">#</a></h2>
@@ -660,6 +691,9 @@ without <a class="reference internal" href="api.html#asgi_tools.App" title="asgi
     <span class="k">await</span> <span class="n">response</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Routes accept the same <code class="docutils literal notranslate"><span class="pre">methods</span></code> and <code class="docutils literal notranslate"><span class="pre">hosts</span></code> options as
+<a class="reference internal" href="api.html#asgi_tools.App.route" title="asgi_tools.App.route"><code class="xref py py-meth docutils literal notranslate"><span class="pre">route()</span></code></a>. Host matching is enabled with
+<code class="docutils literal notranslate"><span class="pre">RouterMiddleware(use_hosts=True)</span></code>.</p>
 </section>
 <section id="backgroundmiddleware">
 <h3>BackgroundMiddleware<a class="headerlink" href="#backgroundmiddleware" title="Link to this heading">#</a></h3>
@@ -811,6 +845,7 @@ without <a class="reference internal" href="api.html#asgi_tools.App" title="asgi
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dynamic-urls">Dynamic URLs</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#url-converters">URL Converters</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-regex-patterns">Custom Regex Patterns</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#host-based-routing">Host-Based Routing</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#static-files">Static Files</a></li>
