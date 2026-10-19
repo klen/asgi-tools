@@ -28,7 +28,7 @@ classifiers = [
   "Framework :: Trio",
 ]
 dependencies = [
-  "http-router >= 7.1.0",
+  "http-router >= 8.0.0",
   "multidict >= 6.6.3",
   "sniffio",
   "yarl >= 1.8.2",

@@ -50,6 +50,21 @@ def parse_headers(headers: TASGIHeaders) -> CIMultiDict:
     )
 
 
+def parse_host(headers: TASGIHeaders) -> str | None:
+    """Get the request host lowercased and without a port (``None`` if not set).
+
+    http_router compares hosts verbatim, so the value has to be normalized before routing.
+    """
+    for name, value in headers:
+        if name.lower() == b"host":
+            host = value.decode(BASE_ENCODING).lower()
+            if host.startswith("["):  # IPv6 literal, e.g. [::1]:8000
+                return host[1:].split("]", 1)[0]
+            return host.partition(":")[0]
+
+    return None
+
+
 OPTION_HEADER_PIECE_RE = re.compile(
     r"""
     \s*,?\s*  # newlines were replaced with commas

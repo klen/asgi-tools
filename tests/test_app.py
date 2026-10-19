@@ -386,6 +386,59 @@ async def test_app_lifespan(app, client):
     assert side_effects["finished"]
 
 
+async def test_hosts(client_cls):
+    app = App(use_hosts=True)
+
+    @app.route("/hosted", hosts="example.com")
+    async def hosted(request):
+        return "hosted"
+
+    @app.route("/hosted")
+    async def any_host(request):
+        return "any"
+
+    client = client_cls(app)
+
+    res = await client.get("/hosted", headers={"host": "Example.COM:8000"})
+    assert await res.text() == "hosted"
+
+    res = await client.get("/hosted", headers={"host": "other.com"})
+    assert await res.text() == "any"
+
+
+async def test_hosts_opt_in(client_cls):
+    app = App()
+
+    @app.route("/hosted", hosts="example.com")
+    async def hosted(request):
+        return "hosted"
+
+    client = client_cls(app)
+
+    # Without ``use_hosts`` the host is not matched, so ``hosts`` routes never match
+    res = await client.get("/hosted", headers={"host": "example.com"})
+    assert res.status_code == 404
+
+
+async def test_hosts_mount(client_cls):
+    subapp = App()
+
+    @subapp.route("/route")
+    async def route(request):
+        return "OK from subapp"
+
+    app = App(use_hosts=True)
+    app.route("/sub", hosts=["example.com"])(subapp)
+
+    client = client_cls(app)
+
+    res = await client.get("/sub/route", headers={"host": "example.com"})
+    assert res.status_code == 200
+
+    res = await client.get("/sub/route", headers={"host": "other.com"})
+    assert res.status_code == 404
+
+
 async def test_nested(app, client):
     @app.middleware
     async def mid(app, request, receive, send):

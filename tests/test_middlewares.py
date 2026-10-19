@@ -23,8 +23,24 @@ from asgi_tools import (
 from asgi_tools._compat import aio_sleep
 
 
-async def test_response_middleware(client_cls):
+async def test_router_middleware_hosts(client_cls):
+    app = RouterMiddleware(use_hosts=True)
 
+    @app.route("/hosted", hosts=["example.com"])
+    async def hosted(scope, receive, send):
+        response = ResponseText("hosted")
+        await response(scope, receive, send)
+
+    client = client_cls(app)
+
+    res = await client.get("/hosted", headers={"host": "example.com"})
+    assert await res.text() == "hosted"
+
+    res = await client.get("/hosted", headers={"host": "other.com"})
+    assert res.status_code == 404
+
+
+async def test_response_middleware(client_cls):
     # Test default response
     md = ResponseMiddleware()
     client = client_cls(md)
@@ -61,7 +77,6 @@ async def test_response_middleware(client_cls):
 
 
 async def test_request_response_middlewares(client_cls):
-
     async def simple_app(request, receive, send):
         data = await request.json()
         first_name = data.get("first_name", "Anonymous")
@@ -85,7 +100,6 @@ async def test_request_response_middlewares(client_cls):
 
 
 async def test_lifespan_middleware(client_cls):
-
     side_effects = []
 
     async def simple_app(scope, receive, send):
@@ -105,7 +119,6 @@ async def test_lifespan_middleware(client_cls):
 
 
 async def test_lifespan_middleware_errors(client_cls):
-
     side_effects = {}
 
     async def fail():
@@ -143,7 +156,6 @@ async def test_lifespan_middleware_errors(client_cls):
 
 
 async def test_router_middleware(client_cls):
-
     app = RouterMiddleware()
 
     with pytest.raises(app.router.RouterError):
@@ -178,7 +190,6 @@ async def test_router_middleware(client_cls):
 
 
 async def test_router_middleware2(client_cls):
-
     async def page404(scope, receive, send):
         return ResponseError.NOT_FOUND()
 
@@ -200,7 +211,6 @@ async def test_router_middleware2(client_cls):
 
 
 async def test_staticfiles_middleware(client_cls, app):
-
     app = StaticFilesMiddleware(app, folders=["tests"])
 
     client = client_cls(app)
@@ -235,7 +245,6 @@ async def test_staticfiles_middleware(client_cls, app):
 
 
 async def test_background_middleware(client_cls, app):
-
     router = RouterMiddleware()
     app = BackgroundMiddleware(router)
     results = []

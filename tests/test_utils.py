@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from asgi_tools.utils import is_awaitable, parse_options_header, to_awaitable
+from asgi_tools.utils import is_awaitable, parse_host, parse_options_header, to_awaitable
 
 
 def test_parse_options_header():
-
     ct, opts = parse_options_header('text/plain; charset="utf-8"')
     assert ct == "text/plain"
     assert opts == {"charset": "utf-8"}
@@ -18,8 +17,13 @@ def test_parse_options_header():
     assert opts == {"name": "test_client.py", "filename": "test_client.py"}
 
 
-async def test_awaitable():
+def test_parse_host():
+    assert parse_host([(b"host", b"Example.COM:8000")]) == "example.com"
+    assert parse_host([(b"host", b"[::1]:8000")]) == "::1"
+    assert parse_host([(b"content-type", b"text/plain")]) is None
 
+
+async def test_awaitable():
     def test1():
         return 1
 

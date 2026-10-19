@@ -172,6 +172,42 @@ Custom Regex Patterns
     async def orders(request):
         return request.path
 
+Host-Based Routing
+~~~~~~~~~~~~~~~~~~
+
+Host matching is opt-in: enable it with ``use_hosts=True`` when creating the
+application. Then restrict a route to one or more hosts with ``hosts``. The
+request's ``Host`` header is matched case-insensitively, with the port stripped:
+
+.. code-block:: python
+
+    app = App(use_hosts=True)
+
+    @app.route('/reports', hosts=['admin.example.com'])
+    async def reports(request):
+        return 'Admin reports'
+
+    @app.route('/search')
+    async def search(request):
+        return 'Search'
+
+``/search`` is served on every host, while ``/reports`` is served only on
+``admin.example.com`` and returns 404 for other hosts. Routes registered
+without ``hosts`` keep matching every host. Without ``use_hosts`` (the
+default) the host is not processed, so ``hosts`` routes never match.
+
+The option works when mounting an application as well:
+
+.. code-block:: python
+
+    api = App()
+
+    @api.route('/users')
+    async def users(request):
+        return []
+
+    app.route('/api', hosts=['api.example.com'])(api)
+
 Static Files
 ------------
 
@@ -253,6 +289,10 @@ without :class:`~asgi_tools.App`):
     async def status(scope, receive, send):
         response = ResponseHTML('OK')
         await response(scope, receive, send)
+
+Routes accept the same ``methods`` and ``hosts`` options as
+:meth:`~asgi_tools.App.route`. Host matching is enabled with
+``RouterMiddleware(use_hosts=True)``.
 
 BackgroundMiddleware
 ~~~~~~~~~~~~~~~~~~~~

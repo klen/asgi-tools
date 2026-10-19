@@ -21,13 +21,14 @@ from .middleware import LifespanMiddleware, StaticFilesMiddleware, parse_respons
 from .request import Request
 from .response import Response, ResponseError
 from .router import Router
-from .utils import iscoroutinefunction, to_awaitable
+from .utils import iscoroutinefunction, parse_host, to_awaitable
 
 if TYPE_CHECKING:
     import logging
+    from collections.abc import Iterable
     from pathlib import Path
 
-    from http_router.types import TMethods, TPath
+    from http_router.types import THostsArg, TMethods, TPath
 
     from .types import TASGIReceive, TASGIScope, TASGISend, TExceptionHandler, TVExceptionHandler
 
@@ -79,6 +80,7 @@ class App:
         static_url_prefix: str = "/static",
         static_folders: list[str | Path] | None = None,
         trim_last_slash: bool = False,
+        use_hosts: bool = False,
     ):
         """Initialize the ASGI application with routing, logging, static files,
            and lifespan support.
@@ -93,6 +95,8 @@ class App:
         :type static_folders: Optional[list[str|Path]]
         :param trim_last_slash: Treat "/path" and "/path/" as the same route
         :type trim_last_slash: bool
+        :param use_hosts: Match routes registered with ``hosts`` against the request host
+        :type use_hosts: bool
         """
 
         # Register base exception handlers
@@ -110,6 +114,9 @@ class App:
 
         # Setup logging
         self.logger = logger
+
+        # Match the request host against ``hosts`` routes
+        self.use_hosts = use_hosts
 
         # Setup app
         self.__app__ = self.__match__
@@ -171,8 +178,9 @@ class App:
         """Finds and calls a route handler, parses the response, and handles routing exceptions."""
         scope = request.scope
         path = f"{scope.get('root_path', '')}{scope['path']}"
+        host = parse_host(scope["headers"]) if self.use_hosts else None
         try:
-            match = self.router(path, scope.get("method", "GET"))
+            match = self.router(path, scope.get("method", "GET"), host)
 
         except ASGINotFoundError as exc:
             raise ResponseError.NOT_FOUND() from exc
@@ -193,11 +201,17 @@ class App:
 
         return None
 
-    def __route__(self, router: Router, *prefixes: str, **_) -> Self:
+    def __route__(
+        self, router: Router, *prefixes: str, hosts: THostsArg | None = None, **_
+    ) -> Self:
         """Mount this app as a nested application under given prefixes."""
+        if isinstance(hosts, str):
+            hosts = {hosts}
+
         for prefix in prefixes:
-            route = RouteApp(prefix, set(), target=self)
+            route = RouteApp(prefix, set(), target=self, hosts=hosts)
             router.dynamic.insert(0, route)
+
         return self
 
     def middleware(self, md: TCallable, *, insert_first: bool = False) -> TCallable:
@@ -238,7 +252,11 @@ class App:
         return md
 
     def route(
-        self, *paths: TPath, methods: TMethods | None = None, **opts: Any
+        self,
+        *paths: TPath,
+        methods: TMethods | None = None,
+        hosts: THostsArg | None = None,
+        **opts: Any,
     ) -> Callable[[TRouteHandler], TRouteHandler]:
         """Register a route handler.
 
@@ -246,12 +264,15 @@ class App:
         :type paths: TPath
         :param methods: HTTP methods to match (GET, POST, etc.)
         :type methods: Optional[TMethods]
+        :param hosts: Restrict the route to the given host(s), compared case-insensitively
+            and ignoring the port. Requires ``use_hosts=True`` on the application
+        :type hosts: Optional[THostsArg]
         :param opts: Additional options for the route
         :type opts: Any
         :return: Decorator function
         :rtype: Callable[[TRouteHandler], TRouteHandler]
         """
-        return self.router.route(*paths, methods=methods, **opts)
+        return self.router.route(*paths, methods=methods, hosts=hosts, **opts)
 
     def on_startup(self, fn: Callable) -> None:
         """Register a startup event handler.
@@ -295,7 +316,7 @@ class App:
 class RouteApp(PrefixedRoute):
     """Custom route to submount an application under a given path prefix."""
 
-    def __init__(self, path: str, methods: set, target: App):
+    def __init__(self, path: str, methods: set, target: App, *, hosts: Iterable[str] | None = None):
         """Create a submounted app callable for the given prefix."""
         path = path.rstrip("/")
 
@@ -303,4 +324,4 @@ class RouteApp(PrefixedRoute):
             subrequest = request.__copy__(path=request.path[len(path) :])
             return target.__app__(subrequest, request.receive, request.send)
 
-        super().__init__(path, methods, app)
+        super().__init__(path, methods, app, hosts=set(hosts) if hosts is not None else None)

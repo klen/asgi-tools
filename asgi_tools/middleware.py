@@ -18,7 +18,7 @@ from .errors import ASGIError
 from .logs import logger
 from .request import Request
 from .response import Response, ResponseError, ResponseFile, ResponseRedirect, parse_response
-from .utils import to_awaitable
+from .utils import parse_host, to_awaitable
 
 if TYPE_CHECKING:
     from .types import TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
@@ -334,9 +334,21 @@ class RouterMiddleware(BaseMiddleware):
 
     """
 
-    def __init__(self, app: TASGIApp | None = None, router: Router | None = None) -> None:
-        """Initialize HTTP router."""
+    def __init__(
+        self,
+        app: TASGIApp | None = None,
+        router: Router | None = None,
+        *,
+        use_hosts: bool = False,
+    ) -> None:
+        """Initialize HTTP router.
+
+        :param app: Default app to fall back to when no route matches
+        :param router: Custom router instance to use
+        :param use_hosts: Match routes registered with ``hosts`` against the request host
+        """
         super().__init__(app)
+        self.use_hosts = use_hosts
         self.router = router or Router(validator=callable)
 
     async def __process__(self, scope: TASGIScope, *args):
@@ -347,8 +359,9 @@ class RouterMiddleware(BaseMiddleware):
     def __dispatch__(self, scope: TASGIScope) -> tuple[Callable, Mapping | None]:
         """Lookup for a callback."""
         path = f"{scope.get('root_path', '')}{scope['path']}"
+        host = parse_host(scope["headers"]) if self.use_hosts else None
         try:
-            match = self.router(path, scope["method"])
+            match = self.router(path, scope["method"], host)
 
         except self.router.RouterError:
             return self.app, {}
