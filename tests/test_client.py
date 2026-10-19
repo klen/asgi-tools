@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import io
 from pathlib import Path
 
@@ -277,7 +276,7 @@ async def test_timeouts(app, client):
     assert res.status_code == 200
     assert await res.text() == "OK"
 
-    with pytest.raises((TimeoutError, asyncio.TimeoutError)):  # python 310
+    with pytest.raises(TimeoutError):
         await client.get("/sleep/10", timeout=0.1)
 
 

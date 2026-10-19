@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from multiprocessing import Value
 
 import pytest
@@ -27,7 +26,7 @@ async def test_aio_timeout_disabled():
 
 
 async def test_aio_timeout():
-    with pytest.raises((TimeoutError, asyncio.TimeoutError)):  # python 310
+    with pytest.raises(TimeoutError):
         async with aio_timeout(1e-2):
             await aio_sleep(1)
 
@@ -50,7 +49,6 @@ async def test_aio_wait_first_completed():
 
 
 def test_compat_json():
-
     data = json_dumps({"test": 42})
     assert data
     assert isinstance(data, bytes)

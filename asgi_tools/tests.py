@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import binascii
 import io
 import mimetypes
@@ -395,7 +394,7 @@ async def manage_lifespan(app, timeout: float = 3e-2):
     async with aio_spawn(safe_spawn) as task:
         await pipe.send_to_app({"type": "lifespan.startup"})
 
-        with suppress(TimeoutError, asyncio.TimeoutError):  # python 310
+        with suppress(TimeoutError):
             async with aio_timeout(timeout):
                 msg = await pipe.receive_from_client()
                 if msg["type"] == "lifespan.startup.failed":
@@ -404,6 +403,6 @@ async def manage_lifespan(app, timeout: float = 3e-2):
         yield
 
         await pipe.send_to_app({"type": "lifespan.shutdown"})
-        with suppress(TimeoutError, asyncio.TimeoutError):  # python 310
+        with suppress(TimeoutError):
             async with aio_timeout(timeout):
                 await pipe.receive_from_client()
