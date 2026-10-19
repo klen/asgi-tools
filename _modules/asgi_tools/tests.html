@@ -49,7 +49,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="3.2.0" />
+  <meta name="docsearch:version" content="3.2.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -354,7 +354,7 @@
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
         <div class="sidebar-primary-item"><div class="sidebar-message pl-3">
-    Version: 3.2.0
+    Version: 3.2.1
 </div>
 </div>
     </div>
@@ -421,7 +421,6 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">binascii</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">mimetypes</span>
@@ -824,7 +823,7 @@
     <span class="k">async</span> <span class="k">with</span> <span class="n">aio_spawn</span><span class="p">(</span><span class="n">safe_spawn</span><span class="p">)</span> <span class="k">as</span> <span class="n">task</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_app</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.startup&quot;</span><span class="p">})</span>
 
-        <span class="k">with</span> <span class="n">suppress</span><span class="p">(</span><span class="ne">TimeoutError</span><span class="p">,</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">):</span>  <span class="c1"># python 310</span>
+        <span class="k">with</span> <span class="n">suppress</span><span class="p">(</span><span class="ne">TimeoutError</span><span class="p">):</span>
             <span class="k">async</span> <span class="k">with</span> <span class="n">aio_timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">):</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_client</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;lifespan.startup.failed&quot;</span><span class="p">:</span>
@@ -833,7 +832,7 @@
         <span class="k">yield</span>
 
         <span class="k">await</span> <span class="n">pipe</span><span class="o">.</span><span class="n">send_to_app</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;lifespan.shutdown&quot;</span><span class="p">})</span>
-        <span class="k">with</span> <span class="n">suppress</span><span class="p">(</span><span class="ne">TimeoutError</span><span class="p">,</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">):</span>  <span class="c1"># python 310</span>
+        <span class="k">with</span> <span class="n">suppress</span><span class="p">(</span><span class="ne">TimeoutError</span><span class="p">):</span>
             <span class="k">async</span> <span class="k">with</span> <span class="n">aio_timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">):</span>
                 <span class="k">await</span> <span class="n">pipe</span><span class="o">.</span><span class="n">receive_from_client</span><span class="p">()</span>
 </pre></div>
