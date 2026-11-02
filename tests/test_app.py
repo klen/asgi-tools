@@ -7,7 +7,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest import mock
 
-from asgi_tools import HTTPView, ResponseHTML, ResponseWebSocket
+from asgi_tools import HTTPView, ResponseHTML, ResponseText, ResponseWebSocket
 from asgi_tools.app import App, ResponseError
 
 
@@ -365,6 +365,98 @@ async def test_websockets(app, client):
 
     res = await client.get("/")
     assert res.status_code == 200
+
+
+async def call_websocket(app, path):
+    """Call ``app`` with a websocket scope and collect the ASGI messages it sends."""
+    messages = []
+
+    async def receive():
+        return {"type": "websocket.connect"}
+
+    async def send(message):
+        messages.append(message)
+
+    scope = {
+        "type": "websocket",
+        "path": path,
+        "headers": [],
+        "query_string": b"",
+    }
+    await app(scope, receive, send)
+    return messages
+
+
+async def test_websocket_unknown_path_closed():
+    app = App()
+
+    messages = await call_websocket(app, "/unknown")
+    types = [msg["type"] for msg in messages]
+
+    assert types == ["websocket.close"]
+    assert not any(msg_type.startswith("http.response") for msg_type in types)
+
+
+async def test_websocket_invalid_method_closed():
+    app = App()
+
+    @app.route("/only-post", methods=["POST"])
+    async def only_post(request):
+        return "POST"
+
+    messages = await call_websocket(app, "/only-post")
+    types = [msg["type"] for msg in messages]
+
+    assert types == ["websocket.close"]
+    assert not any(msg_type.startswith("http.response") for msg_type in types)
+
+
+async def test_websocket_handler_error_closed():
+    app = App(debug=True)
+
+    @app.route("/response-error")
+    async def response_error(request):
+        raise ResponseError.NOT_FOUND()
+
+    @app.route("/exception")
+    async def exception(request):
+        raise RuntimeError("boom")
+
+    @app.on_error(Exception)
+    async def handle_exception(request, exc):
+        return ResponseText("handled")
+
+    for path in ("/response-error", "/exception"):
+        messages = await call_websocket(app, path)
+        types = [msg["type"] for msg in messages]
+        assert types == ["websocket.close"]
+        assert not any(msg_type.startswith("http.response") for msg_type in types)
+
+
+async def test_websocket_http_response_not_sent():
+    app = App()
+
+    @app.route("/plain")
+    async def plain(request):
+        return ResponseText("ok")
+
+    messages = await call_websocket(app, "/plain")
+    types = [msg["type"] for msg in messages]
+
+    assert types == ["websocket.close"]
+    assert not any(msg_type.startswith("http.response") for msg_type in types)
+
+
+async def test_http_not_found_unchanged(client_cls):
+    app = App()
+    client = client_cls(app)
+
+    res = await client.get("/unknown")
+    body = await res.body()
+
+    assert res.status_code == 404
+    assert body == b"Nothing matches the given URI"
+    assert res.headers["content-length"] == str(len(body))
 
 
 async def test_app_lifespan(app, client):

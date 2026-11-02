@@ -127,6 +127,10 @@ Basic Routing
     async def only_post(request):
         return request.method
 
+WebSocket scopes are routed like GET requests; when no route matches or a handler returns an
+HTTP response, the connection is closed with a websocket-level close instead of sending HTTP
+messages.
+
 Dynamic URLs
 ~~~~~~~~~~~~
 

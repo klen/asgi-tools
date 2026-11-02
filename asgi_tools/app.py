@@ -21,7 +21,7 @@ from .middleware import LifespanMiddleware, StaticFilesMiddleware, parse_respons
 from .request import Request
 from .response import Response, ResponseError
 from .router import Router
-from .utils import iscoroutinefunction, parse_host, to_awaitable
+from .utils import close_websocket, iscoroutinefunction, parse_host, to_awaitable
 
 if TYPE_CHECKING:
     import logging
@@ -149,26 +149,35 @@ class App:
         """ASGI entrypoint. Converts the given scope into a request and processes it."""
         await self.lifespan(scope, receive, send)
 
-    async def __process__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):
+    async def __process__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):  # noqa: PLR0912
         """Internal request processing: builds a Request, calls the app, and handles exceptions."""
         scope["app"] = self
+        scope_type = scope["type"]
         request = Request(scope, receive, send)
         try:
             response: Response | None = await self.__app__(request, receive, send)
             if response is not None:
-                await response(scope, receive, send)
+                if scope_type == "websocket":
+                    await close_websocket(send)
+                else:
+                    await response(scope, receive, send)
 
         # Handle exceptions
         except BaseException as exc:
             for etype in type(exc).mro():
                 if etype in self.exception_handlers:
-                    await parse_response(
-                        await self.exception_handlers[etype](request, exc),
-                    )(scope, receive, send)
+                    response = await self.exception_handlers[etype](request, exc)
+                    if scope_type == "websocket":
+                        await close_websocket(send)
+                    else:
+                        await parse_response(response)(scope, receive, send)
                     break
             else:
                 if isinstance(exc, Response):
-                    await exc(scope, receive, send)
+                    if scope_type == "websocket":
+                        await close_websocket(send)
+                    else:
+                        await exc(scope, receive, send)
                 else:
                     raise
 
@@ -177,15 +186,22 @@ class App:
     ) -> Response | None:
         """Finds and calls a route handler, parses the response, and handles routing exceptions."""
         scope = request.scope
+        scope_type = scope["type"]
         path = f"{scope.get('root_path', '')}{scope['path']}"
         host = parse_host(scope["headers"]) if self.use_hosts else None
         try:
             match = self.router(path, scope.get("method", "GET"), host)
 
         except ASGINotFoundError as exc:
+            if scope_type == "websocket":
+                await close_websocket(send)
+                return None
             raise ResponseError.NOT_FOUND() from exc
 
         except ASGIInvalidMethodError as exc:
+            if scope_type == "websocket":
+                await close_websocket(send)
+                return None
             raise ResponseError.METHOD_NOT_ALLOWED() from exc
 
         scope["endpoint"] = match.target
@@ -193,11 +209,14 @@ class App:
         handler = cast("Callable[[Request], Any]", match.target)
         response = await handler(request)
 
-        if scope["type"] == "http":
+        if scope_type == "http":
             return parse_response(response)
 
-        # TODO: Do we need to close websockets automatically?
-        # if scope_type == "websocket" send websocket.close
+        # A websocket handler must manage the connection itself with ResponseWebSocket and
+        # return None. Close the connection for an HTTP response instead of dropping it (hang)
+        # or sending HTTP messages over the websocket (server crash).
+        if response is not None:
+            await close_websocket(send)
 
         return None
 

@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import re
+from contextlib import suppress
 from functools import wraps
 from inspect import isasyncgenfunction, iscoroutinefunction
 from typing import TYPE_CHECKING, Callable, Coroutine, overload
@@ -15,7 +16,7 @@ from multidict import CIMultiDict
 from .constants import BASE_ENCODING
 
 if TYPE_CHECKING:
-    from .types import TV, TASGIHeaders, TVAsyncCallable
+    from .types import TV, TASGIHeaders, TASGISend, TVAsyncCallable
 
 
 def is_awaitable(fn: Callable) -> bool:
@@ -125,3 +126,13 @@ def parse_options_header(value: str) -> tuple[str, dict[str, str]]:
         rest = rest[match.end() :]
 
     return ctype, options
+
+
+async def close_websocket(send: TASGISend, code: int = 1008) -> None:
+    """Reject/close a websocket without sending HTTP messages.
+
+    A plain close is used instead of the optional websocket denial-response
+    extension, which some servers reject.
+    """
+    with suppress(RuntimeError):  # the peer may already be gone
+        await send({"type": "websocket.close", "code": code})

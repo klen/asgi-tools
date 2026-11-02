@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ``KeyError``, so ``hasattr()`` works as expected.
 - Path params are no longer double-decoded: ASGI servers percent-decode ``scope["path"]``, so
   ``asgi_tools.Router`` now keeps captured params raw.
+- WebSocket scopes are never answered with HTTP messages: unmatched paths, invalid methods,
+  handler errors and returned HTTP responses now close the connection with a
+  ``websocket.close`` instead of crashing the server or hanging.
 
 ### Removed
 
