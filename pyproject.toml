@@ -83,6 +83,9 @@ ignore_missing_imports = true
 [tool.ty.src]
 include = ["asgi_tools"]
 
+[tool.uv]
+constraint-dependencies = ["soupsieve>=4.0.0"]
+
 [tool.tox]
 legacy_tox_ini = """
 [tox]
