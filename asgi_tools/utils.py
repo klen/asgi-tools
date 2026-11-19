@@ -8,7 +8,7 @@ import re
 from contextlib import suppress
 from functools import wraps
 from inspect import isasyncgenfunction, iscoroutinefunction
-from typing import TYPE_CHECKING, Callable, Coroutine, overload
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, overload
 from urllib.parse import unquote_to_bytes
 
 from multidict import CIMultiDict
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from .types import TV, TASGIHeaders, TASGISend, TVAsyncCallable
 
 
-def is_awaitable(fn: Callable) -> bool:
+def is_awaitable(fn: Callable[..., Any]) -> bool:
     """Check than the given function is awaitable."""
     return iscoroutinefunction(fn) or isasyncgenfunction(fn)
 
@@ -32,19 +32,19 @@ def to_awaitable(fn: TVAsyncCallable) -> TVAsyncCallable: ...
 def to_awaitable(fn: Callable[..., TV]) -> Callable[..., Coroutine[None, None, TV]]: ...
 
 
-def to_awaitable(fn: Callable):
+def to_awaitable(fn: Callable[..., Any]) -> Callable[..., Any]:
     """Convert the given function to a coroutine function if it isn't"""
     if is_awaitable(fn):
         return fn
 
     @wraps(fn)
-    async def coro(*args, **kwargs):
+    async def coro(*args: Any, **kwargs: Any) -> Any:
         return fn(*args, **kwargs)
 
     return coro
 
 
-def parse_headers(headers: TASGIHeaders) -> CIMultiDict:
+def parse_headers(headers: TASGIHeaders) -> CIMultiDict[str]:
     """Decode the given headers list."""
     return CIMultiDict(
         [(n.decode(BASE_ENCODING), v.decode(BASE_ENCODING)) for n, v in headers],

@@ -27,15 +27,18 @@ from typing import (
 )
 from urllib.parse import urlencode
 
+from multidict import CIMultiDict
 from yarl import URL
 
 from ._compat import aio_cancel, aio_sleep, aio_spawn, aio_timeout, aio_wait
 from .constants import BASE_ENCODING, DEFAULT_CHARSET
 from .errors import ASGIConnectionClosedError, ASGIInvalidMessageError
 from .response import Response, ResponseJSON, ResponseWebSocket, parse_websocket_msg
-from .utils import CIMultiDict, parse_headers
+from .utils import parse_headers
 
 if TYPE_CHECKING:
+    from contextlib import AbstractAsyncContextManager
+
     from multidict import MultiDict
 
     from .types import TJSON, TASGIApp, TASGIMessage, TASGIReceive, TASGIScope, TASGISend
@@ -44,16 +47,21 @@ if TYPE_CHECKING:
 class TestResponse(Response):
     """Response for test client."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(b"")
         self.content = None  # type: ignore[assignment]
 
-    async def __call__(self, _: TASGIScope, receive: TASGIReceive, send: TASGISend):  # noqa: ARG002
+    async def __call__(
+        self,
+        scope: TASGIScope,  # noqa: ARG002
+        receive: TASGIReceive,
+        send: TASGISend,  # noqa: ARG002
+    ) -> None:
         self._receive = receive
         msg = await self._receive()
         assert msg.get("type") == "http.response.start", "Invalid Response"
         self.status_code = int(msg.get("status", 502))
-        self.headers = cast("MultiDict", parse_headers(msg.get("headers", [])))
+        self.headers = cast("MultiDict[str]", parse_headers(msg.get("headers", [])))
         self.content_type = self.headers.get("content-type")
         for cookie in self.headers.getall("set-cookie", []):
             self.cookies.load(cookie)
@@ -85,24 +93,24 @@ class TestResponse(Response):
 
     async def json(self) -> TJSON:
         text = await self.text()
-        return loads(text)
+        return cast("TJSON", loads(text))
 
 
 class TestWebSocketResponse(ResponseWebSocket):
     """Support websockets in tests."""
 
     def connect(self) -> Coroutine[TASGIMessage, Any, Any]:
-        return self.send({"type": "websocket.connect"})
+        return cast("Coroutine[TASGIMessage, Any, Any]", self.send({"type": "websocket.connect"}))
 
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         await self.send({"type": "websocket.disconnect", "code": 1005})
         self.state = self.STATES.DISCONNECTED
 
-    def send(self, msg, msg_type="websocket.receive"):
+    def send(self, msg: Any, msg_type: str = "websocket.receive") -> Any:
         """Send a message to a client."""
         return super().send(msg, msg_type=msg_type)
 
-    async def receive(self, *, raw=False):
+    async def receive(self, *, raw: bool = False) -> Any:
         """Receive messages from a client."""
         if self.partner_state == self.STATES.DISCONNECTED:
             raise ASGIConnectionClosedError
@@ -145,7 +153,7 @@ class ASGITestClient:
         self.cookies: SimpleCookie = SimpleCookie()
         self.headers: dict[str, str] = {}
 
-    def __getattr__(self, name: str) -> Callable[..., Awaitable]:
+    def __getattr__(self, name: str) -> Callable[..., Awaitable[Any]]:
         return partial(self.request, method=name.upper())
 
     async def request(
@@ -153,10 +161,10 @@ class ASGITestClient:
         path: str,
         method: str = "GET",
         *,
-        query: str | dict = "",
+        query: str | dict[str, Any] = "",
         headers: dict[str, str] | None = None,
         cookies: dict[str, str] | None = None,
-        data: bytes | str | dict | AsyncGenerator[Any, bytes] = b"",
+        data: bytes | str | dict[str, Any] | AsyncGenerator[Any, bytes] = b"",
         json: TJSON = None,
         follow_redirect: bool = True,
         timeout: float = 10.0,
@@ -207,7 +215,7 @@ class ASGITestClient:
             self.cookies[n] = v
 
         if follow_redirect and res.status_code in {301, 302, 303, 307, 308}:
-            return await self.get(res.headers["location"])
+            return await cast("Awaitable[TestResponse]", self.get(res.headers["location"]))
 
         return res
 
@@ -216,10 +224,10 @@ class ASGITestClient:
     async def websocket(
         self,
         path: str,
-        query: str | dict | None = None,
-        headers: dict | None = None,
-        cookies: dict | None = None,
-    ):
+        query: str | dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        cookies: dict[str, str] | None = None,
+    ) -> AsyncGenerator[TestWebSocketResponse, None]:
         """Connect to a websocket."""
         pipe = Pipe()
 
@@ -244,7 +252,7 @@ class ASGITestClient:
             yield ws
             await ws.disconnect()
 
-    def lifespan(self, timeout: float = 3e-2):
+    def lifespan(self, timeout: float = 3e-2) -> AbstractAsyncContextManager[None]:
         """Manage `Lifespan <https://asgi.readthedocs.io/en/latest/specs/lifespan.html>`_
         protocol."""
         return manage_lifespan(self.app, timeout=timeout)
@@ -252,15 +260,15 @@ class ASGITestClient:
     def build_scope(
         self,
         path: str,
-        headers: dict | CIMultiDict | None = None,
-        query: str | dict | None = None,
-        cookies: dict | None = None,
-        **scope,
+        headers: dict[str, str] | CIMultiDict[str] | None = None,
+        query: str | dict[str, Any] | None = None,
+        cookies: dict[str, str] | None = None,
+        **scope: Any,
     ) -> TASGIScope:
         """Prepare a request scope."""
         headers = headers or {}
         headers.setdefault("User-Agent", "ASGI-Tools-Test-Client")
-        headers.setdefault("Host", self.base_url.host)
+        headers.setdefault("Host", self.base_url.host or "localhost")
 
         if cookies:
             for c, v in cookies.items():
@@ -295,7 +303,7 @@ class ASGITestClient:
         )
 
 
-def encode_multipart(data: dict) -> tuple[bytes, str]:
+def encode_multipart(data: dict[str, Any]) -> tuple[bytes, str]:
     body = io.BytesIO()
     boundary = binascii.hexlify(os.urandom(16))
     for name, data_value in data.items():
@@ -337,7 +345,7 @@ class Pipe:
         self.app_queue: Deque[TASGIMessage] = deque()
         self.client_queue: Deque[TASGIMessage] = deque()
 
-    async def send_to_client(self, msg: TASGIMessage):
+    async def send_to_client(self, msg: TASGIMessage) -> None:
         if self.client_is_closed:
             raise ASGIInvalidMessageError(msg.get("type"))
 
@@ -349,7 +357,7 @@ class Pipe:
 
         self.client_queue.append(msg)
 
-    async def send_to_app(self, msg: TASGIMessage):
+    async def send_to_app(self, msg: TASGIMessage) -> None:
         if self.app_is_closed:
             raise ASGIInvalidMessageError(msg.get("type"))
 
@@ -358,17 +366,17 @@ class Pipe:
 
         self.app_queue.append(msg)
 
-    async def receive_from_client(self):
+    async def receive_from_client(self) -> TASGIMessage:
         while not self.client_queue:
             await aio_sleep(self.delay)
         return self.client_queue.popleft()
 
-    async def receive_from_app(self):
+    async def receive_from_app(self) -> TASGIMessage:
         while not self.app_queue:
             await aio_sleep(self.delay)
         return self.app_queue.popleft()
 
-    async def stream(self, data: bytes | AsyncGenerator[Any, bytes]):
+    async def stream(self, data: bytes | AsyncGenerator[Any, bytes]) -> None:
         if isinstance(data, bytes):
             return await self.send_to_app(
                 {"type": "http.request", "body": data, "more_body": False},
@@ -381,13 +389,13 @@ class Pipe:
 
 
 @asynccontextmanager
-async def manage_lifespan(app, timeout: float = 3e-2):
+async def manage_lifespan(app: TASGIApp, timeout: float = 3e-2) -> AsyncGenerator[None, None]:
     """Manage `Lifespan <https://asgi.readthedocs.io/en/latest/specs/lifespan.html>`_ protocol."""
     pipe = Pipe()
 
     scope = {"type": "lifespan"}
 
-    async def safe_spawn():
+    async def safe_spawn() -> None:
         with suppress(BaseException):
             await app(scope, pipe.receive_from_app, pipe.send_to_client)
 

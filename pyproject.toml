@@ -75,9 +75,13 @@ addopts = "-xsv tests"
 
 [tool.mypy]
 packages = ["asgi_tools"]
+strict = true
 install_types = true
 non_interactive = true
 ignore_missing_imports = true
+
+[tool.ty.src]
+include = ["asgi_tools"]
 
 [tool.tox]
 legacy_tox_ini = """

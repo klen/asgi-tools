@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from functools import partial
-from inspect import isclass
+from inspect import isclass, iscoroutinefunction
 from typing import TYPE_CHECKING, Any, Callable, Self, TypeVar, cast
 
 from http_router import PrefixedRoute
@@ -17,11 +17,11 @@ from .errors import (
     ASGIRequestEntityTooLargeError,
 )
 from .logs import logger
-from .middleware import LifespanMiddleware, StaticFilesMiddleware, parse_response
+from .middleware import LifespanMiddleware, StaticFilesMiddleware
 from .request import Request
-from .response import Response, ResponseError
+from .response import Response, ResponseError, parse_response
 from .router import Router
-from .utils import close_websocket, iscoroutinefunction, parse_host, to_awaitable
+from .utils import close_websocket, parse_host, to_awaitable
 
 if TYPE_CHECKING:
     import logging
@@ -70,7 +70,7 @@ class App:
         ...     return "Hello, World!"
     """
 
-    exception_handlers: dict[type[BaseException], TExceptionHandler]
+    exception_handlers: dict[type, TExceptionHandler]
 
     def __init__(
         self,
@@ -143,13 +143,15 @@ class App:
 
             self.exception_handlers[Exception] = handle_unknown_exception
 
-        self.internal_middlewares: list = []
+        self.internal_middlewares: list[Callable[..., Any]] = []
 
     async def __call__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend) -> None:
         """ASGI entrypoint. Converts the given scope into a request and processes it."""
         await self.lifespan(scope, receive, send)
 
-    async def __process__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):  # noqa: PLR0912
+    async def __process__(  # noqa: PLR0912
+        self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend
+    ) -> None:
         """Internal request processing: builds a Request, calls the app, and handles exceptions."""
         scope["app"] = self
         scope_type = scope["type"]
@@ -221,7 +223,7 @@ class App:
         return None
 
     def __route__(
-        self, router: Router, *prefixes: str, hosts: THostsArg | None = None, **_
+        self, router: Router, *prefixes: str, hosts: THostsArg | None = None, **_: Any
     ) -> Self:
         """Mount this app as a nested application under given prefixes."""
         if isinstance(hosts, str):
@@ -293,7 +295,7 @@ class App:
         """
         return self.router.route(*paths, methods=methods, hosts=hosts, **opts)
 
-    def on_startup(self, fn: Callable) -> None:
+    def on_startup(self, fn: Callable[[], Any]) -> None:
         """Register a startup event handler.
 
         :param fn: The function to call on startup
@@ -301,7 +303,7 @@ class App:
         """
         return self.lifespan.on_startup(fn)
 
-    def on_shutdown(self, fn: Callable) -> None:
+    def on_shutdown(self, fn: Callable[[], Any]) -> None:
         """Register a shutdown event handler.
 
         :param fn: The function to call on shutdown
@@ -309,7 +311,9 @@ class App:
         """
         return self.lifespan.on_shutdown(fn)
 
-    def on_error(self, etype: type[BaseException]):
+    def on_error(
+        self, etype: type[BaseException]
+    ) -> Callable[[TVExceptionHandler], TVExceptionHandler]:
         """Register a custom exception handler for a given exception type.
 
         :param etype: The exception type to handle
@@ -335,11 +339,13 @@ class App:
 class RouteApp(PrefixedRoute):
     """Custom route to submount an application under a given path prefix."""
 
-    def __init__(self, path: str, methods: set, target: App, *, hosts: Iterable[str] | None = None):
+    def __init__(
+        self, path: str, methods: set[str], target: App, *, hosts: Iterable[str] | None = None
+    ) -> None:
         """Create a submounted app callable for the given prefix."""
         path = path.rstrip("/")
 
-        def app(request: Request):
+        def app(request: Request) -> Any:
             subrequest = request.__copy__(path=request.path[len(path) :])
             return target.__app__(subrequest, request.receive, request.send)
 

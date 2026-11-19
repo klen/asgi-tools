@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from http_router import Router as HTTPRouter
 
@@ -16,6 +16,6 @@ class Router(HTTPRouter):
     RouterError: ClassVar[type[Exception]] = ASGIError
     InvalidMethodError: ClassVar[type[Exception]] = ASGIInvalidMethodError
 
-    def __init__(self, *, unquote_params=False, **kwargs):
+    def __init__(self, *, unquote_params: bool = False, **kwargs: Any) -> None:
         # scope["path"] is percent-decoded by the ASGI server; unquoting again double-decodes.
         super().__init__(unquote_params=unquote_params, **kwargs)

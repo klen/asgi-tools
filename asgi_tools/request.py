@@ -7,7 +7,7 @@ incoming request.
 from __future__ import annotations
 
 from http import cookies
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Iterator, Mapping, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Iterator, Mapping, Protocol, TypeVar
 
 from yarl import URL
 
@@ -16,12 +16,12 @@ from .constants import BASE_ENCODING, DEFAULT_CHARSET
 from .errors import ASGIDecodeError
 from .forms import read_formdata
 from .types import TJSON, TASGIReceive, TASGIScope, TASGISend
-from .utils import CIMultiDict, parse_headers, parse_options_header
+from .utils import parse_headers, parse_options_header
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from multidict import MultiDict, MultiDictProxy
+    from multidict import CIMultiDict, MultiDict, MultiDictProxy
 
 T = TypeVar("T")
 
@@ -58,7 +58,7 @@ class Request(TASGIScope):
         "send",
     )
 
-    def __init__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend):
+    def __init__(self, scope: TASGIScope, receive: TASGIReceive, send: TASGISend) -> None:
         """Create a request based on the given scope."""
         self.scope = scope
         self.receive = receive
@@ -67,8 +67,8 @@ class Request(TASGIScope):
         self._is_read: bool = False
         self._url: URL | None = None
         self._body: bytes | None = None
-        self._form: MultiDict | None = None
-        self._headers: CIMultiDict | None = None
+        self._form: MultiDict[Any] | None = None
+        self._headers: CIMultiDict[str] | None = None
         self._media: dict[str, str] | None = None
         self._cookies: dict[str, str] | None = None
 
@@ -149,7 +149,7 @@ class Request(TASGIScope):
         return self._url
 
     @property
-    def headers(self) -> CIMultiDict:
+    def headers(self) -> CIMultiDict[str]:
         """A lazy property that parses the current scope's headers, decodes them as strings and
         returns case-insensitive multi-dict :py:class:`multidict.CIMultiDict`.
 
@@ -211,7 +211,7 @@ class Request(TASGIScope):
         :py:class:`multidict.MultiDict`.
 
         """
-        return cast("MultiDictProxy[str]", self.url.query)
+        return self.url.query
 
     @property
     def content_type(self) -> str:
@@ -280,7 +280,7 @@ class Request(TASGIScope):
 
     async def form(
         self, max_size: int = DEFAULT_FORMDATA_MAX_SIZE, upload_to: UploadHandler | None = None
-    ) -> MultiDict:
+    ) -> MultiDict[Any]:
         """Read and return the request's form data.
 
         :param max_size: Maximum size of the form data in bytes
@@ -298,7 +298,7 @@ class Request(TASGIScope):
             self._form = await read_formdata(self, max_size=max_size, upload_to=upload_to)
         return self._form
 
-    async def data(self, *, raise_errors: bool = False) -> str | bytes | MultiDict | TJSON:
+    async def data(self, *, raise_errors: bool = False) -> str | bytes | MultiDict[Any] | TJSON:
         """Read and return the request's data based on content type.
 
         :param raise_errors: Raise an error if the given data is invalid.

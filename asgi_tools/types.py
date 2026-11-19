@@ -24,9 +24,9 @@ TASGIHeaders = list[tuple[bytes, bytes]]
 TASGIApp = Callable[[TASGIScope, TASGIReceive, TASGISend], Awaitable[Any]]
 
 TJSON = None | bool | int | float | str | list["TJSON"] | Mapping[str, "TJSON"]
-TExceptionHandler = Callable[["Request", BaseException], Coroutine[None, None, Any]]
+TExceptionHandler = Callable[["Request", BaseException], Coroutine[Any, Any, Any]]
 
 TV = TypeVar("TV")
-TVCallable = TypeVar("TVCallable", bound=Callable)
-TVAsyncCallable = TypeVar("TVAsyncCallable", bound=Callable[..., Coroutine])
+TVCallable = TypeVar("TVCallable", bound=Callable[..., Any])
+TVAsyncCallable = TypeVar("TVAsyncCallable", bound=Callable[..., Coroutine[Any, Any, Any]])
 TVExceptionHandler = TypeVar("TVExceptionHandler", bound=TExceptionHandler)

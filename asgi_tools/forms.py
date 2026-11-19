@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from io import BytesIO
 from tempfile import SpooledTemporaryFile
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import unquote_to_bytes
 
 from multidict import MultiDict
@@ -15,14 +15,14 @@ from .multipart import BaseParser, MultipartParser, QueryStringParser
 from .utils import parse_options_header
 
 if TYPE_CHECKING:
-    from asgi_tools.request import Request
+    from asgi_tools.request import Request, UploadHandler
 
 
 async def read_formdata(
     request: "Request",
     max_size: int,
-    upload_to: Callable | None,
-) -> MultiDict:
+    upload_to: "UploadHandler | None",
+) -> MultiDict[Any]:
     """Read formdata from the given request."""
     if request.content_type == "multipart/form-data":
         reader: FormReader = MultipartReader(request.charset, upload_to, max_size)
@@ -46,9 +46,13 @@ class FormReader:
         self.charset = charset
         self.curname = bytearray()
         self.curvalue = bytearray()
-        self.form: MultiDict = MultiDict()
+        self.form: MultiDict[Any] = MultiDict()
 
-    def init_parser(self, _: "Request", max_size: int) -> BaseParser:
+    def init_parser(
+        self,
+        request: "Request",  # noqa: ARG002
+        max_size: int,
+    ) -> BaseParser:
         return QueryStringParser(
             {
                 "field_name": self.on_field_name,
@@ -58,13 +62,13 @@ class FormReader:
             max_size=max_size,
         )
 
-    def on_field_name(self, data: bytes, start: int, end: int):
+    def on_field_name(self, data: bytes, start: int, end: int) -> None:
         self.curname += data[start:end]
 
-    def on_field_data(self, data: bytes, start: int, end: int):
+    def on_field_data(self, data: bytes, start: int, end: int) -> None:
         self.curvalue += data[start:end]
 
-    def on_field_end(self, *_):
+    def on_field_end(self, *_: Any) -> None:
         self.form.add(
             unquote_plus(self.curname).decode(self.charset),
             unquote_plus(self.curvalue).decode(self.charset),
@@ -88,11 +92,11 @@ class MultipartReader(FormReader):
         "upload_to",
     )
 
-    def __init__(self, charset: str, upload_to: Callable | None, max_size: int):
+    def __init__(self, charset: str, upload_to: "UploadHandler | None", max_size: int) -> None:
         super().__init__(charset)
         self.name = ""
         self.headers: dict[bytes, bytes] = {}
-        self.partdata = BytesIO()
+        self.partdata: Any = BytesIO()
         self.upload_to = upload_to
         self.max_size = max_size
 
@@ -114,18 +118,18 @@ class MultipartReader(FormReader):
             max_size=max_size,
         )
 
-    def on_header_field(self, data: bytes, start: int, end: int):
+    def on_header_field(self, data: bytes, start: int, end: int) -> None:
         self.curname += data[start:end]
 
-    def on_header_value(self, data: bytes, start: int, end: int):
+    def on_header_value(self, data: bytes, start: int, end: int) -> None:
         self.curvalue += data[start:end]
 
-    def on_header_end(self, *_):
+    def on_header_end(self, *_: Any) -> None:
         self.headers[bytes(self.curname.lower())] = bytes(self.curvalue)
         self.curname.clear()
         self.curvalue.clear()
 
-    def on_headers_finished(self, *_):
+    def on_headers_finished(self, *_args: Any) -> None:
         _, options = parse_options_header(
             (self.headers.get(b"content-disposition") or b"").decode(self.charset),
         )
@@ -135,20 +139,23 @@ class MultipartReader(FormReader):
 
         if "filename" in options:
             upload_to = self.upload_to
+            partdata: Any
             if upload_to is not None:
-                filename = upload_to(options["filename"])
-                self.partdata = f = open(filename, "wb+")  # noqa: SIM115, PTH123
+                partdata = open(upload_to(options["filename"]), "wb+")  # noqa: SIM115, PTH123
 
             else:
-                self.partdata = f = SpooledTemporaryFile(self.max_size)  # noqa: SIM115
-                f._file.name = options["filename"]  # type: ignore[]
+                partdata = SpooledTemporaryFile(self.max_size)  # noqa: SIM115
+                cast("Any", partdata._file).name = options["filename"]
 
-            f.content_type = self.headers.get(b"content-type", b"").decode(self.charset)
+            cast("Any", partdata).content_type = self.headers.get(b"content-type", b"").decode(
+                self.charset
+            )
+            self.partdata = partdata
 
-    def on_part_data(self, data: bytes, start: int, end: int):
+    def on_part_data(self, data: bytes, start: int, end: int) -> None:
         self.partdata.write(data[start:end])
 
-    def on_part_end(self, *_):
+    def on_part_end(self, *_: Any) -> None:
         field_data = self.partdata
         if isinstance(field_data, BytesIO):
             self.form.add(self.name, field_data.getvalue().decode(self.charset))

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-from asyncio import create_task, gather, sleep
+from asyncio import create_task, ensure_future, gather, sleep
 from concurrent.futures import ALL_COMPLETED, FIRST_COMPLETED
 from contextlib import asynccontextmanager, suppress
 from typing import (
@@ -74,40 +74,42 @@ with suppress(ImportError):
     curio_installed = True
 
 
-def aio_sleep(seconds: float = 0) -> Awaitable:
+def aio_sleep(seconds: float = 0) -> Awaitable[Any]:
     """Return sleep coroutine."""
 
     if trio_installed and current_async_library() == "trio":
-        return trio_sleep(seconds)  # noqa: ASYNC105  # type: ignore[]
+        return cast("Awaitable[Any]", trio_sleep(seconds))  # noqa: ASYNC105
 
     if curio_installed and current_async_library() == "curio":
-        return curio_sleep(seconds)  # type: ignore[]
+        return cast("Awaitable[Any]", curio_sleep(seconds))
 
     return sleep(seconds)
 
 
 @asynccontextmanager
-async def aio_spawn(fn: Callable[..., Awaitable], *args, **kwargs):
+async def aio_spawn(
+    fn: Callable[..., Awaitable[Any]], *args: Any, **kwargs: Any
+) -> AsyncGenerator[Any, None]:
     """Spawn a given coroutine."""
     if trio_installed and current_async_library() == "trio":
-        async with open_nursery() as tasks:  # type: ignore[]
+        async with open_nursery() as tasks:
             tasks.start_soon(fn, *args, **kwargs)
             yield tasks
 
     elif curio_installed and current_async_library() == "curio":
-        task = await curio_spawn(fn, *args, **kwargs)  # type: ignore[]
+        task = await curio_spawn(fn, *args, **kwargs)
         yield task
-        await task.join()  # type: ignore [union-attr]
+        await task.join()
 
     else:
-        coro = cast("Coroutine", fn(*args, **kwargs))
+        coro = cast("Coroutine[Any, Any, Any]", fn(*args, **kwargs))
         task = create_task(coro)
         yield task
         await task
 
 
 @asynccontextmanager
-async def aio_timeout(timeout: float):
+async def aio_timeout(timeout: float) -> AsyncGenerator[None, None]:
     """Fail after the given timeout."""
     if not timeout:
         yield
@@ -115,18 +117,18 @@ async def aio_timeout(timeout: float):
 
     if trio_installed and current_async_library() == "trio":
         try:
-            with trio_fail_after(timeout):  # type: ignore[]
+            with trio_fail_after(timeout):
                 yield
 
-        except TooSlowError:  # type: ignore[]
+        except TooSlowError:
             raise TimeoutError(f"{timeout}s.") from None
 
     elif curio_installed and current_async_library() == "curio":
         try:
-            async with curio_fail_after(timeout):  # type: ignore[]
+            async with curio_fail_after(timeout):
                 yield
 
-        except TaskTimeout:  # type: ignore[]
+        except TaskTimeout:
             raise TimeoutError(f"{timeout}s.") from None
 
     else:
@@ -134,7 +136,7 @@ async def aio_timeout(timeout: float):
             yield
 
 
-async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:
+async def aio_wait(*aws: Awaitable[Any], strategy: str = ALL_COMPLETED) -> Any:
     """Run the coros concurrently, wait for all completed or cancel others.
 
     Only ALL_COMPLETED, FIRST_COMPLETED are supported.
@@ -143,9 +145,9 @@ async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:
         return None
 
     if trio_installed and current_async_library() == "trio":
-        send_channel, receive_channel = open_memory_channel(0)  # type: ignore[var-annotated]
+        send_channel, receive_channel = open_memory_channel(0)
 
-        async with open_nursery() as n:  # type: ignore[]
+        async with open_nursery() as n:
             for aw in aws:
                 n.start_soon(trio_jockey, aw, send_channel)
 
@@ -165,28 +167,29 @@ async def aio_wait(*aws: Awaitable, strategy: str = ALL_COMPLETED) -> Any:
 
         return g.results if strategy == ALL_COMPLETED else g.result
 
-    aws = tuple(create_task(aw) if inspect.iscoroutine(aw) else aw for aw in aws)
-    done, pending = await asyncio.wait(aws, return_when=strategy)  # type: ignore[type-var]
+    tasks = tuple(create_task(aw) if inspect.iscoroutine(aw) else ensure_future(aw) for aw in aws)
+    done, pending = await asyncio.wait(tasks, return_when=strategy)
     if strategy != ALL_COMPLETED:
         for task in pending:
-            task.cancel()  # type: ignore[attr-defined]
+            task.cancel()
         await gather(*pending, return_exceptions=True)
-        return next(iter(done)).result()  # type: ignore[attr-defined]
+        return next(iter(done)).result()
 
-    return [t.result() for t in done]  # type: ignore[attr-defined]
+    return [t.result() for t in done]
 
 
-async def aio_cancel(task):
+async def aio_cancel(task: Any) -> None:
     """Cancel asyncio task / trio nursery."""
     if isinstance(task, asyncio.Task):
-        return task.cancel()
+        task.cancel()
+        return
 
     if trio_installed and current_async_library() == "trio":
-        return task.cancel_scope.cancel()
+        task.cancel_scope.cancel()
+        return
 
     if curio_installed and current_async_library() == "curio":
-        return await task.cancel()
-    return None
+        await task.cancel()
 
 
 async def aio_stream_file(
@@ -215,20 +218,18 @@ async def aio_stream_file(
             )
 
         async with aiofile.AIOFile(filepath, mode="rb") as fp:
-            async for chunk in aiofile.Reader(  # type: ignore [assignment]
-                fp, chunk_size=chunk_size
-            ):
-                yield cast("bytes", chunk)
+            async for data in aiofile.Reader(fp, chunk_size=chunk_size):
+                yield cast("bytes", data)
 
 
-async def trio_jockey(coro: Awaitable, channel):
+async def trio_jockey(coro: Awaitable[Any], channel: Any) -> None:
     """Wait for the given coroutine and send result back to the given channel."""
     await channel.send(await coro)
 
 
-def json_dumps(content) -> bytes:
+def json_dumps(content: Any) -> bytes:
     """Emulate orjson."""
-    return dumps(  # type: ignore [call-arg]
+    return dumps(
         content,
         ensure_ascii=False,
         separators=(",", ":"),
@@ -239,14 +240,18 @@ def json_loads(obj: bytes | str) -> TJSON:
     """Emulate orjson."""
     if isinstance(obj, bytes):
         obj = obj.decode("utf-8")
-    return loads(obj)
+    return cast("TJSON", loads(obj))
 
 
 with suppress(ImportError):
     from orjson import OPT_NON_STR_KEYS
     from orjson import dumps as orjson_dumps
-    from orjson import loads as json_loads  # type: ignore[assignment]
+    from orjson import loads as orjson_loads
 
-    def json_dumps(content) -> bytes:
+    def json_dumps(content: Any) -> bytes:
         """Emulate orjson."""
         return orjson_dumps(content, default=str, option=OPT_NON_STR_KEYS)
+
+    def json_loads(obj: bytes | str) -> TJSON:
+        """Emulate orjson."""
+        return cast("TJSON", orjson_loads(obj))

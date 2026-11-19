@@ -9,7 +9,7 @@ The original code is licensed by Apache2 license.
 from __future__ import annotations
 
 # Flags for the multipart parser.
-from typing import Final
+from typing import Any, Callable, Final
 
 from .errors import ASGIRequestEntityTooLargeError
 
@@ -52,18 +52,18 @@ class BaseParser:
 
     __slots__ = ("callbacks",)
 
-    def __init__(self, callbacks: dict):
+    def __init__(self, callbacks: dict[str, Callable[..., Any]]) -> None:
         self.callbacks = callbacks
 
-    def callback(self, name: str, data: bytes, start: int, end: int):
+    def callback(self, name: str, data: bytes, start: int, end: int) -> None:
         func = self.callbacks.get(name)
         if func is not None:
             func(data, start, end)
 
-    def write(self, _: bytes):
+    def write(self, data: bytes) -> None:
         pass
 
-    def finalize(self):
+    def finalize(self) -> None:
         pass
 
 
@@ -107,14 +107,14 @@ class QueryStringParser(BaseParser):
 
     __slots__ = "callbacks", "cursize", "max_size", "state"
 
-    def __init__(self, callbacks: dict, max_size: int = 0):
+    def __init__(self, callbacks: dict[str, Callable[..., Any]], max_size: int = 0) -> None:
         super().__init__(callbacks)
         self.cursize = 0
         self.max_size = max_size
 
         self.state = STATE_BEFORE_FIELD
 
-    def write(self, data: bytes):  # noqa: C901, PLR0912
+    def write(self, data: bytes) -> None:  # noqa: C901, PLR0912
         data_len = prune_data(len(data), self.cursize, self.max_size)
 
         idx = 0
@@ -177,7 +177,7 @@ class QueryStringParser(BaseParser):
         self.state = state
         self.cursize += data_len
 
-    def finalize(self):
+    def finalize(self) -> None:
         """Finalize this parser, which signals to that we are finished parsing,
         if we're still in the middle of a field, an on_field_end callback, and
         then the on_end callback.
@@ -272,7 +272,9 @@ class MultipartParser(BaseParser):
         "state",
     )
 
-    def __init__(self, boundary, callbacks: dict, max_size: int = 0):
+    def __init__(
+        self, boundary: str | bytes, callbacks: dict[str, Callable[..., Any]], max_size: int = 0
+    ) -> None:
         super().__init__(callbacks)
         self.cursize = 0
         self.max_size = max_size
@@ -297,7 +299,7 @@ class MultipartParser(BaseParser):
         # '--\r\n' is 8 bytes.
         self.lookbehind = [EMPTY for _ in range(len(boundary) + 8)]
 
-    def write(self, data):  # noqa: C901, PLR0912, PLR0915
+    def write(self, data: bytes) -> None:  # noqa: C901, PLR0912, PLR0915
         data_len = prune_data(len(data), self.cursize, self.max_size)
 
         idx = 0

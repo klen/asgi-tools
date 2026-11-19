@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Any, Final, cast
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
@@ -53,19 +53,21 @@ class HTTPView:
 
     """
 
-    def __new__(cls, request: Request, **opts):
+    def __new__(cls, request: Request, **opts: Any) -> Any:
         """Init the class and call it."""
         self = super().__new__(cls)
         return self(request, **opts)
 
     @classmethod
-    def __route__(cls, router: Router, *paths: str, methods: TMethods | None = None, **params):
+    def __route__(
+        cls, router: Router, *paths: str, methods: TMethods | None = None, **params: Any
+    ) -> Any:
         """Bind the class view to the given router."""
         view_methods = dict(inspect.getmembers(cls, inspect.isfunction))
         methods = methods or [m for m in HTTP_METHODS if m.lower() in view_methods]
         return router.bind(cls, *paths, methods=methods, **params)
 
-    def __call__(self, request: Request, **opts) -> Awaitable:
+    def __call__(self, request: Request, **opts: Any) -> Awaitable[Any]:
         """Dispatch the given request by HTTP method."""
         method = getattr(self, request.method.lower())
-        return method(request, **opts)
+        return cast("Awaitable[Any]", method(request, **opts))
