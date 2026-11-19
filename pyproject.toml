@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel", "Cython"]
 
 [project]
 name = "asgi-tools"
-version = "3.2.2"
+version = "3.3.0"
 description = "ASGI Toolkit to build web applications"
 readme = "README.md"
 requires-python = ">=3.11,<4"
@@ -148,7 +148,7 @@ required-imports = ["from __future__ import annotations"]
 # min-severity = "warn"
 
 [tool.bumpversion]
-current_version = "3.2.2"
+current_version = "3.3.0"
 commit = false
 tag = false
 message = "build: Bump version: {current_version} → {new_version}"
