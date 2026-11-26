@@ -122,7 +122,8 @@ def parse_options_header(value: str) -> tuple[str, dict[str, str]]:
             if count:
                 value = options.get(option, "") + value
 
-        options[option] = value.strip('" ').replace("\\\\", "\\").replace('\\"', '"')
+        if value is not None:
+            options[option] = value.strip('" ').replace("\\\\", "\\").replace('\\"', '"')
         rest = rest[match.end() :]
 
     return ctype, options
