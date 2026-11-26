@@ -17,6 +17,15 @@ def test_parse_options_header():
     assert opts == {"name": "test_client.py", "filename": "test_client.py"}
 
 
+    ct, opts = parse_options_header("text/plain; charset")
+    assert ct == "text/plain"
+    assert opts == {}
+
+    ct, opts = parse_options_header('form-data; name="file"; charset')
+    assert ct == "form-data"
+    assert opts == {"name": "file"}
+
+
 def test_parse_host():
     assert parse_host([(b"host", b"Example.COM:8000")]) == "example.com"
     assert parse_host([(b"host", b"[::1]:8000")]) == "::1"
